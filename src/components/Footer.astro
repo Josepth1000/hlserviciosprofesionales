@@ -1,0 +1,99 @@
+---
+import Icon from './Icon.astro';
+import { getSiteData, getServices, getTextosData, getPageNavLinks } from '../lib/content';
+
+const site = await getSiteData();
+const textos = await getTextosData();
+const services = await getServices();
+const navLinks = [...textos.nav.items, ...(await getPageNavLinks())];
+const year = new Date().getFullYear();
+
+// Redes sociales configurables (panel → Configuración del sitio → Redes sociales).
+// Si no hay ninguna definida, se mantienen Instagram y WhatsApp por compatibilidad.
+const socials = site.social?.length
+  ? site.social
+  : [
+      { name: 'Instagram', url: site.instagram, icon: 'instagram' },
+      { name: 'WhatsApp', url: `https://wa.me/${site.whatsapp}`, icon: 'whatsapp' },
+    ];
+---
+
+<footer class="bg-ink-950 text-ink-200">
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+    <div>
+      <div class="flex items-center gap-3">
+        <img src={site.logo} alt="" aria-hidden="true" class="h-14 w-14 shrink-0 rounded-full" width="112" height="112" />
+        <div class="leading-none">
+          <p class="font-script text-3xl leading-none text-gold-gradient">{site.brandName}</p>
+          <p class="mt-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/60">
+            {site.slogan}
+          </p>
+        </div>
+      </div>
+      <p class="mt-4 text-sm leading-relaxed">
+        {textos.footer.description}
+      </p>
+      <div class="mt-5 flex items-center gap-3">
+        {socials.map((s) => (
+          <a
+            href={s.url}
+            target="_blank"
+            rel="noopener"
+            class="social-btn"
+            aria-label={s.name}
+            title={s.name}
+          >
+            <Icon name={s.icon} class="h-5 w-5" />
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <h3 class="font-display text-lg font-semibold text-white">{textos.footer.linksTitle}</h3>
+      <ul class="mt-4 space-y-2 text-sm">
+        {navLinks.map((link) => (
+          <li><a href={link.href} class="transition hover:text-brand-300">{link.label}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="font-display text-lg font-semibold text-white">{textos.footer.servicesTitle}</h3>
+      <ul class="mt-4 space-y-2 text-sm">
+        {services.map((s) => (
+          <li><a href="/servicios" class="transition hover:text-brand-300">{s.data.title}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="font-display text-lg font-semibold text-white">{textos.footer.contactTitle}</h3>
+      <ul class="mt-4 space-y-3 text-sm">
+        <li class="flex gap-3">
+          <Icon name="pin" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+          <span>{site.address}</span>
+        </li>
+        <li class="flex gap-3">
+          <Icon name="phone" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+          <a href={`tel:${site.phone.replace(/\s/g, '')}`} class="transition hover:text-brand-300">{site.phone}</a>
+        </li>
+        <li class="flex gap-3">
+          <Icon name="mail" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+          <a href={`mailto:${site.email}`} class="transition hover:text-brand-300">{site.email}</a>
+        </li>
+        <li class="flex gap-3">
+          <Icon name="clock" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+          <span>{site.hours}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-ink-800">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row sm:px-6 lg:px-8">
+      <p>© {year} {site.name}. {textos.footer.copyrightSuffix}</p>
+      <p>{textos.footer.cityLine}</p>
+    </div>
+  </div>
+</footer>

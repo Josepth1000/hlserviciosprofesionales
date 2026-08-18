@@ -1,0 +1,767 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/*
+ * Sistema de diseño — HL Servicios Profesionales
+ * Paleta corporativa extraída del logo de Instagram (@serviciosprofesionaleshl):
+ * dorado (≈ #C9A227) + negro, según la imagen oficial del perfil.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-script: "Great Vibes", "Segoe Script", cursive;
+
+  /* Dorado corporativo (marca) */
+  --color-brand-50: #fcf9ef;
+  --color-brand-100: #f8f1da;
+  --color-brand-200: #efe0ac;
+  --color-brand-300: #e4cb7c;
+  --color-brand-400: #d8b453;
+  --color-brand-500: #c9a227;
+  --color-brand-600: #a9831f;
+  --color-brand-700: #866619;
+  --color-brand-800: #654a15;
+  --color-brand-900: #47330f;
+  --color-brand-950: #2e2109;
+
+  /* Negros neutros "tinta" (superficies oscuras, texto) */
+  --color-ink-50: #f7f7f8;
+  --color-ink-100: #ececee;
+  --color-ink-200: #d6d6da;
+  --color-ink-300: #b5b5bc;
+  --color-ink-400: #8e8e97;
+  --color-ink-500: #6c6c75;
+  --color-ink-600: #4f4f57;
+  --color-ink-700: #3a3a40;
+  --color-ink-800: #252529;
+  --color-ink-900: #17171a;
+  --color-ink-950: #0b0b0d;
+
+  /* Ocre apagado (fondo de la sección de preguntas frecuentes) */
+  --color-ocre: #e9dfc4;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Regla en @layer base para que las utilidades (p. ej. bg-ink-950 en el
+ * body del login) puedan sobrescribirla — sin capa ganaría por cascade layering. */
+@layer base {
+  body {
+    @apply bg-white text-ink-600 antialiased;
+  }
+}
+
+/* Texto dorado metálico (marca) — deriva del color principal configurable */
+.text-gold-gradient {
+  background-image: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--color-brand-500) 70%, white) 0%,
+    var(--color-brand-500) 35%,
+    color-mix(in srgb, var(--color-brand-500) 60%, white) 52%,
+    color-mix(in srgb, var(--color-brand-500) 75%, black) 72%,
+    color-mix(in srgb, var(--color-brand-500) 70%, white) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ======================================================================
+ * Usabilidad & accesibilidad
+ * ====================================================================== */
+
+/* Anclas: no quedan ocultas bajo el header fijo */
+[id] {
+  scroll-margin-top: 5.5rem;
+}
+
+/* Enlace para saltar al contenido */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-250%);
+  border-radius: 0.5rem;
+  background: var(--color-ink-950);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Anillo de foco visible consistente (los inputs conservan sus estilos Tailwind) */
+:where(a, button, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+::selection {
+  background: var(--color-brand-500);
+  color: #fff;
+}
+
+/* Scrollbar sutil */
+html {
+  scrollbar-color: var(--color-ink-300) transparent;
+}
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-300);
+    border-radius: 8px;
+    border: 2px solid #fff;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ======================================================================
+ * View Transitions (Astro <ClientRouter />)
+ * Fundido cruzado con un ligero ascenso; Astro desactiva la animación
+ * automáticamente con prefers-reduced-motion.
+ * ====================================================================== */
+::view-transition-old(root) {
+  animation: vt-fade-out 0.22s ease both;
+}
+::view-transition-new(root) {
+  animation: vt-fade-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* ======================================================================
+ * Reveal on scroll ([data-reveal])
+ * Solo se ocultan cuando JS está disponible (clase .js en <html>), de modo
+ * que sin JavaScript el contenido siempre es visible.
+ * ====================================================================== */
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+html.js [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ======================================================================
+ * Animación del puntero configurable (panel → ✨ Animación del puntero)
+ * - halo: resplandor dorado difuso (tamaño configurable vía --cursor-size)
+ * - ring: anillo dorado que sigue al cursor y crece sobre enlaces/botones
+ * - sparkles: pequeñas partículas doradas que se desprenden del puntero
+ * Los tres elementos son decorativos (pointer-events: none) y solo se
+ * muestran en dispositivos con puntero fino.
+ * ====================================================================== */
+#cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--cursor-size, 360px);
+  height: var(--cursor-size, 360px);
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 40;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-brand-500) 15%, transparent) 0%,
+    transparent 65%
+  );
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0);
+  transition: opacity 0.5s ease;
+}
+#cursor-glow.is-active {
+  opacity: 1;
+}
+
+#cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-brand-500) 85%, transparent);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08) inset;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0);
+  transition:
+    opacity 0.35s ease,
+    width 0.25s ease,
+    height 0.25s ease,
+    border-color 0.25s ease;
+}
+#cursor-ring.is-active {
+  opacity: 1;
+}
+#cursor-ring.is-big {
+  width: 62px;
+  height: 62px;
+  border-color: color-mix(in srgb, var(--color-brand-400) 95%, transparent);
+}
+
+.cursor-spark {
+  position: fixed;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--color-brand-500);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-brand-400) 60%, transparent);
+  pointer-events: none;
+  z-index: 40;
+}
+
+/* Si la animación del puntero está desactivada desde el panel, también se
+   oculta el brillo (spotlight) de las tarjetas. */
+html.no-cursor-anim [data-spotlight]::before {
+  display: none;
+}
+
+/* ======================================================================
+ * Spotlight en tarjetas ([data-spotlight])
+ * Luz dorada que se desliza con el cursor dentro de la tarjeta.
+ * ====================================================================== */
+[data-spotlight] {
+  position: relative;
+}
+[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(
+    260px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in srgb, var(--color-brand-500) 14%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+[data-spotlight]:hover::before,
+[data-spotlight]:focus-within::before {
+  opacity: 1;
+}
+
+/* ======================================================================
+ * Micro-interacciones
+ * ====================================================================== */
+
+/* Destello que recorre los botones dorados al pasar el cursor */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -80%;
+  width: 50%;
+  transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.55s ease;
+  pointer-events: none;
+}
+.btn-shine:hover::after {
+  left: 130%;
+}
+
+/* Blobs "líquidos" del hero (efecto gooey: manchas que derivan lentamente) */
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(34px, -22px) scale(1.08);
+  }
+  66% {
+    transform: translate(-22px, 18px) scale(0.94);
+  }
+}
+.animate-blob {
+  animation: blob-drift 16s ease-in-out infinite;
+}
+.animate-blob-slow {
+  animation: blob-drift 24s ease-in-out infinite reverse;
+}
+
+/* Entrada ascendente del hero al cargar la página */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-rise {
+  animation: rise-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Header: sombra al hacer scroll */
+.site-header {
+  transition:
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+.site-header.is-scrolled {
+  box-shadow: 0 12px 32px -14px rgb(0 0 0 / 0.5);
+}
+
+/* ======================================================================
+ * Barra de progreso de lectura
+ * Hilo dorado fijo en el borde superior que avanza con el scroll de la página
+ * (escala X controlada desde src/scripts/site.ts — sin animación CSS).
+ * ====================================================================== */
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 60;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, var(--color-brand-400), var(--color-brand-600));
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Subrayado animado de la navegación */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.3rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-brand-400);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.28s ease;
+}
+.nav-link:hover::after,
+.nav-link[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+/* Menú móvil animado (max-height). Sin JS el menú queda visible y accesible. */
+#mobile-menu {
+  overflow: hidden;
+}
+html.js #mobile-menu {
+  max-height: 0;
+  transition: max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Iconos del botón de menú (hamburguesa ↔ X) */
+#menu-toggle .icon-close {
+  display: none;
+}
+#menu-toggle[aria-expanded='true'] .icon-menu {
+  display: none;
+}
+#menu-toggle[aria-expanded='true'] .icon-close {
+  display: block;
+}
+
+/* Botón volver arriba */
+#back-to-top {
+  position: fixed;
+  right: 1.25rem;
+  /* Se apila sobre el botón flotante de WhatsApp (abajo a la derecha) en
+   * todas las pantallas para que no se superpongan. */
+  bottom: 5.5rem;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 9999px;
+  background: var(--color-ink-900);
+  color: var(--color-brand-400);
+  box-shadow: 0 10px 26px -8px rgb(0 0 0 / 0.45);
+  opacity: 0;
+  transform: translateY(0.75rem);
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    background-color 0.3s ease;
+}
+#back-to-top.is-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+#back-to-top:hover {
+  background: var(--color-ink-800);
+}
+
+/* ======================================================================
+ * WhatsApp flotante
+ * Botón dorado fijo abajo a la derecha con pulso suave, visible en todas las
+ * pantallas; "Volver arriba" se apila encima para no superponerse.
+ * ====================================================================== */
+#wa-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 44;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.25rem;
+  width: 3.25rem;
+  border-radius: 9999px;
+  background: var(--color-brand-500);
+  color: var(--color-ink-950);
+  box-shadow: 0 14px 30px -10px rgb(0 0 0 / 0.45);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+#wa-fab:hover,
+#wa-fab:focus-visible {
+  background: var(--color-brand-400);
+  transform: translateY(-3px) scale(1.06);
+}
+/* Pulso dorado en reposo: invita al clic sin ser invasivo */
+#wa-fab {
+  animation: wa-fab-idle 2.8s ease-in-out infinite;
+}
+@keyframes wa-fab-idle {
+  0%,
+  100% {
+    box-shadow: 0 14px 30px -10px rgb(0 0 0 / 0.45);
+  }
+  50% {
+    box-shadow:
+      0 16px 34px -10px color-mix(in srgb, var(--color-brand-500) 60%, transparent),
+      0 0 0 5px color-mix(in srgb, var(--color-brand-500) 16%, transparent);
+  }
+}
+/* Anillo que pulsa al pasar el cursor */
+#wa-fab::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid color-mix(in srgb, var(--color-brand-400) 90%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+#wa-fab:hover::after,
+#wa-fab:focus-visible::after {
+  animation: social-ping 1.5s ease-out infinite;
+}
+
+
+/* ======================================================================
+ * Botones magnéticos ([data-magnetic])
+ * El botón se acerca sutilmente al cursor (micro-interacción tipo "amicro");
+ * solo con puntero fino y respetando prefers-reduced-motion (ver site.ts).
+ * ====================================================================== */
+[data-magnetic] {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+[data-magnetic].is-magnetized {
+  transition: transform 0.06s linear;
+}
+
+/* ======================================================================
+ * Cinta marquee (inicio)
+ * Franja dorada sobre fondo oscuro que desliza los nombres de los servicios
+ * (datos del panel); se pausa al pasar el cursor. Solo decorativa (aria-hidden).
+ * ====================================================================== */
+.marquee-track {
+  animation: marquee-scroll 34s linear infinite;
+  will-change: transform;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Acordeón FAQ con animación suave (grid-rows 0fr → 1fr) */
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-answer > div {
+  overflow: hidden;
+  min-height: 0;
+}
+.faq-item.is-open .faq-answer {
+  grid-template-rows: 1fr;
+}
+.faq-chevron {
+  transition: transform 0.3s ease;
+}
+.faq-item.is-open .faq-chevron {
+  transform: rotate(180deg);
+}
+
+/* ======================================================================
+ * Botones de redes sociales del pie de página
+ * Llamada a la acción: al pasar el cursor se elevan, se pintan de dorado y
+ * emiten un anillo que pulsa + un leve bamboleo del icono.
+ * ====================================================================== */
+.social-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: var(--color-ink-800);
+  color: var(--color-ink-100);
+  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.5);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.social-btn svg {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Pulso dorado suave en reposo: atrae la mirada e invita al clic */
+.social-btn {
+  animation: social-idle 2.6s ease-in-out infinite;
+}
+@keyframes social-idle {
+  0%,
+  100% {
+    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.5);
+  }
+  50% {
+    box-shadow:
+      0 8px 22px -8px color-mix(in srgb, var(--color-brand-500) 55%, transparent),
+      0 0 0 3px color-mix(in srgb, var(--color-brand-500) 18%, transparent);
+  }
+}
+.social-btn:hover,
+.social-btn:focus-visible {
+  transform: translateY(-4px);
+  background: var(--color-brand-500);
+  color: var(--color-ink-950);
+  box-shadow:
+    0 14px 28px -10px color-mix(in srgb, var(--color-brand-500) 65%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-brand-300) 60%, transparent);
+}
+.social-btn:hover svg,
+.social-btn:focus-visible svg {
+  transform: rotate(-12deg) scale(1.12);
+}
+
+/* Anillo que pulsa al pasar el cursor (invita al clic) */
+.social-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid color-mix(in srgb, var(--color-brand-400) 85%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.social-btn:hover::after,
+.social-btn:focus-visible::after {
+  animation: social-ping 1.5s ease-out infinite;
+}
+@keyframes social-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  75%,
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* ======================================================================
+ * Página de Servicios: bloque en lectura activa
+ * Mientras el usuario lee un servicio (el más visible en pantalla) su imagen
+ * y su botón se destacan con animaciones sutiles y continuas.
+ * ====================================================================== */
+.service-img {
+  box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.35);
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.7s ease;
+}
+.service-block.is-reading .service-img {
+  transform: scale(1.04);
+  box-shadow:
+    0 28px 64px -22px rgb(0 0 0 / 0.5),
+    0 0 0 4px color-mix(in srgb, var(--color-brand-500) 55%, transparent),
+    0 0 46px -8px color-mix(in srgb, var(--color-brand-400) 50%, transparent);
+}
+
+.service-cta {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.45s ease,
+    box-shadow 0.45s ease,
+    background-color 0.3s ease;
+}
+.service-cta::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -80%;
+  width: 50%;
+  transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.service-cta:hover::after {
+  opacity: 1;
+  animation: cta-shine 1.5s ease forwards;
+}
+.service-block.is-reading .service-cta {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -14px rgb(0 0 0 / 0.5);
+}
+.service-block.is-reading .service-cta::after {
+  opacity: 1;
+  animation: cta-shine 2.8s ease-in-out infinite;
+}
+@keyframes cta-shine {
+  0% {
+    left: -80%;
+  }
+  55%,
+  100% {
+    left: 130%;
+  }
+}
+
+/* ======================================================================
+ * Tabla de planes (Cómo me afilio): celda elegida
+ * Al hacer clic en una combinación se resalta en dorado mientras se abre
+ * WhatsApp con el mensaje personalizado.
+ * ====================================================================== */
+.plan-cell {
+  position: relative;
+  outline-offset: 2px;
+}
+.plan-cell.is-selected {
+  background: var(--color-brand-500);
+  color: var(--color-ink-950);
+  box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.45);
+}
+.plan-cell.is-selected svg {
+  opacity: 1;
+}
+
+/* ======================================================================
+ * prefers-reduced-motion: todo se reduce a estados estáticos
+ * ====================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  html.js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-blob,
+  .animate-blob-slow,
+  .animate-rise,
+  .social-btn,
+  #wa-fab,
+  .marquee-track {
+    animation: none;
+  }
+  #scroll-progress {
+    background: var(--color-brand-500);
+  }
+  [data-magnetic] {
+    transition: none;
+  }
+  .btn-shine::after,
+  .service-cta::after,
+  .social-btn::after {
+    display: none;
+  }
+  .service-img,
+  .service-cta,
+  .social-btn,
+  .social-btn svg {
+    transform: none;
+    box-shadow: none;
+    transition: none;
+  }
+  #cursor-glow,
+  #cursor-ring,
+  .cursor-spark,
+  [data-spotlight]::before {
+    display: none;
+  }
+  #mobile-menu {
+    transition: none;
+  }
+  .nav-link::after,
+  .faq-answer,
+  .faq-chevron {
+    transition: none;
+  }
+}

@@ -1,0 +1,73 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import CTABand from '../components/CTABand.astro';
+import { getServices, getSiteData, getServiceImageMap, getTextosData } from '../lib/content';
+
+const services = await getServices();
+const site = await getSiteData();
+const textos = await getTextosData();
+const serviceImageMap = getServiceImageMap(site);
+---
+
+<Layout
+  title={textos.servicesPage.seoTitle}
+  description={textos.servicesPage.seoDescription}
+>
+  <PageHero
+    title={textos.servicesPage.hero.title}
+    subtitle={textos.servicesPage.hero.subtitle}
+    image={textos.servicesPage.hero.image}
+  />
+
+  <section class="mx-auto max-w-7xl space-y-16 px-4 py-20 sm:px-6 lg:px-8">
+    {
+      services.map((service, i) => (
+        <div
+          id={service.id}
+          class="service-block grid items-center gap-10 scroll-mt-28 lg:grid-cols-2"
+          data-reading-observe
+        >
+          <div class:list={[i % 2 === 1 && 'lg:order-2']} data-reveal>
+            <div class="flex items-center gap-3">
+              <span class="flex h-12 w-12 items-center justify-center rounded-lg bg-ink-800 text-brand-400">
+                <Icon name={service.data.icon} class="h-6 w-6" />
+              </span>
+              <h2 class="font-display text-2xl font-bold text-ink-900 sm:text-3xl">{service.data.title}</h2>
+            </div>
+            <p class="mt-4 leading-relaxed text-slate-600">{service.data.description}</p>
+            <ul class="mt-6 space-y-3">
+              {service.data.items.map((item) => (
+                <li class="flex items-start gap-3 text-slate-700">
+                  <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+                    <Icon name="check" class="h-3.5 w-3.5" />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <a
+              href="/contacto"
+              class="service-cta mt-8 inline-flex items-center gap-2 rounded-md bg-ink-800 px-6 py-3 text-sm font-semibold text-white hover:bg-ink-700"
+            >
+              {textos.servicesPage.ctaLabel}
+              <Icon name="arrow" class="h-4 w-4" />
+            </a>
+          </div>
+
+          <div class:list={[i % 2 === 1 && 'lg:order-1']} data-reveal style={`--reveal-delay: 140ms`}>
+            <img
+              src={service.data.image ?? serviceImageMap.get(service.data.title)}
+              alt={service.data.title}
+              loading="lazy"
+              class="service-img w-full rounded-xl object-cover"
+            />
+          </div>
+        </div>
+      ))
+    }
+  </section>
+
+  <CTABand />
+</Layout>

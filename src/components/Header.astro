@@ -1,0 +1,99 @@
+---
+import Icon from './Icon.astro';
+import { getSiteData, getTextosData, getWhatsAppLink, getPageNavLinks } from '../lib/content';
+
+const site = await getSiteData();
+const textos = await getTextosData();
+
+const links = [...textos.nav.items, ...(await getPageNavLinks())];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
+---
+
+<header class="site-header sticky top-0 z-50 border-b border-ink-800 bg-ink-950/95 backdrop-blur">
+  <div class="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <a href="/" class="flex items-center gap-3" aria-label="Ir al inicio">
+      <img src={site.logo} alt="" aria-hidden="true" class="h-12 w-12 shrink-0 rounded-full sm:h-13 sm:w-13" width="96" height="96" />
+      <span class="flex flex-col leading-none">
+        <span class="font-script text-xl leading-none text-gold-gradient sm:text-2xl">{site.brandName}</span>
+        <span class="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-[9px]">
+          {site.slogan}
+        </span>
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="Navegación principal">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              'nav-link rounded-md px-3 py-2 text-sm font-medium transition',
+              isActive(link.href)
+                ? 'text-brand-300'
+                : 'text-ink-100 hover:bg-ink-800 hover:text-white',
+            ]}
+            aria-current={isActive(link.href) ? 'page' : undefined}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+      <a
+        href={waLink}
+        target="_blank"
+        rel="noopener"
+        class="btn-shine ml-3 inline-flex items-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-brand-400"
+      >
+        <Icon name="whatsapp" class="h-4 w-4" />
+        {textos.nav.whatsappLabel}
+      </a>
+    </nav>
+
+    <button
+      id="menu-toggle"
+      type="button"
+      class="inline-flex items-center justify-center rounded-md p-2 text-ink-100 hover:bg-ink-800 lg:hidden"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <svg class="icon-menu h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+      </svg>
+      <svg class="icon-close h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <nav id="mobile-menu" class="border-t border-ink-800 bg-ink-950 lg:hidden" aria-label="Menú móvil">
+    <div class="mx-auto max-w-7xl space-y-1 px-4 py-3 sm:px-6">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              'block rounded-md px-3 py-2 text-sm font-medium',
+              isActive(link.href) ? 'bg-ink-800 text-brand-300' : 'text-ink-100 hover:bg-ink-800 hover:text-white',
+            ]}
+            aria-current={isActive(link.href) ? 'page' : undefined}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+      <a
+        href={waLink}
+        target="_blank"
+        rel="noopener"
+        class="mt-2 flex items-center justify-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-ink-950"
+      >
+        <Icon name="whatsapp" class="h-4 w-4" />
+        {textos.nav.whatsappLabel}
+      </a>
+    </div>
+  </nav>
+</header>

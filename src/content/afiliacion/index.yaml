@@ -1,0 +1,62 @@
+intro: >-
+  Escoge tu mejor plan. Combinaciones de salud, pensión y caja de compensación
+  (CCF) según tus necesidades y presupuesto.
+plans:
+  - id: Plan 1
+    salud: 70000
+    saludCcf: 102000
+    saludPension: 195000
+    completo: 227000
+  - id: Plan 2
+    salud: 75000
+    saludCcf: 107000
+    saludPension: 200000
+    completo: 232000
+  - id: Plan 3
+    salud: 85000
+    saludCcf: 117000
+    saludPension: 210000
+    completo: 242000
+  - id: Plan 4
+    salud: 100000
+    saludCcf: 132000
+    saludPension: 225000
+    completo: 257000
+  - id: Plan 5
+    salud: 120000
+    saludCcf: 152000
+    saludPension: 245000
+    completo: 277000
+requirements:
+  - >-
+    Una (1) fotocopia de la cédula del cotizante.
+  - >-
+    Fotocopia de la cédula del cónyuge.
+  - >-
+    Registro civil de matrimonio o declaración extrajuicio.
+  - >-
+    Registro civil de nacimiento de los niños menores de 7 años.
+  - >-
+    Registro civil de nacimiento y copia de la tarjeta de identidad para los
+    niños mayores de 7 años.
+  - >-
+    Para las personas solteras: pueden afiliar a sus padres anexando fotocopia de
+    la cédula de los padres y el registro civil de nacimiento del cotizante donde
+    acredite el parentesco.
+notes:
+  - >-
+    Toda persona que ejecuta labores de riesgo debe estar afiliada al sistema de
+    seguridad social (EPS, ARL y pensión), según la Ley 100 de 1993.
+  - >-
+    HL Servicios Profesionales se encuentra adscrita a La Equidad para cubrir el
+    sistema de riesgos laborales (ARL), con todos los riesgos (I, II, III, IV y
+    V), entidad de prestigio nacional elegida por su seriedad y cumplimiento en
+    la indemnización por accidentes de trabajo.
+  - >-
+    Adicionalmente realizamos convenios de prestación de servicios para empresas
+    basados en el manejo de la seguridad social de la nómina de empleados,
+    incluyendo la emisión de desprendibles de pago, certificados laborales y
+    asesorías generales.
+  - >-
+    Si desea acceder a la caja de compensación se deben cancelar $30.000 (treinta
+    mil pesos) adicionales sobre los valores estipulados en la tabla.

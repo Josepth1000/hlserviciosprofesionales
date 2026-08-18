@@ -1,0 +1,225 @@
+# Textos del sitio — editables desde el panel (✍️ Textos del sitio).
+# Cada campo aquí se refleja en el sitio; los valores coinciden con el
+# contenido original del sitio.
+global:
+  whatsappMessage: Hola, quiero una asesoría en HL Servicios Profesionales.
+  pageHeroLabel: HL Servicios Profesionales
+  skipLinkLabel: Saltar al contenido
+  backToTopLabel: Volver arriba
+nav:
+  items:
+    - label: Inicio
+      href: /
+    - label: Quiénes Somos
+      href: /quienes-somos
+    - label: Servicios
+      href: /servicios
+    - label: Cómo me afilio
+      href: /como-me-afilio
+    - label: Noticias
+      href: /noticias
+    - label: Contacto
+      href: /contacto
+  whatsappLabel: WhatsApp
+footer:
+  description: >-
+    Firma especializada en asesoría jurídica, contable, seguridad social y
+    seguros. Más de 10 años de servicio valorados por nuestros clientes.
+  linksTitle: Enlaces
+  servicesTitle: Servicios
+  contactTitle: Contacto
+  cityLine: Bucaramanga, Santander · Colombia
+  copyrightSuffix: Todos los derechos reservados.
+cta:
+  title: ¿Necesitas asesoría profesional?
+  subtitle: >-
+    Contáctanos y recibe acompañamiento personalizado en seguridad social,
+    asuntos jurídicos, contables y seguros.
+  whatsappLabel: Escríbenos por WhatsApp
+  contactLabel: Ir a contacto
+home:
+  heroImage: /images/hero/image.jpg
+  heroPrimaryLabel: Conoce nuestros servicios
+  heroSecondaryLabel: Escríbenos
+  services:
+    label: Qué hacemos
+    title: Nuestros servicios
+    intro: >-
+      Acompañamos a personas y empresas con soluciones integrales que protegen
+      su patrimonio, su salud y sus finanzas.
+    readMoreLabel: Conocer más
+  social:
+    label: Seguridad social
+    title: Afíliate al sistema de seguridad social sin complicaciones
+    text: >-
+      Somos una firma especializada en prestar servicios de seguridad social
+      para todos los sectores económicos: afiliaciones a salud, ARL, pensión y
+      caja de compensación, con planes que se adaptan a tu presupuesto.
+    bulletPricePrefix: Planes desde
+    bullets:
+      - Adscritos a La Equidad para riesgos laborales (ARL)
+      - Convenios para empresas y nóminas de empleados
+    floatingTop: EPS · ARL
+    floatingBottom: Pensión · Caja de compensación
+    buttonLabel: Ver planes de afiliación
+  news:
+    label: Actualidad
+    title: Noticias y publicaciones
+    viewAll: Ver todas las noticias
+  testimonials:
+    label: Testimonios
+    title: Lo que dicen nuestros clientes
+    intro: >-
+      Más de 10 años de servicio valorados por personas y empresas que confían
+      en nuestra asesoría.
+  faq:
+    label: Ayuda
+    title: Preguntas frecuentes
+    intro: >-
+      Resolvemos las dudas más comunes. Si no encuentras la tuya, escríbenos por
+      WhatsApp.
+about:
+  seoTitle: Quiénes Somos
+  seoDescription: >-
+    Conozca a HL Servicios Profesionales: más de 10 años de asesoría jurídica,
+    contable y de seguridad social en Bucaramanga, Santander.
+  hero:
+    title: Quiénes Somos
+    subtitle: >-
+      Más de 10 años brindando soluciones de éxito con una asesoría oportuna,
+      sólida, honesta y confiable.
+    image: /images/firma-contrato.jpg
+  label: Nuestra firma
+  title: Soluciones de éxito para nuestros clientes
+  paragraph1: >-
+    HL Servicios Profesionales es una firma especializada en prestar servicios
+    en seguridad social, dispuesta a brindarle la mejor asesoría en afiliaciones
+    de salud, ARL, pensión y caja de compensación para todos los sectores
+    económicos, además de servicios jurídicos, contables y de seguros.
+  paragraph2: >-
+    Todos nuestros servicios cuentan con el respaldo de más de 10 años de
+    servicio valorados por nuestros clientes: garantizamos una asesoría
+    oportuna, sólida, honesta y confiable.
+  locationLabel: Ubicación
+  founder:
+    name: Henry López Beltrán
+    role: Gerente General
+    bio: >-
+      Lidera la firma con una visión integral de la asesoría profesional en
+      seguridad social, derecho, contabilidad y seguros.
+    image: /images/firma-contrato.jpg
+  values:
+    label: Nuestros principios
+    title: Asesoría con valores
+    intro: >-
+      La confianza de nuestros clientes se construye sobre cuatro principios que
+      nos guían en cada asesoría.
+servicesPage:
+  seoTitle: Servicios
+  seoDescription: >-
+    Servicios jurídicos, contables, de seguridad social y seguros. Todos cuentan
+    con el respaldo de más de 10 años de servicio.
+  hero:
+    title: Nuestros Servicios
+    subtitle: >-
+      Soluciones de éxito: todos nuestros servicios cuentan con el respaldo de
+      más de 10 años de servicio valorados por nuestros clientes. Garantizamos
+      una asesoría oportuna, sólida, honesta y confiable.
+    image: /images/hero/image.jpg
+  ctaLabel: Solicitar asesoría
+afiliacion:
+  seoTitle: Cómo me afilio
+  seoDescription: >-
+    Conoce los planes de afiliación a seguridad social (salud, ARL, pensión y
+    caja de compensación) y los requisitos para vincularte.
+  hero:
+    title: ¿Cómo me afilio?
+    subtitle: >-
+      Escoge tu mejor plan. Afiliaciones a salud, ARL, pensión y caja de
+      compensación para todos los sectores económicos.
+    image: /images/seguridad-social/image.avif
+  plansLabel: Planes de afiliación
+  plansTitle: Escoge tu mejor plan
+  planColumnHeader: Plan
+  plansWhatsappTemplate: >-
+    Hola, estoy interesado en el {plan} {combinacion} por valor de {precio}
+    mensuales
+  plansHint: Haz clic en una combinación para cotizarla por WhatsApp.
+  requirements:
+    label: Vinculación
+    title: Requisitos para la vinculación al sistema de seguridad social
+    intro: >-
+      Prepara los siguientes documentos para agilizar tu afiliación. Te
+      acompañamos durante todo el proceso.
+    whatsappButton: Consultar por WhatsApp
+    whatsappMessage: >-
+      Hola, quiero información sobre los requisitos de afiliación a seguridad
+      social.
+contact:
+  seoTitle: Contacto
+  seoDescription: >-
+    Contáctanos para recibir asesoría en seguridad social, servicios jurídicos,
+    contables y seguros en Bucaramanga.
+  hero:
+    title: Contacto
+    subtitle: >-
+      Estamos para ayudarte. Escríbenos, llámanos o visítanos en nuestras
+      oficinas de Bucaramanga.
+    image: /images/seguros/image.jpg
+  label: Escríbenos
+  title: Solicita tu asesoría
+  intro: >-
+    Completa el formulario y te responderemos a la brevedad. También puedes
+    escribirnos por WhatsApp para una respuesta inmediata.
+  form:
+    action: https://formspree.io/f/YOUR_FORM_ID
+    nameLabel: Nombre completo *
+    namePlaceholder: Tu nombre
+    phoneLabel: Teléfono *
+    phonePlaceholder: 300 123 4567
+    emailLabel: Correo electrónico
+    emailPlaceholder: tucorreo@ejemplo.com
+    serviceLabel: Servicio de interés *
+    servicePlaceholder: Selecciona un servicio
+    serviceOptions:
+      - value: juridicos
+        label: Servicios Jurídicos
+      - value: contables
+        label: Servicios Contables
+      - value: seguridad-social
+        label: Seguridad Social
+      - value: seguros
+        label: Seguros
+      - value: otro
+        label: Otro
+    messageLabel: Mensaje *
+    messagePlaceholder: Cuéntanos cómo podemos ayudarte...
+    submitLabel: Enviar mensaje
+  infoTitle: Información de contacto
+  whatsappButton: WhatsApp directo
+  instagramButton: Síguenos en Instagram
+  map:
+    label: Nuestra oficina
+    directionsLabel: Cómo llegar
+    lat: 7.1181443
+    lng: -73.127934
+    embedUrl: 'https://www.google.com/maps?q=7.1181443,-73.127934&z=18&output=embed'
+    directionsUrl: >-
+      https://www.google.com/maps/@7.1181656,-73.127781,3a,75y,336.44h,103t/data=!3m7!1e1!3m5!1swYQY6jsJ7vIVr0mtnAJgkg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-13.00215800697866%26panoid%3DwYQY6jsJ7vIVr0mtnAJgkg%26yaw%3D336.4361067827368!7i13312!8i6656?entry=ttu&g_ep=EgoyMDI2MDgxMi4wIKXMDSoASAFQAw%3D%3D
+news:
+  seoTitle: Noticias
+  seoDescription: >-
+    Noticias y publicaciones sobre seguridad social, derecho laboral y temas de
+    actualidad que afectan a nuestros clientes.
+  hero:
+    title: Noticias
+    subtitle: >-
+      Publicaciones y temas de actualidad sobre seguridad social, derecho
+      laboral y asesoría profesional.
+    image: /images/juridicos/image.jpg
+  empty: Aún no hay publicaciones.
+blog:
+  authorLabel: Por Henry López
+  tagsLabel: 'Etiquetas:'
+  backLabel: Volver a noticias
+  readMoreLabel: Leer más

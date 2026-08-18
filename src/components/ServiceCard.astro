@@ -1,0 +1,53 @@
+---
+import Icon from './Icon.astro';
+import { getTextosData } from '../lib/content';
+import type { ServiceEntry } from '../lib/content';
+
+interface Props {
+  service: ServiceEntry;
+  image?: string;
+  featured?: boolean;
+  delay?: number;
+}
+
+const { service, featured = false, delay = 0, image } = Astro.props;
+const imageSrc = image ?? service.data.image;
+const textos = await getTextosData();
+---
+
+<article
+  data-reveal
+  data-spotlight
+  style={`--reveal-delay: ${delay}ms`}
+  class:list={[
+    'group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-brand-300/70 hover:shadow-xl',
+    featured && 'ring-1 ring-brand-500/40',
+  ]}
+>
+  <div class="relative h-44 overflow-hidden">
+    <img
+      src={imageSrc}
+      alt={service.data.title}
+      loading="lazy"
+      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-ink-950/70 to-transparent"></div>
+    <div class="absolute bottom-3 left-4 flex items-center gap-2">
+      <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500 text-ink-950">
+        <Icon name={service.data.icon} class="h-5 w-5" />
+      </span>
+      <h3 class="font-display text-lg font-semibold text-white">{service.data.title}</h3>
+    </div>
+  </div>
+
+  <div class="flex flex-1 flex-col p-5">
+    <p class="flex-1 text-sm leading-relaxed text-slate-600">{service.data.short}</p>
+    <a
+      href={`/servicios#${service.id}`}
+      class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-700 transition group-hover:gap-2.5 hover:text-brand-600"
+    >
+      {textos.home.services.readMoreLabel}
+      <Icon name="arrow" class="h-4 w-4" />
+    </a>
+  </div>
+</article>

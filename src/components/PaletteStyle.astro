@@ -1,0 +1,26 @@
+---
+// Inyecta la paleta de colores configurable desde el panel
+// (Configuración del sitio → 🎨 Paleta de colores).
+//
+// Cada color es un token único (brand-500, ink-950, ocre…). Como cada token
+// aparece una sola vez, cualquier edición desde el panel se refleja de
+// inmediato en el sitio, sin conflictos entre páginas.
+import { getSiteData } from '../lib/content';
+
+const site = await getSiteData();
+
+const vars = new Map<string, string>();
+for (const color of site.palette ?? []) {
+  if (color && color.token && color.hex && /^#[0-9a-fA-F]{6}$/.test(color.hex)) {
+    vars.set(color.token, color.hex.toUpperCase());
+  }
+}
+
+let paletteCss = ':root {';
+for (const [token, hex] of vars) {
+  paletteCss += `\n  --color-${token}: ${hex};`;
+}
+paletteCss += '\n}';
+---
+
+<style is:inline set:html={paletteCss} />

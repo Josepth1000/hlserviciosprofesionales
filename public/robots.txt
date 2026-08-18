@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Panel de administración (protegido con contraseña)
+Disallow: /keystatic
+Disallow: /api/keystatic
+Disallow: /api/login
+Disallow: /api/logout
+
+Sitemap: https://www.hlserviciosprofesionales.com/sitemap-index.xml

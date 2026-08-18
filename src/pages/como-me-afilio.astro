@@ -1,0 +1,180 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import CTABand from '../components/CTABand.astro';
+import { getSiteData, getAfiliacionData, getTextosData, getWhatsAppLink } from '../lib/content';
+import { formatCOP } from '../lib/format';
+
+const site = await getSiteData();
+const textos = await getTextosData();
+const afiliacion = await getAfiliacionData();
+const { plans, requirements, notes, intro } = afiliacion;
+
+const columns = [
+  { key: 'salud' as const, label: '+ SALUD' },
+  { key: 'saludCcf' as const, label: '+ SALUD + CCF' },
+  { key: 'saludPension' as const, label: '+ SALUD + PENSIÓN' },
+  { key: 'completo' as const, label: '+ SALUD + PENSIÓN + CCF' },
+];
+
+// Mensaje personalizado al elegir una combinación, p. ej.:
+// "Hola, estoy interesado en el Plan 1 + SALUD por valor de $ 70.000 mensuales"
+function planWhatsAppMessage(plan: (typeof plans)[number], col: (typeof columns)[number]): string {
+  return (textos.afiliacion.plansWhatsappTemplate ?? '')
+    .replaceAll('{plan}', plan.id)
+    .replaceAll('{combinacion}', col.label)
+    .replaceAll('{precio}', formatCOP(plan[col.key]));
+}
+---
+
+<Layout
+  title={textos.afiliacion.seoTitle}
+  description={textos.afiliacion.seoDescription}
+>
+  <PageHero
+    title={textos.afiliacion.hero.title}
+    subtitle={textos.afiliacion.hero.subtitle}
+    image={textos.afiliacion.hero.image}
+  />
+
+  <!-- Tabla de planes -->
+  <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl text-center" data-reveal>
+      <p class="text-xs font-semibold uppercase tracking-widest text-brand-600">{textos.afiliacion.plansLabel}</p>
+      <h2 class="mt-3 font-display text-3xl font-bold text-ink-900 sm:text-4xl">{textos.afiliacion.plansTitle}</h2>
+      <p class="mt-4 text-slate-600">{intro}</p>
+    </div>
+
+    <div class="mt-12 overflow-x-auto rounded-xl border border-slate-200 shadow-sm" data-reveal style="--reveal-delay: 120ms">
+      <table class="w-full min-w-[640px] border-collapse text-sm">
+        <thead>
+          <tr class="bg-ink-900 text-left text-white">
+            <th scope="col" class="px-5 py-4 font-semibold">{textos.afiliacion.planColumnHeader}</th>
+            {columns.map((col) => (
+              <th scope="col" class="px-5 py-4 text-right font-semibold">{col.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {plans.map((plan, i) => (
+            <tr class:list={['border-t border-slate-100', i % 2 === 1 && 'bg-brand-50/50']}>
+              <th scope="row" class="px-5 py-4 text-left font-semibold text-ink-900">{plan.id}</th>
+              {columns.map((col) => (
+                <td class="px-2 py-2 text-right">
+                  <a
+                    href={getWhatsAppLink(site.whatsapp, planWhatsAppMessage(plan, col))}
+                    target="_blank"
+                    rel="noopener"
+                    data-plan-cell
+                    class="plan-cell group inline-flex items-center justify-end gap-1.5 rounded-md px-3 py-2.5 font-semibold tabular-nums text-slate-700 transition duration-200 hover:bg-brand-500 hover:text-ink-950 hover:shadow-md"
+                    aria-label={`${plan.id} ${col.label}: ${formatCOP(plan[col.key])} · cotizar por WhatsApp`}
+                  >
+                    {formatCOP(plan[col.key])}
+                    <Icon name="whatsapp" class="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+                  </a>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="plans-hint mt-3 text-sm text-slate-500">
+        <Icon name="whatsapp" class="h-3.5 w-3.5 shrink-0" />
+        {textos.afiliacion.plansHint}
+      </p>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      {
+        notes.map((note, i) => (
+          <div
+            class="flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 p-5"
+            data-reveal
+            style={`--reveal-delay: ${i * 100}ms`}
+          >
+            <Icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
+            <p class="text-sm leading-relaxed text-slate-700">{note}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Requisitos -->
+  <section class="bg-brand-50">
+    <div class="mx-auto grid max-w-7xl items-start gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8">
+      <div data-reveal>
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-600">{textos.afiliacion.requirements.label}</p>
+        <h2 class="mt-3 font-display text-3xl font-bold text-ink-900 sm:text-4xl">
+          {textos.afiliacion.requirements.title}
+        </h2>
+        <p class="mt-4 text-slate-600">{textos.afiliacion.requirements.intro}</p>
+        <a
+          href={getWhatsAppLink(site.whatsapp, textos.afiliacion.requirements.whatsappMessage)}
+          target="_blank"
+          rel="noopener"
+          class="mt-8 inline-flex items-center gap-2 rounded-md bg-brand-500 px-6 py-3 text-sm font-semibold text-ink-950 transition hover:bg-brand-400"
+        >
+          <Icon name="whatsapp" class="h-5 w-5" />
+          {textos.afiliacion.requirements.whatsappButton}
+        </a>
+      </div>
+
+      <ol class="space-y-4">
+        {requirements.map((req, i) => (
+          <li
+            class="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            data-reveal
+            style={`--reveal-delay: ${i * 90}ms`}
+          >
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink-800 font-display text-sm font-bold text-brand-400">
+              {i + 1}
+            </span>
+            <p class="text-sm leading-relaxed text-slate-700">{req}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <CTABand />
+</Layout>
+
+<style>
+  .plans-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    animation: hint-glow 2.6s ease-in-out infinite;
+  }
+
+  .plans-hint svg {
+    color: var(--color-brand-600);
+    filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--color-brand-500) 40%, transparent));
+  }
+
+  @keyframes hint-glow {
+    0%,
+    100% {
+      text-shadow:
+        0 0 0 transparent,
+        0 0 0 transparent;
+      color: var(--color-slate-500);
+    }
+    50% {
+      text-shadow:
+        0 0 5px color-mix(in srgb, var(--color-brand-400) 60%, transparent),
+        0 2px 16px color-mix(in srgb, var(--color-brand-500) 70%, transparent);
+      color: var(--color-ink-800);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plans-hint {
+      animation: none;
+      color: var(--color-slate-500);
+    }
+  }
+</style>

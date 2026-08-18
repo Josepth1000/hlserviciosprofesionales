@@ -1,0 +1,491 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import { getSiteData, getTextosData, getWhatsAppLink } from '../lib/content';
+
+const site = await getSiteData();
+const textos = await getTextosData();
+const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
+// Coordenadas de la oficina (Edificio Los Castellanos) para el mapa Leaflet:
+// marcador dorado + edificio resaltado. Editables desde el panel
+// (✍️ Textos del sitio → Contacto → Mapa).
+const officeLat = textos.contact.map.lat;
+const officeLng = textos.contact.map.lng;
+const mapsDirections = textos.contact.map.directionsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(site.address)}`;
+
+const contactItems = [
+  { icon: 'pin', label: 'Dirección', value: site.address, href: undefined },
+  { icon: 'phone', label: 'Teléfono', value: site.phone, href: `tel:${site.phone.replace(/\s/g, '')}` },
+  { icon: 'mail', label: 'Correo', value: site.email, href: `mailto:${site.email}` },
+  { icon: 'clock', label: 'Horario', value: site.hours, href: undefined },
+];
+---
+
+<Layout
+  title={textos.contact.seoTitle}
+  description={textos.contact.seoDescription}
+>
+  <PageHero
+    title={textos.contact.hero.title}
+    subtitle={textos.contact.hero.subtitle}
+    image={textos.contact.hero.image}
+  />
+
+  <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <div class="grid gap-12 lg:grid-cols-5">
+      <!-- Formulario -->
+      <div class="lg:col-span-3" data-reveal>
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-600">{textos.contact.label}</p>
+        <h2 class="mt-3 font-display text-3xl font-bold text-ink-900">{textos.contact.title}</h2>
+        <p class="mt-3 text-slate-600">{textos.contact.intro}</p>
+
+        <form
+          action={textos.contact.form.action}
+          method="POST"
+          data-contact-form
+          class="mt-8 grid gap-5 sm:grid-cols-2"
+        >
+          <div>
+            <label for="nombre" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.nameLabel}</label>
+            <input
+              id="nombre"
+              name="nombre"
+              type="text"
+              required
+              autocomplete="name"
+              placeholder={textos.contact.form.namePlaceholder}
+              class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
+            />
+          </div>
+          <div>
+            <label for="telefono" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.phoneLabel}</label>
+            <input
+              id="telefono"
+              name="telefono"
+              type="tel"
+              required
+              autocomplete="tel"
+              placeholder={textos.contact.form.phonePlaceholder}
+              class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
+            />
+          </div>
+          <div>
+            <label for="email" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.emailLabel}</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder={textos.contact.form.emailPlaceholder}
+              class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
+            />
+          </div>
+          <div class="relative" data-select>
+            <label for="servicio-toggle" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.serviceLabel}</label>
+            <!-- Desplegable personalizado con la identidad de la marca (dorado),
+                 en lugar del <select> nativo que pinta de azul en algunos navegadores. -->
+            <button
+              id="servicio-toggle"
+              type="button"
+              data-select-toggle
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-labelledby="servicio-toggle"
+              class="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-left text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
+            >
+              <span data-select-value class="truncate text-slate-400">{textos.contact.form.servicePlaceholder}</span>
+              <Icon name="chevron" class="h-4 w-4 shrink-0 text-ink-400 transition-transform duration-150" />
+            </button>
+            <ul
+              data-select-menu
+              role="listbox"
+              aria-label={textos.contact.form.serviceLabel}
+              class="invisible absolute left-0 right-0 top-full z-20 mt-1.5 overflow-hidden rounded-md border border-slate-200 bg-white py-1 opacity-0 shadow-xl transition duration-150"
+            >
+              <li>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected="true"
+                  data-select-option=""
+                  class="block w-full px-4 py-2 text-left text-sm text-ink-700 transition hover:bg-brand-100 hover:text-brand-800"
+                >
+                  {textos.contact.form.servicePlaceholder}
+                </button>
+              </li>
+              {textos.contact.form.serviceOptions.map((opt) => (
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected="false"
+                    data-select-option={opt.value}
+                    class="block w-full px-4 py-2 text-left text-sm text-ink-700 transition hover:bg-brand-100 hover:text-brand-800"
+                  >
+                    {opt.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <input type="hidden" name="servicio" data-select-input value="" />
+          </div>
+          <div class="sm:col-span-2">
+            <label for="mensaje" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.messageLabel}</label>
+            <textarea
+              id="mensaje"
+              name="mensaje"
+              rows={5}
+              required
+              placeholder={textos.contact.form.messagePlaceholder}
+              class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
+            ></textarea>
+          </div>
+          <div class="sm:col-span-2">
+            <button
+              type="submit"
+              data-magnetic
+              class="btn-shine inline-flex items-center gap-2 rounded-md bg-ink-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-ink-700"
+            >
+              {textos.contact.form.submitLabel}
+              <Icon name="arrow" class="h-4 w-4" />
+            </button>
+          </div>
+          <!-- Honeypot anti-spam: campo invisible que los bots rellenan; se
+               ignora y se descarta el envío en src/scripts/site.ts -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="empresa">Deje este campo vacío</label>
+            <input id="empresa" name="_empresa" type="text" tabindex="-1" autocomplete="off" data-hp />
+          </div>
+        </form>
+      </div>
+
+      <!-- Información de contacto -->
+      <aside class="lg:col-span-2">
+        <div class="rounded-xl bg-ink-950 p-7" data-reveal style="--reveal-delay: 120ms">
+          <h3 class="font-display text-xl font-semibold text-white">{textos.contact.infoTitle}</h3>
+          <ul class="mt-6 space-y-5">
+            {contactItems.map((item) => (
+              <li class="flex gap-4">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink-800 text-brand-400">
+                  <Icon name={item.icon} class="h-5 w-5" />
+                </span>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-ink-300">{item.label}</p>
+                  {item.href ? (
+                    <a href={item.href} class="mt-0.5 block text-sm text-white transition hover:text-brand-300">
+                      {item.value}
+                    </a>
+                  ) : (
+                    <p class="mt-0.5 text-sm text-white">{item.value}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener"
+            class="btn-shine mt-8 flex items-center justify-center gap-2 rounded-md bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 transition hover:bg-brand-400"
+          >
+            <Icon name="whatsapp" class="h-5 w-5" />
+            {textos.contact.whatsappButton}
+          </a>
+          <a
+            href={site.instagram}
+            target="_blank"
+            rel="noopener"
+            class="mt-3 flex items-center justify-center gap-2 rounded-md border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            <Icon name="instagram" class="h-5 w-5" />
+            {textos.contact.instagramButton}
+          </a>
+        </div>
+
+        <!-- Mapa: Leaflet personalizado (marcador dorado, edificio resaltado y tarjeta emergente) -->
+        <div
+          class="relative mt-6 overflow-hidden rounded-2xl border border-brand-200/60 shadow-lg ring-1 ring-ink-950/5"
+          data-reveal
+          style="--reveal-delay: 200ms"
+        >
+          <div
+            id="map"
+            class="h-[26rem] w-full"
+            data-lat={officeLat}
+            data-lng={officeLng}
+            data-name={site.name}
+            data-address={site.address}
+            data-label={textos.contact.map.label}
+            data-directions={mapsDirections}
+            data-directions-label={textos.contact.map.directionsLabel}
+          ></div>
+          <!-- Viñeta: oscurece los bordes para que el marcador y el edificio destaquen -->
+          <div
+            class="pointer-events-none absolute inset-0"
+            style="z-index: 300; background: radial-gradient(120% 95% at 50% 42%, transparent 55%, rgba(11, 11, 13, 0.4) 100%);"
+          ></div>
+          <div class="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/40" style="z-index: 1100"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <style is:global>
+    /* ===== Honeypot anti-spam (campo invisible) ===== */
+    .hp-field {
+      position: absolute;
+      left: -9999px;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* ===== Mapa Leaflet (contacto): marcador dorado + edificio resaltado ===== */
+    #map {
+      background: #12121a;
+    }
+    #map .leaflet-tile-pane {
+      /* Tiles oscuros pero con calles, carreras y nombres legibles */
+      filter: saturate(0.8) contrast(1.08) brightness(1.0);
+    }
+    .hl-map-marker {
+      position: relative;
+    }
+    .hl-map-pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid rgba(228, 203, 124, 0.95);
+      animation: hlMapPulse 2.6s ease-out infinite;
+    }
+    .hl-map-pulse-2 {
+      animation-delay: 1.3s;
+      border-color: rgba(201, 162, 39, 0.6);
+    }
+    .hl-map-pin {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 24px;
+      height: 24px;
+      transform: translate(-50%, -100%) rotate(-45deg);
+      border-radius: 50% 50% 50% 0;
+      background: radial-gradient(circle at 35% 30%, #fff3c4, #e4cb7c 40%, #c9a227 85%);
+      border: 2.5px solid #0b0b0d;
+      box-shadow:
+        0 6px 16px -3px rgba(0, 0, 0, 0.75),
+        0 0 0 4px rgba(201, 162, 39, 0.25),
+        0 0 24px 4px rgba(201, 162, 39, 0.45);
+    }
+    .hl-map-pin::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #0b0b0d;
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    @keyframes hlMapPulse {
+      0% {
+        transform: scale(0.5);
+        opacity: 0.9;
+      }
+      80%,
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hl-map-pulse,
+      .hl-map-pulse-2 {
+        animation: none;
+        opacity: 0;
+      }
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow:
+        0 20px 48px -18px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(201, 162, 39, 0.28);
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      width: 320px !important;
+      line-height: normal;
+    }
+    .leaflet-popup-tip {
+      background: #ffffff;
+    }
+    .hl-map-popup {
+      position: relative;
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      padding: 14px 16px 12px;
+    }
+    .hl-map-popup::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(90deg, #e4cb7c, #c9a227 45%, #a9831f);
+    }
+    .hl-map-popup-overline {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #a9831f;
+      margin-bottom: 5px;
+    }
+    .hl-map-popup strong {
+      display: block;
+      font-family: "Playfair Display", ui-serif, Georgia, serif;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #17171a;
+    }
+    .hl-map-popup p {
+      margin: 5px 0 12px;
+      font-size: 14px;
+      line-height: 1.45;
+      color: #4f4f57;
+    }
+    .hl-map-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #17171a;
+      background: linear-gradient(180deg, #e4cb7c, #c9a227);
+      border: 1px solid #a9831f;
+      text-decoration: none;
+      box-shadow: 0 8px 18px -8px rgba(201, 162, 39, 0.85);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+    .hl-map-cta:hover {
+      color: #17171a;
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px -8px rgba(201, 162, 39, 0.95);
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var el = document.getElementById('map');
+      if (!el) return;
+
+      function esc(v) {
+        return String(v).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function init() {
+        if (window.__hlMapInit || typeof L === 'undefined') return;
+        window.__hlMapInit = true;
+
+        var lat = parseFloat(el.dataset.lat || '7.1181443');
+        var lng = parseFloat(el.dataset.lng || '-73.127934');
+
+        var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 20,
+        }).addTo(map);
+
+        // Edificio resaltado: doble anillo dorado (halo exterior + círculo punteado).
+        L.circle([lat, lng], {
+          radius: 44,
+          color: '#c9a227',
+          weight: 1,
+          opacity: 0.35,
+          fill: false,
+          interactive: false,
+        }).addTo(map);
+        L.circle([lat, lng], {
+          radius: 22,
+          color: '#e4cb7c',
+          weight: 2,
+          dashArray: '7 5',
+          fillColor: '#c9a227',
+          fillOpacity: 0.2,
+        }).addTo(map);
+
+        // Marcador dorado con doble anillo pulsante.
+        var icon = L.divIcon({
+          className: 'hl-map-marker',
+          html: '<span class="hl-map-pulse"></span><span class="hl-map-pulse hl-map-pulse-2"></span><span class="hl-map-pin"></span>',
+          iconSize: [48, 48],
+          iconAnchor: [24, 24],
+        });
+
+        var popup =
+          '<div class="hl-map-popup">' +
+          '<span class="hl-map-popup-overline">' + esc(el.dataset.label || 'Nuestra oficina') + '</span>' +
+          '<strong>' + esc(el.dataset.name) + '</strong>' +
+          '<p>' + esc(el.dataset.address) + '</p>' +
+          '<a class="hl-map-cta" href="' + esc(el.dataset.directions) + '" target="_blank" rel="noopener">' +
+          esc(el.dataset.directionsLabel) + ' <span aria-hidden="true">\u2192</span>' +
+          '</a>' +
+          '</div>';
+
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup(popup).openPopup();
+
+        // El scroll del mapa se activa solo al hacer clic (no interfiere con el
+        // scroll de la página).
+        map.on('click', function () {
+          map.scrollWheelZoom.enable();
+        });
+
+        // Ajusta el tamaño por si el reveal on-scroll desplaza el contenedor.
+        setTimeout(function () {
+          map.invalidateSize();
+        }, 300);
+      }
+
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css';
+      css.integrity = 'sha384-b8ANgTJvdlAnWM5YGMpKn7Kodm+1k7NYNG9zdjTCcZcKatzYHwZ0RLdWarbJJVzU';
+      css.crossOrigin = 'anonymous';
+      document.head.appendChild(css);
+
+      function loadLeaflet(src) {
+        var s = document.createElement('script');
+        s.src = src;
+        if (src.indexOf('jsdelivr') !== -1) {
+          s.integrity = 'sha384-u5N8qJeJOO2iqNjIKTdl6KeKsEikMAmCUBPc6sC6uGpgL34aPJ4VgNhuhumedpEk';
+          s.crossOrigin = 'anonymous';
+        }
+        s.onload = init;
+        s.onerror = function () {
+          if (src.indexOf('jsdelivr') !== -1) {
+            loadLeaflet('https://unpkg.com/leaflet@1.9.4/dist/leaflet.min.js');
+          }
+        };
+        document.head.appendChild(s);
+      }
+      loadLeaflet('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js');
+    })();
+  </script>
+</Layout>

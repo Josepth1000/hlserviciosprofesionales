@@ -1,0 +1,133 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import PaletteStyle from '../components/PaletteStyle.astro';
+import Icon from '../components/Icon.astro';
+import { ClientRouter } from 'astro:transitions';
+import { getSiteData, getTextosData, getWhatsAppLink } from '../lib/content';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const site = await getSiteData();
+const textos = await getTextosData();
+const { title, description = site.description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
+const fonts = site.fonts ?? {};
+const fontVars = [
+  `--font-sans: '${fonts.body || 'Inter'}', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif`,
+  `--font-display: '${fonts.display || 'Playfair Display'}', ui-serif, Georgia, serif`,
+  `--font-script: '${fonts.script || 'Great Vibes'}', 'Segoe Script', cursive`,
+].join('; ');
+const absoluteUrl = (path?: string) => new URL(path || '/images/hero/image.jpg', Astro.site).href;
+const ogImage = absoluteUrl(textos.home.heroImage || site.hero.image);
+const schemaOrg = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: site.name,
+  slogan: site.slogan,
+  description: site.description,
+  url: new URL('/', Astro.site).href,
+  logo: absoluteUrl(site.logo),
+  image: ogImage,
+  telephone: site.phone,
+  email: site.email,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: site.address,
+    addressLocality: 'Bucaramanga',
+    addressRegion: 'Santander',
+    addressCountry: 'CO',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: textos.contact.map.lat,
+    longitude: textos.contact.map.lng,
+  },
+  openingHours: site.hours,
+  sameAs: (site.social ?? []).map((s) => s.url).filter(Boolean),
+};
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0B0B0D" />
+    <title>{title} | {site.name}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={`${title} | ${site.name}`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content={site.name} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={`${title} | ${site.name}`} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(schemaOrg)} />
+
+    <meta name="generator" content={Astro.generator} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {fonts.googleFontsUrl && <link href={fonts.googleFontsUrl} rel="stylesheet" />}
+    <PaletteStyle />
+    <!-- Navegación SPA con transiciones animadas (respecta prefers-reduced-motion) -->
+    <ClientRouter />
+  </head>
+  <body
+    class="flex min-h-screen flex-col font-sans antialiased"
+    data-cursor-enabled={String(site.cursor?.enabled ?? true)}
+    data-cursor-effect={site.cursor?.effect ?? 'halo'}
+    style={`--cursor-size: ${site.cursor?.size ?? 360}px; ${fontVars}`}
+  >
+    <a href="#contenido" class="skip-link">{textos.global.skipLinkLabel}</a>
+    <!-- Barra de progreso de lectura (arriba, bajo el header; gestionada en site.ts) -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+    <Header />
+    <main id="contenido" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+
+    <!-- Volver arriba (interacciones gestionadas en src/scripts/site.ts) -->
+    <button id="back-to-top" type="button" aria-label={textos.global.backToTopLabel}>
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+      </svg>
+    </button>
+
+    <!-- WhatsApp flotante: acceso directo al chat desde cualquier página -->
+    <a
+      id="wa-fab"
+      href={waLink}
+      target="_blank"
+      rel="noopener"
+      aria-label={textos.nav.whatsappLabel}
+    >
+      <Icon name="whatsapp" class="h-7 w-7" />
+    </a>
+  </body>
+</html>
+
+<script>
+  import '../scripts/site';
+</script>

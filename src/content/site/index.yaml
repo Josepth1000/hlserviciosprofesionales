@@ -1,0 +1,224 @@
+name: HL Servicios Profesionales
+brandName: Servicios Profesionales
+slogan: Servir es nuestro compromiso
+cursor:
+  enabled: true
+  effect: halo
+  size: 360
+logo: /images/logo.png
+palette:
+  - token: ink-950
+    hex: '#0B0B0D'
+    elemento: Fondo oscuro principal
+    description: >-
+      Fondo del encabezado, hero, sección de valores, tarjeta de contacto y pie
+      de página.
+    pages: Global · Inicio · Quiénes Somos · Contacto
+  - token: ink-900
+    hex: '#17171A'
+    elemento: Superficies oscuras y títulos de sección
+    description: >-
+      Títulos de secciones, texto de las preguntas frecuentes y superficies
+      oscuras secundarias.
+    pages: >-
+      Inicio · Quiénes Somos · Servicios · Cómo me afilio · Noticias ·
+      Testimonios · Contacto · Preguntas frecuentes
+  - token: ink-800
+    hex: '#252529'
+    elemento: Bordes, cajas de iconos y chips
+    description: >-
+      Bordes del encabezado y pie, cajas de iconos de servicios y chips de
+      requisitos.
+    pages: >-
+      Global · Quiénes Somos · Servicios · Cómo me afilio · Testimonios ·
+      Contacto
+  - token: brand-50
+    hex: '#FCF9EF'
+    elemento: Fondo de secciones claras
+    description: >-
+      Fondo de la sección «Seguridad social» de la portada, de los requisitos de
+      afiliación y de las citas de noticias.
+    pages: Inicio · Cómo me afilio · Noticias
+  - token: brand-100
+    hex: '#F8F1DA'
+    elemento: Fondo de palomillas y etiquetas
+    description: >-
+      Fondo de las palomillas de afiliación y de la etiqueta de categoría de
+      noticias.
+    pages: Inicio · Servicios · Noticias
+  - token: brand-200
+    hex: '#EFE0AC'
+    elemento: Fondo de notas informativas
+    description: Fondo de las notas informativas de la página de afiliación.
+    pages: Cómo me afilio
+  - token: ocre
+    hex: '#FCF9EF'
+    elemento: Fondo de Preguntas frecuentes
+    description: Fondo ocre apagado de la sección de preguntas frecuentes.
+    pages: Preguntas frecuentes
+  - token: ink-50
+    hex: '#F7F7F8'
+    elemento: Fondos casi blancos (neutros)
+    description: Fondos muy claros neutros de la escala de grises.
+    pages: Escala de neutros
+  - token: brand-500
+    hex: '#C9A227'
+    elemento: Botones, CTAs y enlaces principales
+    description: >-
+      Botones de llamada a la acción, enlaces, estrellas de testimonios y anillo
+      del logo.
+    pages: >-
+      Global · Inicio · Quiénes Somos · Cómo me afilio · Noticias · Testimonios
+      · Contacto
+  - token: brand-400
+    hex: '#D8B453'
+    elemento: Resaltados del hero e iconos
+    description: Palabra «seguridad social» del título, iconos de contacto y de servicios.
+    pages: >-
+      Global · Inicio · Quiénes Somos · Servicios · Cómo me afilio · Testimonios
+      · Contacto
+  - token: brand-300
+    hex: '#E4CB7C'
+    elemento: Texto dorado sobre fondo oscuro
+    description: Enlace activo del menú, sello de ubicación del hero y hovers de contacto.
+    pages: Global · Inicio · Contacto
+  - token: brand-600
+    hex: '#A9831F'
+    elemento: Rótulos, hovers y palomillas
+    description: >-
+      Rótulos en mayúsculas de sección, hovers de enlaces, palomillas y flechas
+      del acordeón.
+    pages: >-
+      Inicio · Quiénes Somos · Cómo me afilio · Testimonios · Contacto ·
+      Preguntas frecuentes
+  - token: brand-700
+    hex: '#866619'
+    elemento: Enlaces «Conocer más» y categoría
+    description: >-
+      Enlaces «Conocer más» de las tarjetas de servicios y texto de la categoría
+      de noticias.
+    pages: Inicio · Servicios · Noticias
+  - token: brand-800
+    hex: '#654A15'
+    elemento: Detalles dorados (escala de marca)
+    description: Detalles decorativos en tonos dorados profundos.
+    pages: Escala de marca
+  - token: brand-900
+    hex: '#47330F'
+    elemento: Tonos dorados profundos (escala)
+    description: Acentos dorados muy oscuros de la escala de marca.
+    pages: Escala de marca
+  - token: brand-950
+    hex: '#2E2109'
+    elemento: Acentos dorados oscurísimos (escala)
+    description: Acentos dorados oscuros de la escala de marca.
+    pages: Escala de marca
+  - token: ink-100
+    hex: '#ECECEE'
+    elemento: Texto claro sobre fondo oscuro
+    description: Texto y enlaces de la navegación y del hero sobre fondo oscuro.
+    pages: Global · Inicio · Quiénes Somos
+  - token: ink-200
+    hex: '#D6D6DA'
+    elemento: Texto secundario sobre oscuro
+    description: Textos secundarios sobre superficies oscuras.
+    pages: Escala de neutros
+  - token: ink-300
+    hex: '#B5B5BC'
+    elemento: Texto tenue
+    description: Textos muy tenues sobre superficies claras u oscuras.
+    pages: Escala de neutros
+  - token: ink-400
+    hex: '#8E8E97'
+    elemento: Placeholders de formularios
+    description: Marcadores de posición de los campos de los formularios de contacto.
+    pages: Contacto
+  - token: ink-500
+    hex: '#6C6C75'
+    elemento: Texto neutro medio
+    description: Textos neutros intermedios.
+    pages: Escala de neutros
+  - token: ink-600
+    hex: '#4F4F57'
+    elemento: Texto principal del sitio
+    description: Color del texto general del sitio.
+    pages: Todo el sitio
+  - token: ink-700
+    hex: '#3A3A40'
+    elemento: Enlaces de tarjetas y resúmenes
+    description: Enlaces de las tarjetas de servicios y resúmenes de noticias.
+    pages: Servicios · Noticias
+description: >-
+  Servicio de salud y seguridad en el trabajo. Firma especializada en
+  Bucaramanga, Santander, en asesoría jurídica, contable, seguridad social (EPS,
+  ARL, pensión y caja de compensación) y seguros.
+address: >-
+  Carrera 12 # 34 - 67 Oficina 205, Edificio Los Castellanos, Bucaramanga -
+  Santander - Colombia
+phone: +57 315 340 1391
+whatsapp: '573153401391'
+email: contacto@hlserviciosprofesionales.com
+hours: 'Lunes a viernes: 8:00 a. m. – 6:00 p. m. · Sábados: 8:00 a. m. – 1:00 p. m.'
+instagram: https://www.instagram.com/serviciosprofesionaleshl/
+social:
+  - name: Instagram
+    url: https://www.instagram.com/serviciosprofesionaleshl/
+    icon: instagram
+  - name: Tiktok
+    url: https://www.tiktok.com/@seguridadsocialbgahlsp
+    icon: tiktok
+  - name: Facebook
+    url: https://www.facebook.com/hlserviprof
+    icon: facebook
+  - name: WhatsApp
+    url: https://wa.me/573153401391
+    icon: whatsapp
+hero:
+  badge: Bucaramanga · Santander · Colombia
+  titlePrefix: Asesoría jurídica, contable y de
+  highlight: seguridad social
+  titleSuffix: con respaldo
+  subtitle: >-
+    Asesoría jurídica, contable, seguridad social y seguros. Más de 10 años de
+    servicio valorados por nuestros clientes, con una asesoría oportuna, sólida,
+    honesta y confiable.
+  image: /images/hero/image.jpg
+stats:
+  - value: 10+
+    label: Años de experiencia
+  - value: '4'
+    label: Líneas de servicio
+  - value: 100%
+    label: Asesoría personalizada
+  - value: '1'
+    label: 'Objetivo: tus resultados'
+serviceImages:
+  - service: Seguridad Social
+    image: /images/seguridad-social/image.avif
+  - service: Servicios Jurídicos
+    image: /images/juridicos/image.jpg
+  - service: Servicios Contables
+    image: /images/contables/image.avif
+  - service: Seguros
+    image: /images/seguros/image.jpg
+values:
+  - icon: check
+    title: Oportuna
+    text: Respondemos con agilidad y damos seguimiento permanente a cada caso.
+  - icon: shield
+    title: Sólida
+    text: Respaldo de más de 10 años de servicio valorados por nuestros clientes.
+  - icon: scale
+    title: Honesta
+    text: Asesoría transparente, clara y apegada a la normatividad vigente.
+  - icon: users
+    title: Confiable
+    text: >-
+      Una relación de confianza construida con cada persona y empresa que nos
+      elige.
+fonts:
+  body: Inter
+  display: Playfair Display
+  script: Great Vibes
+  googleFontsUrl: >-
+    https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap

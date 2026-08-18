@@ -1,0 +1,66 @@
+---
+import Icon from './Icon.astro';
+import { getTextosData } from '../lib/content';
+import type { TestimonialEntry } from '../lib/content';
+
+interface Props {
+  testimonials: TestimonialEntry[];
+}
+
+const { testimonials } = Astro.props;
+const textos = await getTextosData();
+---
+
+{
+  testimonials.length > 0 && (
+    <section id="testimonios" class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8" data-reveal>
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-xs font-semibold uppercase tracking-widest text-brand-600">{textos.home.testimonials.label}</p>
+        <h2 class="mt-3 font-display text-3xl font-bold text-ink-900 sm:text-4xl">
+          {textos.home.testimonials.title}
+        </h2>
+        <p class="mt-4 text-slate-600">{textos.home.testimonials.intro}</p>
+      </div>
+
+      <div class="mt-12 grid gap-6 md:grid-cols-3">
+        {testimonials.map((t, i) => (
+          <figure
+            data-reveal
+            data-spotlight
+            style={`--reveal-delay: ${i * 120}ms`}
+            class="relative flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-brand-300/70 hover:shadow-xl"
+          >
+            <div class="flex items-center justify-between">
+              <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-ink-800 text-brand-400">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7.5 8.25h9m-9 3H12m-9.75 3h8.4a2.25 2.25 0 0 1 2.1 1.5 2.25 2.25 0 0 1 2.1-1.5h8.4m-9.75 3h9" />
+                  <path d="M12 3.75c-1.65 0-3 .9-4.05 2.1C6.9 4.65 5.55 3.75 3.9 3.75a2.4 2.4 0 0 0-2.4 2.4v9a2.25 2.25 0 0 0 2.25 2.25h3v-2.25" />
+                </svg>
+              </span>
+              <div
+                class="flex items-center gap-0.5"
+                aria-label={`Valoración: ${t.data.rating} de 5 estrellas`}
+              >
+                {Array.from({ length: 5 }).map((_, s) => (
+                  <Icon
+                    name="star"
+                    class:list={['h-4 w-4', s < t.data.rating ? 'text-brand-500' : 'text-slate-200']}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <blockquote class="mt-4 flex-1 text-sm leading-relaxed text-slate-600">
+              “{t.data.text}”
+            </blockquote>
+
+            <figcaption class="mt-5 border-t border-slate-100 pt-4">
+              <p class="font-semibold text-ink-900">{t.data.name}</p>
+              <p class="text-sm text-slate-500">{t.data.role}</p>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  )
+}

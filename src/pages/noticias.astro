@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import PostCard from '../components/PostCard.astro';
+import CTABand from '../components/CTABand.astro';
+import { getTextosData } from '../lib/content';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const textos = await getTextosData();
+---
+
+<Layout
+  title={textos.news.seoTitle}
+  description={textos.news.seoDescription}
+>
+  <PageHero
+    title={textos.news.hero.title}
+    subtitle={textos.news.hero.subtitle}
+    image={textos.news.hero.image}
+  />
+
+  <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    {posts.length === 0 ? (
+      <p class="text-center text-slate-600">{textos.news.empty}</p>
+    ) : (
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post, i) => (
+          <PostCard
+            title={post.data.title}
+            excerpt={post.data.description}
+            pubDate={post.data.pubDate}
+            category={post.data.category}
+            slug={post.id}
+            delay={i * 100}
+          />
+        ))}
+      </div>
+    )}
+  </section>
+
+  <CTABand />
+</Layout>
