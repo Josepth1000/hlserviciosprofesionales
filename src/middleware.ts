@@ -241,12 +241,31 @@ main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="g
 #hl-toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-90px);z-index:100000;background:#1d1d22;border:1px solid rgba(201,162,39,.55);color:#f4f4f5;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 12px 34px -10px rgba(0,0,0,.7);opacity:0;transition:transform .3s cubic-bezier(.2,.9,.3,1.2),opacity .3s ease;pointer-events:none;font-family:Inter,system-ui,sans-serif}
 #hl-toast.hl-show{transform:translateX(-50%) translateY(0);opacity:1}
 #hl-toast svg{color:#c9a227;flex:none}
+/* ===== Transparencia: ocultar detalles técnicos del panel =====
+ * El cliente (usuario no técnico) no debe ver ramas/repositorios ni su foto de
+ * GitHub. Se oculta:
+ *   - El menú "git actions" del header (selector de rama, pull requests y el
+ *     enlace al repositorio / "View on GitHub").
+ *   - En el dashboard (/keystatic): el saludo "Hello, <usuario>!" con el avatar
+ *     de GitHub (UserInfo) y el contenedor de la rama actual + "Nueva rama"
+ *     (BranchSection). El texto lo resume el script en cada pase. */
+[aria-label="git actions"],
+[aria-label="git actions"] svg{display:none !important}
+/* --- Dashboard: ocultos por script (los elementos se marcan con data-attr) --- */
+[data-hl-hide="true"]{display:none !important}
+
 /* ===== Sección "Cerrar Sesión" (abajo a la izquierda) ===== */
-#hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px);padding:14px 14px 10px;border-radius:14px;background:linear-gradient(180deg,rgba(15,15,19,0) 0%,rgba(15,15,19,.82) 26%);backdrop-filter:blur(2px)}
-#hl-logout-label{display:block;margin:0 0 10px 4px;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#a6a6ae}
-#hl-logout{display:inline-flex;align-items:center;gap:8px;background:#1d1d22;color:#e4cb7c;border:1px solid rgba(255,255,255,.12);padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;line-height:1;text-decoration:none;box-shadow:0 8px 22px -10px rgba(0,0,0,.6);transition:border-color .2s ease,background .2s ease,transform .2s ease}
+#hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px)}
+#hl-logout-card{display:flex;align-items:center;gap:12px;padding:12px 16px 12px 12px;border-radius:16px;background:linear-gradient(150deg,rgba(26,26,31,.96),rgba(14,14,18,.96));border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 34px -12px rgba(0,0,0,.75);backdrop-filter:blur(6px)}
+#hl-logout-avatar{flex:none;display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(150deg,#2a2a31,#1a1a20);border:1px solid rgba(201,162,39,.55);color:#e4cb7c;font-size:17px;font-weight:700;letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 16px -6px rgba(201,162,39,.45)}
+#hl-logout-meta{min-width:0;line-height:1.25}
+#hl-logout-user{display:block;font-size:14px;font-weight:700;color:#f4f4f5;letter-spacing:.01em}
+#hl-logout-role{display:block;margin-top:1px;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#a6a6ae}
+#hl-logout{display:inline-flex;align-items:center;justify-content:center;flex:none;width:38px;height:38px;border-radius:11px;background:#1d1d22;color:#e4cb7c;border:1px solid rgba(255,255,255,.12);text-decoration:none;box-shadow:0 8px 22px -10px rgba(0,0,0,.6);transition:border-color .2s ease,background .2s ease,transform .2s ease;cursor:pointer}
 #hl-logout:hover{background:#26262d;border-color:rgba(201,162,39,.6);transform:translateY(-1px)}
 #hl-logout:focus-visible{outline:2px solid #c9a227;outline-offset:2px}
+#hl-logout-avatar,#hl-logout{user-select:none;-webkit-user-select:none}
+@media (max-width:640px){#hl-logout-section{left:10px;bottom:12px}#hl-logout-card{gap:10px;padding:10px 12px 10px 10px;border-radius:14px}#hl-logout-avatar{width:36px;height:36px;border-radius:11px;font-size:15px}}
 @media (max-width:640px){#hl-logout-section{left:10px;bottom:12px}}
 /* El botón de Cerrar Sesión solo debe verse cuando la navegación lateral está
  * realmente visible: drawer móvil abierto (data-visible="true") o sidebar de
@@ -405,11 +424,16 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
 }
 </style>
 <div id="hl-logout-section">
-  <span id="hl-logout-label">Cuenta</span>
-  <a id="hl-logout" href="/api/logout" title="Cerrar sesión">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
-  Cerrar Sesión
-  </a>
+  <div id="hl-logout-card">
+    <div id="hl-logout-avatar" aria-hidden="true">A</div>
+    <div id="hl-logout-meta">
+      <span id="hl-logout-user">Conectado como Admin</span>
+      <span id="hl-logout-role">Panel de administración</span>
+    </div>
+    <a id="hl-logout" href="/api/logout" title="Cerrar sesión" aria-label="Cerrar sesión">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+    </a>
+  </div>
 </div>
 <script id="hl-panel-script">
 (function(){
@@ -745,6 +769,55 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       if (panel) panel.classList.add('hl-sidebar');
       sc.classList.add('hl-sidebar-scroll');
       nav.classList.add('hl-sidebar-nav');
+    }
+  }
+
+  // ---------- Transparencia para el cliente (no técnico) ----------
+  // Oculta los detalles de GitHub/repositorio del panel:
+  //   - En el dashboard (/keystatic, sin subruta): el saludo "Hello, <nombre>!"
+  //     con el avatar de la cuenta de GitHub (UserInfo) y el bloque de la rama
+  //     actual + "Nueva rama" (BranchSection).
+  //   - El menú "git actions" (selector de rama / pull request / enlace al repo)
+  //     del header global se oculta por CSS ([aria-label="git actions"]).
+  // El contenido cambia con cada ruta de la SPA, así que se recomprueba en
+  // cada pase de refresh().
+  function cleanupTransparency(){
+    document.querySelectorAll('[data-hl-hide]').forEach(function(el){
+      delete el.dataset.hlHide;
+    });
+    // Dashboard: "Hello, <usuario>!" + avatar de GitHub
+    var helloTxt = null;
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()){
+      var tn = walker.currentNode;
+      if (tn.nodeValue && tn.nodeValue.indexOf('Hello,') !== -1){
+        helloTxt = tn;
+        break;
+      }
+    }
+    if (helloTxt){
+      var container = helloTxt.parentElement;
+      // Sube hasta el "Flex" que agrupa avatar + nombre (2 niveles suele bastar)
+      for (var i = 0; i < 3 && container; i++) container = container.parentElement;
+      if (container) container.setAttribute('data-hl-hide', 'true');
+    }
+    // Dashboard: bloque de rama (ícono branch + rama actual + opción "Nueva
+    // rama"). El botón "Nueva rama" tiene el texto localizado; también captura
+    // el case "New branch".
+    var branchBtnEl = null;
+    var allBtn = document.querySelectorAll('button, [role="button"]');
+    for (var b = 0; b < allBtn.length; b++){
+      var bt = (allBtn[b].textContent || '').trim();
+      if (/^(Nueva rama|New branch|New Branch)$/.test(bt)){
+        branchBtnEl = allBtn[b];
+        break;
+      }
+    }
+    if (branchBtnEl){
+      var bsec = branchBtnEl;
+      // Sube hasta un contenedor amplio (card con borde) que agrupe rama+botón.
+      for (var j = 0; j < 4 && bsec; j++) bsec = bsec.parentElement;
+      if (bsec) bsec.setAttribute('data-hl-hide', 'true');
     }
   }
 
@@ -1154,6 +1227,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   }
 
   function refresh(){
+    cleanupTransparency();
     scan();
     markPrimary();
     markSidebar();
@@ -1168,6 +1242,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   }
 
   checkSaved();
+  cleanupTransparency();
   scan();
   markPrimary();
   markSidebar();
