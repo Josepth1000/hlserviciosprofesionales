@@ -2,6 +2,12 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export const SESSION_COOKIE = 'hl_admin_session';
 
+// Marca de última actividad: la sesión se cierra si pasa este tiempo sin
+// ninguna interacción con el panel (peticiones + "latido" del navegador).
+export const ACTIVITY_COOKIE = 'hl_admin_activity';
+export const INACTIVITY_MS = 30 * 60 * 1000; // 30 minutos sin actividad
+export const ACTIVITY_REFRESH_MS = 60 * 1000; // refrescar la marca a lo sumo cada minuto
+
 interface Credentials {
   username: string;
   password: string;

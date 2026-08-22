@@ -1,8 +1,24 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getCollection, getEntry } from 'astro:content';
-import { SESSION_COOKIE, isConfigured, isValidSession } from './lib/auth';
+import {
+  SESSION_COOKIE,
+  ACTIVITY_COOKIE,
+  INACTIVITY_MS,
+  ACTIVITY_REFRESH_MS,
+  isConfigured,
+  isValidSession,
+} from './lib/auth';
 
 const PROTECTED_PREFIXES = ['/keystatic', '/api/keystatic'];
+
+// Opciones de la cookie de actividad (misma duración que la de sesión).
+const ACTIVITY_COOKIE_OPTIONS = {
+  path: '/',
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  secure: import.meta.env.PROD,
+  maxAge: 60 * 60 * 24 * 30,
+};
 
 // Personalización del panel (/keystatic) inyectada por el middleware, porque el
 // panel es una aplicación React de Keystatic y no se puede tocar su código.
@@ -1168,6 +1184,28 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     if (location.pathname.indexOf('/keystatic/collection/') === 0) refresh();
   }, 500);
 })();
+</script>
+<script>
+// Latido de sesión antivandálico: cada interacción real del usuario (clic,
+// teclado, ratón, scroll) hace un ping ligero a /api/keystatic/activity como
+// máximo una vez por minuto. Ese ping renueva la cookie de actividad; si el
+// usuario se ausenta más de 30 minutos, el middleware cierra la sesión.
+(function () {
+  var lastPing = 0;
+  function beat() {
+    var t = Date.now();
+    if (t - lastPing < 60000) return;
+    lastPing = t;
+    fetch('/api/keystatic/activity', { method: 'POST', credentials: 'same-origin' })
+      .then(function (r) {
+        if (r.status === 401) window.location.href = '/keystatic/login?error=1&reason=expired';
+      })
+      .catch(function () {});
+  }
+  ['pointerdown', 'keydown', 'pointermove', 'scroll'].forEach(function (name) {
+    document.addEventListener(name, beat, { passive: true });
+  });
+})();
 </script>`;
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -1193,6 +1231,29 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // Sesión válida → continúa (e inyecta la personalización del panel)
   if (isValidSession(cookies.get(SESSION_COOKIE)?.value)) {
+    const now = Date.now();
+    const lastActivity = Number(cookies.get(ACTIVITY_COOKIE)?.value ?? 0);
+
+    // Cierre automático por inactividad: si pasaron más de 30 min sin
+    // peticiones ni interacción del navegador (el panel envía un "latido"),
+    // se destruye la sesión y se pide volver a iniciar sesión.
+    if (!lastActivity || now - lastActivity > INACTIVITY_MS) {
+      cookies.delete(SESSION_COOKIE, { path: '/' });
+      cookies.delete(ACTIVITY_COOKIE, { path: '/' });
+      if (isHtmlRequest(request)) {
+        return context.redirect('/keystatic/login?error=1&reason=expired');
+      }
+      return new Response(JSON.stringify({ error: 'Sesión expirada por inactividad' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      });
+    }
+
+    // Renueva la marca de actividad (a lo sumo una vez por minuto)
+    if (now - lastActivity > ACTIVITY_REFRESH_MS) {
+      cookies.set(ACTIVITY_COOKIE, String(now), ACTIVITY_COOKIE_OPTIONS);
+    }
+
     const response = await next();
     // Se inyecta en cualquier ruta del panel (no solo /keystatic): la app de
     // Keystatic navega por rutas como /keystatic/collection/... y /keystatic/

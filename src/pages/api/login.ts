@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { SESSION_COOKIE, createSessionToken, getCredentials } from '../../lib/auth';
+import { SESSION_COOKIE, ACTIVITY_COOKIE, createSessionToken, getCredentials } from '../../lib/auth';
 
 export const prerender = false;
 
@@ -15,6 +15,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect, url }) => {
 
   if (username === creds.username && password === creds.password) {
     cookies.set(SESSION_COOKIE, createSessionToken(), {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: import.meta.env.PROD,
+      maxAge: 60 * 60 * 24 * 30, // 30 días
+    });
+    cookies.set(ACTIVITY_COOKIE, String(Date.now()), {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
