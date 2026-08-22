@@ -78,8 +78,18 @@ const categoryOptions = [
   { label: 'Otros', value: 'Otros' },
 ];
 
+// Modo de almacenamiento:
+// - Si PUBLIC_KEYSTATIC_GITHUB_REPO está definida (formato "usuario/repositorio"),
+//   Keystatic usa el modo GitHub: edición desde la web con commits y publicación
+//   automática (requiere las variables KEYSTATIC_* en el entorno).
+// - Sin la variable, funciona en modo local (edita los archivos del proyecto).
+const githubRepo = import.meta.env.PUBLIC_KEYSTATIC_GITHUB_REPO as string | undefined;
+const storage: { kind: 'local' } | { kind: 'github'; repo: `${string}/${string}` } = githubRepo
+  ? { kind: 'github', repo: githubRepo as `${string}/${string}` }
+  : { kind: 'local' };
+
 export default config({
-  storage: { kind: 'local' },
+  storage,
   locale: 'es-ES',
   ui: {
     brand: {
