@@ -1291,10 +1291,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
 })();
 </script>
 <script>
-// Latido de sesión antivandálico: cada interacción real del usuario (clic,
-// teclado, ratón, scroll) hace un ping ligero a /api/keystatic/activity como
-// máximo una vez por minuto. Ese ping renueva la cookie de actividad; si el
-// usuario se ausenta más de 30 minutos, el middleware cierra la sesión.
+// Latido de sesión: cada interacción real del usuario hace un ping ligero
+// a /api/keystatic/activity para renovar la cookie de actividad. Si el
+// servidor responde 401 simplemente se ignora — la expiración real ocurre
+// en el middleware al navegar a una página HTML. Evitamos el redirect
+// automático para no romper el flujo de GitHub OAuth del panel.
 (function () {
   var lastPing = 0;
   function beat() {
@@ -1302,9 +1303,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     if (t - lastPing < 60000) return;
     lastPing = t;
     fetch('/api/keystatic/activity', { method: 'POST', credentials: 'same-origin' })
-      .then(function (r) {
-        if (r.status === 401) window.location.href = '/keystatic/login?error=1&reason=expired';
-      })
+      .then(function () {})
       .catch(function () {});
   }
   ['pointerdown', 'keydown', 'pointermove', 'scroll'].forEach(function (name) {
