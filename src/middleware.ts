@@ -1339,10 +1339,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const now = Date.now();
     const lastActivity = Number(cookies.get(ACTIVITY_COOKIE)?.value ?? 0);
 
-    // Cierre automático por inactividad: si pasaron más de 30 min sin
-    // peticiones ni interacción del navegador (el panel envía un "latido"),
-    // se destruye la sesión y se pide volver a iniciar sesión.
-    if (!lastActivity || now - lastActivity > INACTIVITY_MS) {
+    // Cierre automático por inactividad: solo se expira si la cookie de
+    // actividad EXISTE y tiene más de 30 min. Si la cookie no existe (p. ej.
+    // se perdió en un redirect de Vercel/Keystatic), se permite continuar
+    // para no bloquear al usuario recién autenticado.
+    if (lastActivity && now - lastActivity > INACTIVITY_MS) {
       cookies.delete(SESSION_COOKIE, { path: '/' });
       cookies.delete(ACTIVITY_COOKIE, { path: '/' });
       if (isHtmlRequest(request)) {
