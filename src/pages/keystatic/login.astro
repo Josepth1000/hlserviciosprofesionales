@@ -31,7 +31,7 @@ const reasonExpired = Astro.url.searchParams.get('reason') === 'expired';
     <PaletteStyle />
   </head>
   <body
-    class="relative flex min-h-screen items-center justify-center overflow-x-clip overflow-y-hidden bg-ink-950 px-4 py-10 font-sans antialiased"
+    class="relative flex min-h-screen items-center justify-center overflow-x-clip overflow-y-auto bg-ink-950 px-4 py-10 font-sans antialiased"
   >
     <!-- Ambiente: fondo oscuro con brillos dorados animados y patrón de puntos -->
     <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -91,31 +91,19 @@ const reasonExpired = Astro.url.searchParams.get('reason') === 'expired';
           </div>
 
           {
-            hasError && (
-              <div
-                class="mt-7 flex items-start gap-2.5 rounded-lg border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm text-brand-200"
-                role="alert"
-              >
-                <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 8v4M12 16h.01" />
-                </svg>
-                Usuario o contraseña incorrectos. Inténtalo de nuevo.
-              </div>
-            )
-          }
-
-          {
-            reasonExpired && (
-              <div
-                class="mt-7 flex items-start gap-2.5 rounded-lg border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm text-brand-200"
-                role="alert"
-              >
-                <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 8v4M12 16h.01" />
-                </svg>
-                Tu sesión se cerró por inactividad de 30 minutos. Inicia sesión nuevamente.
+            (hasError || reasonExpired) && (
+              <div class="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center p-3 sm:p-4" role="alert">
+                <div class="pointer-events-auto flex w-full max-w-md items-start gap-2.5 rounded-xl border border-brand-500/40 bg-ink-900/95 px-4 py-3 text-sm text-brand-200 shadow-2xl shadow-black/60 backdrop-blur">
+                  <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v4M12 16h.01" />
+                  </svg>
+                  <p>
+                    {reasonExpired
+                      ? 'Tu sesión se cerró por inactividad de 30 minutos. Inicia sesión nuevamente.'
+                      : 'Usuario o contraseña incorrectos. Inténtalo de nuevo.'}
+                  </p>
+                </div>
               </div>
             )
           }
@@ -135,7 +123,7 @@ const reasonExpired = Astro.url.searchParams.get('reason') === 'expired';
             )
           }
 
-          <form action="/api/login" method="POST" class="mt-7 space-y-4">
+          <form action="/api/login" method="POST" class="mt-6 space-y-4">
             <input type="hidden" name="next" value={next} />
             <div>
               <label for="username" class="mb-1.5 block text-sm font-medium text-ink-100">Usuario</label>
