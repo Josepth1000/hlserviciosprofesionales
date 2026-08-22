@@ -242,26 +242,10 @@ main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="g
 #hl-toast svg{color:#c9a227;flex:none}
 /* ===== Transparencia: ocultar TODOS los elementos de GitHub del panel =====
  * El cliente (usuario no técnico) no debe ver ramas, repositorios, ni su foto
- * de GitHub. Se oculta por CSS todo lo que Keystatic renderiza relacionado
- * con GitHub: menú de git actions, selector de rama, "Nueva rama",
- * "View on GitHub", usuario/avatar de GitHub.
- * IMPORTANTE: el botón de login con GitHub NO se oculta porque es
- * necesario para la autenticación en modo GitHub. */
-[aria-label="git actions"],
-[aria-label="git actions"] svg{display:none !important}
-/* Selector de rama (combobox) y su contenedor */
-[aria-label*="branch" i],[aria-label*="Branch" i]{display:none !important}
-[aria-label*="branch" i] + *,[aria-label*="Branch" i] + *{display:none !important}
-button[aria-label*="branch" i],button[aria-label*="Branch" i]{display:none !important}
-/* "View on GitHub" / "Ver en GitHub" — ocultar enlaces al repo, pero NO enlaces OAuth de GitHub */
-a[href*="github.com"]:not([href*="/login"]):not([href*="/oauth"]){display:none !important}
-a[href*="github.com"]:not([href*="/login"]):not([href*="/oauth"]) svg{display:none !important}
-/* Menú de usuario de GitHub (avatar + nombre) */
-[aria-label*="User menu" i],[aria-label*="User Menu" i]{display:none !important}
-/* Elementos marcados por el script */
+ * de GitHub. La ocultación se realiza por JavaScript (cleanupTransparency)
+ * que corre después de la autenticación de GitHub. Solo se usa CSS para
+ * marcar elementos que el script oculta con data-hl-hide. */
 [data-hl-hide="true"]{display:none !important}
-/* Ramas / Branches heading */
-[aria-label*="git" i],[aria-label*="repo" i]{display:none !important}
 
 /* ===== Sección "Cerrar Sesión" (abajo a la izquierda) ===== */
 #hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px)}
@@ -788,27 +772,37 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   //     actual + "Nueva rama" (BranchSection).
   //   - El menú "git actions" (selector de rama / pull request / enlace al repo)
   //     del header global se oculta por CSS ([aria-label="git actions"]).
-  //   - Botón "Log in with GitHub", usuario de GitHub, rama, repo, "View on
-  //     GitHub", "New branch", "Nueva rama", etc.
+  //   - Selector de rama, "Nueva rama", "View on GitHub", usuario de GitHub.
+  //   - NO oculta el botón "Log in with GitHub" (necesario para auth).
   // El contenido cambia con cada ruta de la SPA, así que se recomprueba en
   // cada pase de refresh().
   function cleanupTransparency(){
+    // Limpiar ocultaciones previas (SPA cambia de ruta)
     document.querySelectorAll('[data-hl-hide]').forEach(function(el){
       delete el.dataset.hlHide;
     });
-    // --- Selectores universales: ocultar TODO lo que contenga "git", "repo",
-    //     "branch", "GitHub" o "rama" en aria-label, title o contenido ---
-    var selAll = document.querySelectorAll(
-      '[aria-label*="git" i],[aria-label*="repo" i],[aria-label*="branch" i],' +
-      '[aria-label*="Branch" i],[aria-label*="github" i],[aria-label*="GitHub" i],' +
-      '[aria-label*="User menu" i],[aria-label*="User Menu" i],' +
-      'input[aria-label*="branch" i],input[aria-label*="Branch" i],' +
-      'a[href*="github.com"]'
+    // --- Selector de rama (combobox de branch) ---
+    var branchInputs = document.querySelectorAll(
+      'input[aria-label*="branch" i],input[aria-label*="Branch" i],'
     );
-    for (var s = 0; s < selAll.length; s++){
-      var el = selAll[s];
-      var hide = el.closest('[role="group"]') || el.closest('[class*="kui:Flex"]') || el.parentElement || el;
-      hide.setAttribute('data-hl-hide', 'true');
+    for (var bi = 0; bi < branchInputs.length; bi++){
+      var wrap = branchInputs[bi].closest('[role="group"]') || branchInputs[bi].closest('[class*="kui:Flex"]') || branchInputs[bi].parentElement || branchInputs[bi];
+      wrap.setAttribute('data-hl-hide', 'true');
+    }
+    // --- Menú de usuario de GitHub (avatar + nombre) ---
+    var userMenus = document.querySelectorAll('[aria-label*="User menu" i],[aria-label*="User Menu" i]');
+    for (var um = 0; um < userMenus.length; um++){
+      var umWrap = userMenus[um].closest('[class*="kui:Flex"]') || userMenus[um].closest('[role="group"]') || userMenus[um].parentElement || userMenus[um];
+      umWrap.setAttribute('data-hl-hide', 'true');
+    }
+    // --- "View on GitHub" / enlaces al repo (NO OAuth/login de GitHub) ---
+    var allLinks = document.querySelectorAll('a[href*="github.com"]');
+    for (var a = 0; a < allLinks.length; a++){
+      var href = allLinks[a].getAttribute('href') || '';
+      // Saltar enlaces OAuth de autenticación de GitHub
+      if (/\/login|\/oauth|authorize/i.test(href)) continue;
+      var linkWrap = allLinks[a].closest('[role="group"]') || allLinks[a].closest('[class*="kui:Flex"]') || allLinks[a].parentElement || allLinks[a];
+      linkWrap.setAttribute('data-hl-hide', 'true');
     }
     // --- Dashboard: "Hello, <usuario>!" ---
     var helloTxt = null;
@@ -845,18 +839,6 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       }
       break;
     }
-    // --- "View on GitHub" / "Ver en GitHub" (enlaces al repo, NO OAuth) ---
-    var allLinks = document.querySelectorAll('a');
-    for (var a = 0; a < allLinks.length; a++){
-      var href = allLinks[a].getAttribute('href') || '';
-      var linkText = (allLinks[a].textContent || '').trim();
-      if ((/github\.com/i.test(href) && !/\/login|\/oauth/i.test(href)) || /View on GitHub|Ver en GitHub/i.test(linkText)){
-        var wrap = allLinks[a].closest('[role="group"]') || allLinks[a].closest('[class*="kui:Flex"]') || allLinks[a].parentElement || allLinks[a];
-        wrap.setAttribute('data-hl-hide', 'true');
-      }
-    }
-    // NOTA: el botón "Log in with GitHub" NO se oculta porque es
-    // necesario para la autenticación en modo GitHub.
     // --- Cualquier contenedor que solo tenga texto de "main" o "master" (rama) ---
     // Oculta badges/span que muestren el nombre de la rama actual
     var spans = document.querySelectorAll('span, div');
