@@ -785,7 +785,9 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     document.querySelectorAll('[data-hl-hide]').forEach(function(el){
       delete el.dataset.hlHide;
     });
-    // Dashboard: "Hello, <usuario>!" + avatar de GitHub
+    // Dashboard: "Hello, <usuario>!" + avatar de GitHub. Se sube solo 2 niveles
+    // para quedarse en el "Flex" del UserInfo (un nivel más alcanzaría la fila
+    // que contiene las tarjetas del dashboard y las rompería).
     var helloTxt = null;
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()){
@@ -797,27 +799,41 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     }
     if (helloTxt){
       var container = helloTxt.parentElement;
-      // Sube hasta el "Flex" que agrupa avatar + nombre (2 niveles suele bastar)
-      for (var i = 0; i < 3 && container; i++) container = container.parentElement;
+      for (var i = 0; i < 2 && container; i++) container = container.parentElement;
       if (container) container.setAttribute('data-hl-hide', 'true');
     }
-    // Dashboard: bloque de rama (ícono branch + rama actual + opción "Nueva
-    // rama"). El botón "Nueva rama" tiene el texto localizado; también captura
-    // el case "New branch".
-    var branchBtnEl = null;
-    var allBtn = document.querySelectorAll('button, [role="button"]');
-    for (var b = 0; b < allBtn.length; b++){
-      var bt = (allBtn[b].textContent || '').trim();
-      if (/^(Nueva rama|New branch|New Branch)$/.test(bt)){
-        branchBtnEl = allBtn[b];
-        break;
-      }
+    // Selector de rama del header ("Rama actual"): oculta el campo combobox.
+    var combos = document.querySelectorAll('input[aria-label="Rama actual"], input[aria-label="Current branch"]');
+    for (var i = 0; i < combos.length; i++){
+      var combo = combos[i];
+      var grp = combo.closest('[role="group"]') || combo.parentElement;
+      if (grp) grp.setAttribute('data-hl-hide', 'true');
     }
-    if (branchBtnEl){
-      var bsec = branchBtnEl;
-      // Sube hasta un contenedor amplio (card con borde) que agrupe rama+botón.
-      for (var j = 0; j < 4 && bsec; j++) bsec = bsec.parentElement;
-      if (bsec) bsec.setAttribute('data-hl-hide', 'true');
+    // Menú de usuario de GitHub (avatar + nombre) del header del shell.
+    var um = document.querySelectorAll('[aria-label="User menu"], [aria-label="User Menu"]');
+    for (var u = 0; u < um.length; u++){
+      var ub = um[u];
+      (ub.closest('[class*="kui:Flex"]') || ub).setAttribute('data-hl-hide', 'true');
+    }
+    // Dashboard: bloque de ramas (encabezado "Ramas" + rama actual + "Nueva
+    // rama"). Se localiza el encabezado "Ramas" y se sube hasta el contenedor
+    // más próximo que incluya TAMBIÉN el botón "Nueva rama". Ese contenedor es
+    // la sección de ramas; NO se toca el resto del dashboard.
+    var headings = document.querySelectorAll('h1, h2, h3, h4, [role="heading"]');
+    for (var h = 0; h < headings.length; h++){
+      var hd = headings[h];
+      var htext = (hd.textContent || '').trim();
+      if (!/^(Ramas|Rama|Branches|Branch)$/i.test(htext)) continue;
+      var holder = hd;
+      while (holder && holder !== document.body && !/Nueva rama|New branch/i.test(holder.textContent || '')){
+        holder = holder.parentElement;
+      }
+      if (holder && holder !== document.body){
+        holder.setAttribute('data-hl-hide', 'true');
+      } else if (hd.parentElement){
+        hd.parentElement.setAttribute('data-hl-hide', 'true');
+      }
+      break;
     }
   }
 
