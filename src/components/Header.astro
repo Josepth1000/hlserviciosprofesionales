@@ -1,11 +1,11 @@
 ---
 import Icon from './Icon.astro';
-import { getSiteData, getTextosData, getWhatsAppLink, getPageNavLinks } from '../lib/content';
+import { getSiteData, getTextosData, getWhatsAppLink } from '../lib/content';
 
 const site = await getSiteData();
 const textos = await getTextosData();
 
-const links = [...textos.nav.items, ...(await getPageNavLinks())];
+const links = textos.nav.items;
 
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));

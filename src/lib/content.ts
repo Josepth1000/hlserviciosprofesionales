@@ -63,18 +63,3 @@ export async function getTextosData(): Promise<TextosData> {
 export function getWhatsAppLink(whatsapp: string, message: string): string {
   return `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
 }
-
-export interface NavLink {
-  label: string;
-  href: string;
-}
-
-// Enlaces de navegación generados a partir de las páginas creadas en el panel.
-// Solo páginas publicadas y marcadas como "Mostrar en el menú".
-export async function getPageNavLinks(): Promise<NavLink[]> {
-  const pages = await getCollection('pages');
-  return pages
-    .filter((p) => p.data.status === 'publicada' && p.data.showInNav)
-    .sort((a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title))
-    .map((p) => ({ label: p.data.title, href: `/${p.id}` }));
-}

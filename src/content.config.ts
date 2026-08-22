@@ -142,24 +142,6 @@ const blog = defineCollection({
   }),
 });
 
-// Páginas creadas por el usuario desde el panel (✍️ o 🧩 Páginas). El cuerpo
-// es un editor enriquecido (fields.document) que Keystatic guarda en markdown.
-const pages = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/pages' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string().default(''),
-    seoTitle: z.string().nullable().optional(),
-    seoDescription: z.string().nullable().optional(),
-    heroTitle: z.string().nullable().optional(),
-    heroSubtitle: z.string().nullable().optional(),
-    heroImage: z.string().nullable().optional(),
-    showInNav: z.boolean().default(false),
-    order: z.number().default(0),
-    status: z.enum(['publicada', 'borrador']).default('publicada'),
-  }),
-});
-
 // Todos los textos e imágenes del sitio editables desde el panel
 // (singleton ✍️ Textos del sitio). Cada campo tiene un valor por defecto que
 // coincide con el contenido actual del sitio.
@@ -812,4 +794,4 @@ const textos = defineCollection({
   }),
 });
 
-export const collections = { site, afiliacion, services, testimonials, faqs, blog, textos, pages };
+export const collections = { site, afiliacion, services, testimonials, faqs, blog, textos };

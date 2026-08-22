@@ -2,7 +2,6 @@ import { config, collection, fields, singleton } from '@keystatic/core';
 import { createElement } from 'react';
 import { colorField } from './src/lib/keystatic/colorField';
 import { imageField } from './src/lib/keystatic/imageField';
-import { PAGE_SLUG_ALLOWED } from './src/lib/pageSlugs';
 
 // Marca del panel: logo corporativo (monograma dorado) sobre círculo negro
 // para que sea visible tanto en modo claro como oscuro del panel.
@@ -79,19 +78,8 @@ const categoryOptions = [
   { label: 'Otros', value: 'Otros' },
 ];
 
-// Modo de almacenamiento:
-// - Si PUBLIC_KEYSTATIC_GITHUB_REPO está definida (formato "usuario/repositorio"),
-//   Keystatic usa el modo GitHub: edición desde la web con commits y publicación
-//   automática (requiere las variables KEYSTATIC_* en el entorno).
-// - Sin la variable, funciona en modo local (edita los archivos del proyecto).
-const githubRepo = import.meta.env.PUBLIC_KEYSTATIC_GITHUB_REPO as string | undefined;
-
-const storage: { kind: 'local' } | { kind: 'github'; repo: `${string}/${string}` } = githubRepo
-  ? { kind: 'github', repo: githubRepo as `${string}/${string}` }
-  : { kind: 'local' };
-
 export default config({
-  storage,
+  storage: { kind: 'local' },
   locale: 'es-ES',
   ui: {
     brand: {
@@ -99,7 +87,7 @@ export default config({
       mark: brandMark,
     },
     navigation: {
-      Contenido: ['services', 'testimonials', 'faqs', 'blog', 'pages', 'afiliacion'],
+      Contenido: ['services', 'testimonials', 'faqs', 'blog', 'afiliacion'],
       'Sitio web': ['site', 'textos'],
     },
   },
@@ -170,64 +158,6 @@ export default config({
         }),
         tags: fields.array(fields.text({ label: 'Etiqueta' }), { label: 'Etiquetas' }),
         content: fields.markdoc({ label: 'Contenido', extension: 'md' }),
-      },
-    }),
-    pages: collection({
-      label: 'Páginas',
-      slugField: 'slug',
-      path: 'src/content/pages/*',
-      format: { contentField: 'content' },
-      columns: ['title', 'status'],
-      previewUrl: '/{slug}',
-      schema: {
-        slug: fields.slug({
-          name: {
-            label: 'URL (slug)',
-            description:
-              'Dirección de la página, p. ej. "terminos-de-servicio". Solo minúsculas, números y guiones (sin /). No uses rutas existentes: contacto, servicios, quienes-somos, como-me-afilio, noticias, blog.',
-            validation: { pattern: { regex: PAGE_SLUG_ALLOWED, message: 'Slug inválido o reservado (solo minúsculas, números y guiones)' } },
-          },
-        }),
-        title: fields.text({ label: 'Título' }),
-        description: fields.text({ label: 'Resumen', multiline: true }),
-        seoTitle: fields.text({ label: 'Título SEO (opcional)', description: 'Si se deja vacío se usa el título de la página.' }),
-        seoDescription: fields.text({ label: 'Descripción SEO (opcional)', multiline: true }),
-        heroTitle: fields.text({ label: 'Título de cabecera (opcional)' }),
-        heroSubtitle: fields.text({ label: 'Subtítulo de cabecera (opcional)', multiline: true }),
-        heroImage: fields.image({ label: 'Imagen de cabecera (opcional)', directory: 'public/images/pages', publicPath: '/images/pages/' }),
-        showInNav: fields.checkbox({
-          label: 'Mostrar en el menú de navegación',
-          description: 'Añade un enlace a la página en el menú del sitio (aparece al final).',
-          defaultValue: false,
-        }),
-        order: fields.integer({ label: 'Orden en el menú', defaultValue: 0, description: 'Los enlaces del menú automático se ordenan de menor a mayor.' }),
-        status: fields.select({
-          label: 'Estado',
-          description: 'Solo las páginas "Publicada" se muestran en el sitio.',
-          options: [
-            { label: 'Publicada', value: 'publicada' },
-            { label: 'Borrador', value: 'borrador' },
-          ],
-          defaultValue: 'publicada',
-        }),
-        content: fields.markdoc({
-          label: 'Contenido',
-          extension: 'md',
-          options: {
-            bold: true,
-            italic: true,
-            strikethrough: true,
-            code: true,
-            heading: true,
-            blockquote: true,
-            orderedList: true,
-            unorderedList: true,
-            table: true,
-            link: true,
-            image: { directory: 'public/images/pages', publicPath: '/images/pages/' },
-            divider: true,
-          },
-        }),
       },
     }),
   },

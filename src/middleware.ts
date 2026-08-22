@@ -52,7 +52,6 @@ const COLLECTIONS: Record<string, { dir: string; ext: string }> = {
   testimonials: { dir: 'src/content/testimonials', ext: '.yaml' },
   faqs: { dir: 'src/content/faqs', ext: '.yaml' },
   blog: { dir: 'src/content/blog', ext: '.md' },
-  pages: { dir: 'src/content/pages', ext: '.md' },
 };
 
 const PANEL_HTML = `<style id="hl-panel-theme">
@@ -241,18 +240,30 @@ main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="g
 #hl-toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-90px);z-index:100000;background:#1d1d22;border:1px solid rgba(201,162,39,.55);color:#f4f4f5;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 12px 34px -10px rgba(0,0,0,.7);opacity:0;transition:transform .3s cubic-bezier(.2,.9,.3,1.2),opacity .3s ease;pointer-events:none;font-family:Inter,system-ui,sans-serif}
 #hl-toast.hl-show{transform:translateX(-50%) translateY(0);opacity:1}
 #hl-toast svg{color:#c9a227;flex:none}
-/* ===== Transparencia: ocultar detalles técnicos del panel =====
- * El cliente (usuario no técnico) no debe ver ramas/repositorios ni su foto de
- * GitHub. Se oculta:
- *   - El menú "git actions" del header (selector de rama, pull requests y el
- *     enlace al repositorio / "View on GitHub").
- *   - En el dashboard (/keystatic): el saludo "Hello, <usuario>!" con el avatar
- *     de GitHub (UserInfo) y el contenedor de la rama actual + "Nueva rama"
- *     (BranchSection). El texto lo resume el script en cada pase. */
+/* ===== Transparencia: ocultar TODOS los elementos de GitHub del panel =====
+ * El cliente (usuario no técnico) no debe ver ramas, repositorios, ni su foto
+ * de GitHub. Se oculta por CSS todo lo que Keystatic renderiza relacionado
+ * con GitHub: menú de git actions, selector de rama,"Nueva rama","View on
+ * GitHub", usuario/avatar de GitHub, botón de login con GitHub, y cualquier
+ * elemento que el script marque con data-hl-hide. */
 [aria-label="git actions"],
 [aria-label="git actions"] svg{display:none !important}
-/* --- Dashboard: ocultos por script (los elementos se marcan con data-attr) --- */
+/* Selector de rama (combobox) y su contenedor */
+[aria-label*="branch" i],[aria-label*="Branch" i]{display:none !important}
+[aria-label*="branch" i] + *,[aria-label*="Branch" i] + *{display:none !important}
+/* Botón "Nueva rama" / "New branch" */
+button[aria-label*="branch" i],button[aria-label*="Branch" i]{display:none !important}
+/* "View on GitHub" / "Ver en GitHub" */
+a[href*="github.com"],a[href*="github.com"] svg{display:none !important}
+/* Menú de usuario de GitHub (avatar + nombre) */
+[aria-label*="User menu" i],[aria-label*="User Menu" i]{display:none !important}
+/* Botón "Log in with GitHub" */
+button:has(svg[class*="github"]),a:has(svg[class*="github"]),
+button:has([data-icon="github"]),a:has([data-icon="github"]){display:none !important}
+/* Encabezado "Ramas" / "Branches" y su contenedor */
 [data-hl-hide="true"]{display:none !important}
+/* Cualquier aria-label con "git", "repo", "branch" o "GitHub" */
+[aria-label*="git" i],[aria-label*="repo" i],[aria-label*="github" i]{display:none !important}
 
 /* ===== Sección "Cerrar Sesión" (abajo a la izquierda) ===== */
 #hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px)}
@@ -779,53 +790,54 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   //     actual + "Nueva rama" (BranchSection).
   //   - El menú "git actions" (selector de rama / pull request / enlace al repo)
   //     del header global se oculta por CSS ([aria-label="git actions"]).
+  //   - Botón "Log in with GitHub", usuario de GitHub, rama, repo, "View on
+  //     GitHub", "New branch", "Nueva rama", etc.
   // El contenido cambia con cada ruta de la SPA, así que se recomprueba en
   // cada pase de refresh().
   function cleanupTransparency(){
     document.querySelectorAll('[data-hl-hide]').forEach(function(el){
       delete el.dataset.hlHide;
     });
-    // Dashboard: "Hello, <usuario>!" + avatar de GitHub. Se sube solo 2 niveles
-    // para quedarse en el "Flex" del UserInfo (un nivel más alcanzaría la fila
-    // que contiene las tarjetas del dashboard y las rompería).
+    // --- Selectores universales: ocultar TODO lo que contenga "git", "repo",
+    //     "branch", "GitHub" o "rama" en aria-label, title o contenido ---
+    var selAll = document.querySelectorAll(
+      '[aria-label*="git" i],[aria-label*="repo" i],[aria-label*="branch" i],' +
+      '[aria-label*="Branch" i],[aria-label*="github" i],[aria-label*="GitHub" i],' +
+      '[aria-label*="User menu" i],[aria-label*="User Menu" i],' +
+      'input[aria-label*="branch" i],input[aria-label*="Branch" i],' +
+      'a[href*="github.com"]'
+    );
+    for (var s = 0; s < selAll.length; s++){
+      var el = selAll[s];
+      var hide = el.closest('[role="group"]') || el.closest('[class*="kui:Flex"]') || el.parentElement || el;
+      hide.setAttribute('data-hl-hide', 'true');
+    }
+    // --- Dashboard: "Hello, <usuario>!" ---
     var helloTxt = null;
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()){
       var tn = walker.currentNode;
-      if (tn.nodeValue && tn.nodeValue.indexOf('Hello,') !== -1){
+      if (tn.nodeValue && tn.nodeValue.toLowerCase().indexOf('hello,') !== -1){
         helloTxt = tn;
         break;
       }
     }
     if (helloTxt){
       var container = helloTxt.parentElement;
-      for (var i = 0; i < 2 && container; i++) container = container.parentElement;
+      while (container && !container.hasAttribute('data-hl-hide')) {
+        container = container.parentElement;
+      }
       if (container) container.setAttribute('data-hl-hide', 'true');
     }
-    // Selector de rama del header ("Rama actual"): oculta el campo combobox.
-    var combos = document.querySelectorAll('input[aria-label="Rama actual"], input[aria-label="Current branch"]');
-    for (var i = 0; i < combos.length; i++){
-      var combo = combos[i];
-      var grp = combo.closest('[role="group"]') || combo.parentElement;
-      if (grp) grp.setAttribute('data-hl-hide', 'true');
-    }
-    // Menú de usuario de GitHub (avatar + nombre) del header del shell.
-    var um = document.querySelectorAll('[aria-label="User menu"], [aria-label="User Menu"]');
-    for (var u = 0; u < um.length; u++){
-      var ub = um[u];
-      (ub.closest('[class*="kui:Flex"]') || ub).setAttribute('data-hl-hide', 'true');
-    }
-    // Dashboard: bloque de ramas (encabezado "Ramas" + rama actual + "Nueva
-    // rama"). Se localiza el encabezado "Ramas" y se sube hasta el contenedor
-    // más próximo que incluya TAMBIÉN el botón "Nueva rama". Ese contenedor es
-    // la sección de ramas; NO se toca el resto del dashboard.
+    // --- Dashboard: bloque de ramas ("Ramas"/"Branch" + "Nueva rama"/"New branch") ---
     var headings = document.querySelectorAll('h1, h2, h3, h4, [role="heading"]');
     for (var h = 0; h < headings.length; h++){
       var hd = headings[h];
       var htext = (hd.textContent || '').trim();
       if (!/^(Ramas|Rama|Branches|Branch)$/i.test(htext)) continue;
       var holder = hd;
-      while (holder && holder !== document.body && !/Nueva rama|New branch/i.test(holder.textContent || '')){
+      while (holder && holder !== document.body){
+        if (/(Nueva rama|New branch|nueva rama|new branch)/i.test(holder.innerHTML || '')) break;
         holder = holder.parentElement;
       }
       if (holder && holder !== document.body){
@@ -834,6 +846,34 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
         hd.parentElement.setAttribute('data-hl-hide', 'true');
       }
       break;
+    }
+    // --- "View on GitHub" / "Ver en GitHub" (enlaces al repo) ---
+    var allLinks = document.querySelectorAll('a');
+    for (var a = 0; a < allLinks.length; a++){
+      var href = allLinks[a].getAttribute('href') || '';
+      var linkText = (allLinks[a].textContent || '').trim();
+      if (/github\.com/i.test(href) || /View on GitHub|Ver en GitHub/i.test(linkText)){
+        var wrap = allLinks[a].closest('[role="group"]') || allLinks[a].closest('[class*="kui:Flex"]') || allLinks[a].parentElement || allLinks[a];
+        wrap.setAttribute('data-hl-hide', 'true');
+      }
+    }
+    // --- Botón "Log in with GitHub" ---
+    var allBtns = document.querySelectorAll('button, a[role="button"]');
+    for (var b = 0; b < allBtns.length; b++){
+      var btnText = (allBtns[b].textContent || '').trim();
+      if (/Log in with GitHub|Iniciar ses.*con GitHub|Entrar con GitHub/i.test(btnText)){
+        allBtns[b].setAttribute('data-hl-hide', 'true');
+      }
+    }
+    // --- Cualquier contenedor que solo tenga texto de "main" o "master" (rama) ---
+    // Oculta badges/span que muestren el nombre de la rama actual
+    var spans = document.querySelectorAll('span, div');
+    for (var sp = 0; sp < spans.length; sp++){
+      var spText = (sp.textContent || '').trim();
+      var spParent = spans[sp].parentElement;
+      if (spParent && spParent.children.length <= 3 && /^(main|master|main\s*\|$)/.test(spText) && spParent.querySelector('[role="combobox"],[role="listbox"]')){
+        spans[sp].setAttribute('data-hl-hide', 'true');
+      }
     }
   }
 
