@@ -243,6 +243,8 @@ main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="g
 button[aria-label="git actions"]{display:none !important}
 /* Menú de usuario (avatar + nombre de GitHub) */
 button[aria-label="User menu" i],button[aria-label="User Menu" i]{display:none !important}
+/* Selector de rama / branch (combobox + labels) */
+input[aria-label*="branch" i],input[aria-label*="rama" i],select[aria-label*="branch" i],select[aria-label*="rama" i],button[aria-label*="branch" i],button[aria-label*="rama" i]{display:none !important}
 
 /* ===== Sección "Cerrar Sesión" (abajo a la izquierda) ===== */
 #hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px)}
@@ -795,8 +797,8 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     document.querySelectorAll('button[aria-label="git actions"]').forEach(function(b){
       hide(b.closest('[role="group"]') || b.closest('[class*="kui"]') || b.parentElement || b);
     });
-    // --- Selector de rama (combobox de branch) ---
-    document.querySelectorAll('input[aria-label*="branch" i],select[aria-label*="branch" i]').forEach(function(el){
+    // --- Selector de rama (combobox de branch/rama) ---
+    document.querySelectorAll('input[aria-label*="branch" i],input[aria-label*="rama" i],select[aria-label*="branch" i],select[aria-label*="rama" i]').forEach(function(el){
       hide(el.closest('[role="group"]') || el.closest('[class*="kui"]') || el.parentElement || el);
     });
     // --- Menú de usuario de GitHub (avatar + nombre) ---
@@ -843,7 +845,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       var t = (el.textContent || '').trim();
       if (/^(main|master)$/i.test(t)){
         var p = el.parentElement;
-        if (p && (p.querySelector('[role="combobox"]') || p.querySelector('button[aria-label*="branch" i]')))
+        if (p && (p.querySelector('[role="combobox"]') || p.querySelector('button[aria-label*="branch" i]') || p.querySelector('button[aria-label*="rama" i]')))
           hide(el);
       }
     });
