@@ -663,6 +663,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
           var nativeImg = imgCell.querySelector('img[src]:not(.hl-thumb)');
           if (nativeImg && nativeImg.getAttribute('src')) url = nativeImg.getAttribute('src');
         }
+        // Fallback: extraer de cualquier texto en la celda que parezca una ruta de imagen
+        if (!url){
+          var cellText = (imgCell.textContent || '').trim();
+          if (cellText && /^\//.test(cellText)) url = cellText;
+        }
         var titleCell = row.querySelector('[role="rowheader"][data-key*="title"]');
         var title = titleCell ? (titleCell.textContent || '').trim() : '';
         if (IMAGES[title]) url = IMAGES[title];
@@ -1416,7 +1421,8 @@ async function getServiceImageMap(): Promise<Record<string, string>> {
       map[s.id] = img;
     }
     return map;
-  } catch {
+  } catch (err) {
+    console.error('[HL] getServiceImageMap error:', err);
     return {};
   }
 }
