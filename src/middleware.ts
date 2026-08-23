@@ -2,23 +2,15 @@ import { defineMiddleware } from 'astro:middleware';
 import { getCollection, getEntry } from 'astro:content';
 import {
   SESSION_COOKIE,
-  ACTIVITY_COOKIE,
   INACTIVITY_MS,
   ACTIVITY_REFRESH_MS,
   isConfigured,
-  isValidSession,
+  validateSession,
+  createRefreshedToken,
+  SESSION_COOKIE_OPTIONS,
 } from './lib/auth';
 
 const PROTECTED_PREFIXES = ['/keystatic', '/api/keystatic'];
-
-// Opciones de la cookie de actividad (misma duración que la de sesión).
-const ACTIVITY_COOKIE_OPTIONS = {
-  path: '/',
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: import.meta.env.PROD,
-  maxAge: 60 * 60 * 24 * 30,
-};
 
 // Personalización del panel (/keystatic) inyectada por el middleware, porque el
 // panel es una aplicación React de Keystatic y no se puede tocar su código.
@@ -1289,27 +1281,6 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     if (location.pathname.indexOf('/keystatic/collection/') === 0) refresh();
   }, 500);
 })();
-</script>
-<script>
-// Latido de sesión: cada interacción real del usuario hace un ping ligero
-// a /api/keystatic/activity para renovar la cookie de actividad. Si el
-// servidor responde 401 simplemente se ignora — la expiración real ocurre
-// en el middleware al navegar a una página HTML. Evitamos el redirect
-// automático para no romper el flujo de GitHub OAuth del panel.
-(function () {
-  var lastPing = 0;
-  function beat() {
-    var t = Date.now();
-    if (t - lastPing < 60000) return;
-    lastPing = t;
-    fetch('/api/keystatic/activity', { method: 'POST', credentials: 'same-origin' })
-      .then(function () {})
-      .catch(function () {});
-  }
-  ['pointerdown', 'keydown', 'pointermove', 'scroll'].forEach(function (name) {
-    document.addEventListener(name, beat, { passive: true });
-  });
-})();
 </script>`;
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -1334,17 +1305,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Sesión válida → continúa (e inyecta la personalización del panel)
-  if (isValidSession(cookies.get(SESSION_COOKIE)?.value)) {
-    const now = Date.now();
-    const lastActivity = Number(cookies.get(ACTIVITY_COOKIE)?.value ?? 0);
-
-    // Cierre automático por inactividad: solo se expira si la cookie de
-    // actividad EXISTE y tiene más de 30 min. Si la cookie no existe (p. ej.
-    // se perdió en un redirect de Vercel/Keystatic), se permite continuar
-    // para no bloquear al usuario recién autenticado.
-    if (lastActivity && now - lastActivity > INACTIVITY_MS) {
+  const session = validateSession(cookies.get(SESSION_COOKIE)?.value);
+  if (session.valid) {
+    // Cierre automático por inactividad: el timestamp viene embebido en
+    // el token de sesión (formato: username.timestamp.hmac). Si la última
+    // actividad fue hace más de 30 minutos, se cierra la sesión.
+    if (session.expired) {
       cookies.delete(SESSION_COOKIE, { path: '/' });
-      cookies.delete(ACTIVITY_COOKIE, { path: '/' });
       if (isHtmlRequest(request)) {
         return context.redirect('/keystatic/login?error=1&reason=expired');
       }
@@ -1354,21 +1321,28 @@ export const onRequest = defineMiddleware(async (context, next) => {
       });
     }
 
-    // Renueva la marca de actividad (a lo sumo una vez por minuto)
-    if (now - lastActivity > ACTIVITY_REFRESH_MS) {
-      cookies.set(ACTIVITY_COOKIE, String(now), ACTIVITY_COOKIE_OPTIONS);
-    }
-
     const response = await next();
+
     // Se inyecta en cualquier ruta del panel (no solo /keystatic): la app de
     // Keystatic navega por rutas como /keystatic/collection/... y /keystatic/
     // singleton/... y al recargar directamente ahí también debe llevar la
     // personalización. /keystatic/login ya retornó antes.
+    let finalResponse = response;
     if (path.startsWith('/keystatic') && isHtmlRequest(request)) {
       const serviceImages = await getServiceImageMap();
-      return injectPanelTheme(response, serviceImages);
+      finalResponse = await injectPanelTheme(response, serviceImages);
     }
-    return response;
+
+    // Refresca el token de sesión (a lo sumo una vez por minuto) para
+    // mantener viva la sesión. El cookie se envía como header Set-Cookie
+    // directamente en la respuesta, sin depender de JavaScript del cliente.
+    if (session.age > ACTIVITY_REFRESH_MS) {
+      const refreshed = createRefreshedToken();
+      finalResponse.headers.append('Set-Cookie',
+        `${SESSION_COOKIE}=${refreshed}; Path=/; HttpOnly; SameSite=Lax${import.meta.env.PROD ? '; Secure' : ''}; Max-Age=${60 * 60 * 24 * 30}`
+      );
+    }
+    return finalResponse;
   }
 
   // Navegación del navegador → redirigir al inicio de sesión
