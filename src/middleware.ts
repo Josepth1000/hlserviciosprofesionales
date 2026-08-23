@@ -802,8 +802,8 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     });
     // --- "View on GitHub" / enlaces al repo (NO OAuth/login de GitHub) ---
     document.querySelectorAll('a[href*="github.com"]').forEach(function(a){
-      var href = a.getAttribute('href') || '';
-      if (/\/login|\/oauth|authorize/i.test(href)) return;
+      var href = (a.getAttribute('href') || '').toLowerCase();
+      if (href.indexOf('/login') !== -1 || href.indexOf('/oauth') !== -1 || href.indexOf('authorize') !== -1) return;
       hide(a.closest('[role="group"]') || a.closest('[class*="kui"]') || a.parentElement || a);
     });
     // --- Botón "New branch" / "Nueva rama" / "Create branch" ---
@@ -839,7 +839,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       var t = (el.textContent || '').trim();
       if (/^(main|master)$/i.test(t)){
         var p = el.parentElement;
-        if (p && (p.querySelector('[role="combobox"]') || p.querySelector('button[aria-label*="branch" i])))
+        if (p && (p.querySelector('[role="combobox"]') || p.querySelector('button[aria-label*="branch" i]')))
           hide(el);
       }
     });
