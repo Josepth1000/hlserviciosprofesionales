@@ -234,10 +234,15 @@ main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="g
 #hl-toast svg{color:#c9a227;flex:none}
 /* ===== Transparencia: ocultar TODOS los elementos de GitHub del panel =====
  * El cliente (usuario no técnico) no debe ver ramas, repositorios, ni su foto
- * de GitHub. La ocultación se realiza por JavaScript (cleanupTransparency)
- * que corre después de la autenticación de GitHub. Solo se usa CSS para
- * marcar elementos que el script oculta con data-hl-hide. */
+ * de GitHub. Se usa una doble capa: CSS que oculta directamente por atributos/
+ * contenido + JS (cleanupTransparency) que marca con data-hl-hide para cubrir
+ * casos que CSS no puede resolver por solo selector. */
 [data-hl-hide="true"]{display:none !important}
+/* --- CSS directo: oculta elementos de GitHub por atributos (rápido, sin JS) --- */
+/* Botón "git actions" (menú de rama/PR/repo en el header) */
+button[aria-label="git actions"]{display:none !important}
+/* Menú de usuario (avatar + nombre de GitHub) */
+button[aria-label="User menu" i],button[aria-label="User Menu" i]{display:none !important}
 
 /* ===== Sección "Cerrar Sesión" (abajo a la izquierda) ===== */
 #hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px)}
@@ -769,78 +774,75 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   // El contenido cambia con cada ruta de la SPA, así que se recomprueba en
   // cada pase de refresh().
   function cleanupTransparency(){
-    // Limpiar ocultaciones previas (SPA cambia de ruta)
-    document.querySelectorAll('[data-hl-hide]').forEach(function(el){
-      delete el.dataset.hlHide;
+    // NOTA: NO limpiamos data-hl-hide aquí. Los atributos se acumulan
+    // y eso elimina el flash visible que causaba el ciclo clear→re-apply.
+    // React crea nodos nuevos para elementos nuevos, así que los viejos
+    // marcados simplemente desaparecen del DOM.
+    function hide(el){ if (el) el.setAttribute('data-hl-hide', 'true'); }
+    function hideSection(el){
+      // Sube hasta encontrar un <section> o un contenedor con role, o falla a 3 niveles
+      var cur = el;
+      for (var i = 0; i < 3 && cur && cur !== document.body; i++){
+        if (cur.tagName === 'SECTION' || cur.getAttribute('role') === 'region') break;
+        cur = cur.parentElement;
+      }
+      if (cur && cur !== document.body) hide(cur);
+    }
+    // --- Botón "git actions" (menú de rama/repo en el header) ---
+    document.querySelectorAll('button[aria-label="git actions"]').forEach(function(b){
+      hide(b.closest('[role="group"]') || b.closest('[class*="kui"]') || b.parentElement || b);
     });
     // --- Selector de rama (combobox de branch) ---
-    var branchInputs = document.querySelectorAll(
-      'input[aria-label*="branch" i],input[aria-label*="Branch" i],'
-    );
-    for (var bi = 0; bi < branchInputs.length; bi++){
-      var wrap = branchInputs[bi].closest('[role="group"]') || branchInputs[bi].closest('[class*="kui:Flex"]') || branchInputs[bi].parentElement || branchInputs[bi];
-      wrap.setAttribute('data-hl-hide', 'true');
-    }
+    document.querySelectorAll('input[aria-label*="branch" i],select[aria-label*="branch" i]').forEach(function(el){
+      hide(el.closest('[role="group"]') || el.closest('[class*="kui"]') || el.parentElement || el);
+    });
     // --- Menú de usuario de GitHub (avatar + nombre) ---
-    var userMenus = document.querySelectorAll('[aria-label*="User menu" i],[aria-label*="User Menu" i]');
-    for (var um = 0; um < userMenus.length; um++){
-      var umWrap = userMenus[um].closest('[class*="kui:Flex"]') || userMenus[um].closest('[role="group"]') || userMenus[um].parentElement || userMenus[um];
-      umWrap.setAttribute('data-hl-hide', 'true');
-    }
+    document.querySelectorAll('[aria-label*="User menu" i]').forEach(function(el){
+      hide(el.closest('[class*="kui"]') || el.closest('[role="group"]') || el.parentElement || el);
+    });
     // --- "View on GitHub" / enlaces al repo (NO OAuth/login de GitHub) ---
-    var allLinks = document.querySelectorAll('a[href*="github.com"]');
-    for (var a = 0; a < allLinks.length; a++){
-      var href = allLinks[a].getAttribute('href') || '';
-      // Saltar enlaces OAuth de autenticación de GitHub
-      if (/\/login|\/oauth|authorize/i.test(href)) continue;
-      var linkWrap = allLinks[a].closest('[role="group"]') || allLinks[a].closest('[class*="kui:Flex"]') || allLinks[a].parentElement || allLinks[a];
-      linkWrap.setAttribute('data-hl-hide', 'true');
-    }
+    document.querySelectorAll('a[href*="github.com"]').forEach(function(a){
+      var href = a.getAttribute('href') || '';
+      if (/\/login|\/oauth|authorize/i.test(href)) return;
+      hide(a.closest('[role="group"]') || a.closest('[class*="kui"]') || a.parentElement || a);
+    });
+    // --- Botón "New branch" / "Nueva rama" / "Create branch" ---
+    document.querySelectorAll('button').forEach(function(b){
+      var t = (b.textContent || '').trim();
+      if (/^(New branch|Nueva rama|Create branch|Delete branch|New branch…)$/i.test(t))
+        hide(b.closest('[class*="kui"]') || b.closest('section') || b.parentElement || b);
+    });
     // --- Dashboard: "Hello, <usuario>!" ---
-    var helloTxt = null;
+    // El texto está en 3 nodos separados: "Hello, ", username, "!"
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()){
       var tn = walker.currentNode;
-      if (tn.nodeValue && tn.nodeValue.toLowerCase().indexOf('hello,') !== -1){
-        helloTxt = tn;
+      if (tn.nodeValue && /^\s*Hello,/i.test(tn.nodeValue)){
+        // La UserInfo está dentro de un Flex que es hijo directo del PageBody.
+        // Subimos solo 2-3 niveles para ocultar el bloque completo (avatar +
+        // greeting) sin tocar el contenedor de toda la página.
+        var p = tn.parentElement;
+        if (p) hideSection(p);
         break;
       }
     }
-    if (helloTxt){
-      var container = helloTxt.parentElement;
-      while (container && !container.hasAttribute('data-hl-hide')) {
-        container = container.parentElement;
+    // --- Dashboard: bloque de ramas (heading "Current branch"/"Rama actual") ---
+    document.querySelectorAll('h1, h2, h3, h4, [role="heading"]').forEach(function(hd){
+      var ht = (hd.textContent || '').trim();
+      // Keystatic usa "Current branch" (EN) o "Rama actual" (ES) como título
+      if (/^(Branches|Branch|Ramas|Rama|Current branch|Rama actual)$/i.test(ht)){
+        hideSection(hd);
       }
-      if (container) container.setAttribute('data-hl-hide', 'true');
-    }
-    // --- Dashboard: bloque de ramas ("Ramas"/"Branch" + "Nueva rama"/"New branch") ---
-    var headings = document.querySelectorAll('h1, h2, h3, h4, [role="heading"]');
-    for (var h = 0; h < headings.length; h++){
-      var hd = headings[h];
-      var htext = (hd.textContent || '').trim();
-      if (!/^(Ramas|Rama|Branches|Branch)$/i.test(htext)) continue;
-      var holder = hd;
-      while (holder && holder !== document.body){
-        if (/(Nueva rama|New branch|nueva rama|new branch)/i.test(holder.innerHTML || '')) break;
-        holder = holder.parentElement;
+    });
+    // --- Badges de nombre de rama ("main", "master") junto al combobox ---
+    document.querySelectorAll('span, div, button').forEach(function(el){
+      var t = (el.textContent || '').trim();
+      if (/^(main|master)$/i.test(t)){
+        var p = el.parentElement;
+        if (p && (p.querySelector('[role="combobox"]') || p.querySelector('button[aria-label*="branch" i])))
+          hide(el);
       }
-      if (holder && holder !== document.body){
-        holder.setAttribute('data-hl-hide', 'true');
-      } else if (hd.parentElement){
-        hd.parentElement.setAttribute('data-hl-hide', 'true');
-      }
-      break;
-    }
-    // --- Cualquier contenedor que solo tenga texto de "main" o "master" (rama) ---
-    // Oculta badges/span que muestren el nombre de la rama actual
-    var spans = document.querySelectorAll('span, div');
-    for (var sp = 0; sp < spans.length; sp++){
-      var spText = (sp.textContent || '').trim();
-      var spParent = spans[sp].parentElement;
-      if (spParent && spParent.children.length <= 3 && /^(main|master|main\s*\|$)/.test(spText) && spParent.querySelector('[role="combobox"],[role="listbox"]')){
-        spans[sp].setAttribute('data-hl-hide', 'true');
-      }
-    }
+    });
   }
 
   // ---------- Guardar: popup + volver a la lista ----------
@@ -1277,8 +1279,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   // Refresco periódico ligero: el observer solo ve mutaciones childList y React
   // a veces solo cambia atributos (p. ej. src del blob al guardar/recargar), lo
   // que no dispararía el preview. Un pase cada 500ms mantiene el preview en vivo.
+  // Se ejecuta en TODAS las rutas de Keystatic (no solo collection) para que
+  // cleanupTransparency() oculte los elementos de GitHub que React renderiza
+  // después de la carga inicial (dashboard, branch selector, etc.).
   setInterval(function(){
-    if (location.pathname.indexOf('/keystatic/collection/') === 0) refresh();
+    if (location.pathname.indexOf('/keystatic') === 0) refresh();
   }, 500);
 })();
 </script>`;
