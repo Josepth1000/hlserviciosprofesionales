@@ -666,7 +666,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
         // Fallback: extraer de cualquier texto en la celda que parezca una ruta de imagen
         if (!url){
           var cellText = (imgCell.textContent || '').trim();
-          if (cellText && /^\//.test(cellText)) url = cellText;
+          if (cellText && cellText.charAt(0) === '/') url = cellText;
         }
         var titleCell = row.querySelector('[role="rowheader"][data-key*="title"]');
         var title = titleCell ? (titleCell.textContent || '').trim() : '';
