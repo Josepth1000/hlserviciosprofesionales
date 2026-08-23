@@ -780,9 +780,12 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     // marcados simplemente desaparecen del DOM.
     function hide(el){ if (el) el.setAttribute('data-hl-hide', 'true'); }
     function hideSection(el){
-      // Sube hasta encontrar un <section> o un contenedor con role, o falla a 3 niveles
+      // Sube hasta encontrar un <section> o un contenedor con role, o falla a 2 niveles.
+      // IMPORTANTE: no subir más de 2 niveles porque en GitHub mode el dashboard
+      // renderiza [UserInfo, BranchSection, DashboardCards] como hijos directos de un
+      // Flex. Subir 3+ niveles ocultaría el Flex contenedor y con él DashboardCards.
       var cur = el;
-      for (var i = 0; i < 3 && cur && cur !== document.body; i++){
+      for (var i = 0; i < 2 && cur && cur !== document.body; i++){
         if (cur.tagName === 'SECTION' || cur.getAttribute('role') === 'region') break;
         cur = cur.parentElement;
       }
@@ -814,15 +817,16 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     });
     // --- Dashboard: "Hello, <usuario>!" ---
     // El texto está en 3 nodos separados: "Hello, ", username, "!"
+    // Estructura en GitHub mode: text → p (Heading) → VStack → Flex (UserInfo) → PageBody Flex
+    // Subimos 3 niveles desde el texto para ocultar SOLO el Flex de UserInfo
+    // (avatar + saludo) sin tocar el contenedor de DashboardCards.
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()){
       var tn = walker.currentNode;
       if (tn.nodeValue && /^\s*Hello,/i.test(tn.nodeValue)){
-        // La UserInfo está dentro de un Flex que es hijo directo del PageBody.
-        // Subimos solo 2-3 niveles para ocultar el bloque completo (avatar +
-        // greeting) sin tocar el contenedor de toda la página.
-        var p = tn.parentElement;
-        if (p) hideSection(p);
+        // text.parentElement = <p> heading, .parentElement = VStack, .parentElement = UserInfo Flex
+        var helloFlex = tn.parentElement && tn.parentElement.parentElement && tn.parentElement.parentElement.parentElement;
+        if (helloFlex && helloFlex !== document.body) hide(helloFlex);
         break;
       }
     }
