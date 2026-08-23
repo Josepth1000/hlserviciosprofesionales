@@ -243,8 +243,11 @@ main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="g
 button[aria-label="git actions"]{display:none !important}
 /* Menú de usuario (avatar + nombre de GitHub) */
 button[aria-label="User menu" i],button[aria-label="User Menu" i]{display:none !important}
-/* Selector de rama / branch (combobox + labels) */
+/* Selector de rama / branch (combobox + labels + wrapper presentation) */
 input[aria-label*="branch" i],input[aria-label*="rama" i],select[aria-label*="branch" i],select[aria-label*="rama" i],button[aria-label*="branch" i],button[aria-label*="rama" i]{display:none !important}
+/* Oculta el wrapper React Aria (div[role=presentation]) que envuelve el combobox de rama.
+ * Usar :has() sin > para cubrir cualquier profundidad de descendencia. */
+div[role="presentation"]:has(input[aria-label*="rama" i]),div[role="presentation"]:has(input[aria-label*="branch" i]),div[role="presentation"]:has(button[aria-label*="rama" i]),div[role="presentation"]:has(button[aria-label*="branch" i]){display:none !important}
 
 /* ===== Sección "Cerrar Sesión" (abajo a la izquierda) ===== */
 #hl-logout-section{position:fixed;left:16px;bottom:18px;z-index:9999;font-family:Inter,system-ui,sans-serif;width:max-content;max-width:calc(100% - 32px)}
@@ -655,9 +658,19 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
         var span = imgCell.querySelector('span[title]');
         var url = (imgCell.getAttribute('title') || '');
         if (!url && span) url = span.getAttribute('title') || span.textContent.trim();
+        // Fallback: extraer de img[src] si la celda tiene una imagen nativa de Keystatic
+        if (!url){
+          var nativeImg = imgCell.querySelector('img[src]:not(.hl-thumb)');
+          if (nativeImg && nativeImg.getAttribute('src')) url = nativeImg.getAttribute('src');
+        }
         var titleCell = row.querySelector('[role="rowheader"][data-key*="title"]');
         var title = titleCell ? (titleCell.textContent || '').trim() : '';
         if (IMAGES[title]) url = IMAGES[title];
+        // Fallback adicional: buscar por slug (data-key del row contiene el slug)
+        if (!url){
+          var slug = (row.getAttribute('data-key') || '').replace(/^key:/, '');
+          if (IMAGES[slug]) url = IMAGES[slug];
+        }
         var thumb = imgCell.querySelector('.hl-thumb');
         if (url){
           if (thumb){
@@ -800,6 +813,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     // --- Selector de rama (combobox de branch/rama) ---
     document.querySelectorAll('input[aria-label*="branch" i],input[aria-label*="rama" i],select[aria-label*="branch" i],select[aria-label*="rama" i]').forEach(function(el){
       hide(el.closest('[role="group"]') || el.closest('[class*="kui"]') || el.parentElement || el);
+    });
+    // --- Wrapper React Aria (div[role=presentation]) del combobox de rama ---
+    document.querySelectorAll('div[role="presentation"]').forEach(function(el){
+      if (el.querySelector('input[aria-label*="rama" i],input[aria-label*="branch" i],button[aria-label*="rama" i],button[aria-label*="branch" i]'))
+        hide(el);
     });
     // --- Menú de usuario de GitHub (avatar + nombre) ---
     document.querySelectorAll('[aria-label*="User menu" i]').forEach(function(el){
@@ -1391,7 +1409,11 @@ async function getServiceImageMap(): Promise<Record<string, string>> {
     }
     const map: Record<string, string> = {};
     for (const s of services) {
-      map[s.data.title] = s.data.image ?? fallback[s.data.title] ?? '';
+      const img = s.data.image ?? fallback[s.data.title] ?? '';
+      map[s.data.title] = img;
+      // Clave adicional por slug para que enhanceTable() pueda buscar
+      // por el data-key del row en producción (modo GitHub)
+      map[s.id] = img;
     }
     return map;
   } catch {
