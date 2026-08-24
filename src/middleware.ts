@@ -292,11 +292,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   border-bottom:1px solid rgba(255,255,255,.06) !important;
   display:flex !important;align-items:center !important;flex-wrap:nowrap !important;
 }
-/* Botón Tema de Keystatic: forzar que permanezca en la cabecera del sidebar */
-.hl-sidebar > div:first-child button[aria-label="Tema"]{
-  order:-1 !important;margin-left:auto !important;flex-shrink:0 !important;
-  position:static !important;
-}
+/* El botón Tema se mueve al sidebar via JS (moveThemeButton). */
 /* La cabecera siempre va sobre fondo oscuro (el tema del panel es propio), así
  * que el texto y el icono del botón de tema deben ser CLAROS en cualquier tema
  * de Keystatic: en modo claro Keystatic los pinta oscuros (#2c2c2c) y quedan
@@ -791,6 +787,20 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       h.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     });
     header.appendChild(btn);
+  }
+
+  // Mueve el botón "Tema" de Keystatic al header del sidebar.
+  // En GitHub mode, Keystatic coloca el botón en el header principal (barra
+  // superior del contenido). Lo movemos al sidebar junto al logo para que
+  // el cliente pueda acceder fácilmente al toggle de tema.
+  function moveThemeButton(){
+    var themeBtn = document.querySelector('button[aria-label="Tema"]');
+    if (!themeBtn || themeBtn.__hlMoved) return;
+    var drawer = document.getElementById('keystatic-side-panel');
+    var header = drawer && drawer.firstElementChild;
+    if (!header) return;
+    themeBtn.__hlMoved = true;
+    header.appendChild(themeBtn);
   }
 
   // Marca el panel lateral de navegación con .hl-sidebar para aplicar el tema
@@ -1360,6 +1370,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     markPrimary();
     markSidebar();
     initCollapseButton();
+    moveThemeButton();
     initSaveButton();
     if (window.__HL_SAVE_BTN__ && window.__HL_SAVE_BTN__.sync) window.__HL_SAVE_BTN__.sync();
     if (isCollPage()){
@@ -1375,6 +1386,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   markPrimary();
   markSidebar();
   initCollapseButton();
+  moveThemeButton();
   initSaveButton();
   enhanceTable();
   new MutationObserver(function(){
