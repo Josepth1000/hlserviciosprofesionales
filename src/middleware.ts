@@ -1497,6 +1497,9 @@ async function injectPanelTheme(response: Response, serviceImages: Record<string
   const headers = new Headers(response.headers);
   headers.set('Content-Type', 'text/html; charset=utf-8');
   headers.delete('Content-Length');
+  // CSP: permitir scripts inline (nuestro panel script) y eval (Keystatic React).
+  // Sin esto, Chrome bloquea el script IIFE del panel completo.
+  headers.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https://api.github.com; frame-src 'self'");
   return new Response(updated, {
     status: response.status,
     statusText: response.statusText,
