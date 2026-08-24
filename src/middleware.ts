@@ -1514,21 +1514,13 @@ async function injectPanelTheme(response: Response, serviceImages: Record<string
   const headers = new Headers(response.headers);
   headers.set('Content-Type', 'text/html; charset=utf-8');
   headers.delete('Content-Length');
-  // CSP: relajar SOLO script-src para permitir nuestro inline script y
-  // eval de Keystatic/React. NO restrinjimos connect-src, style-src,
-  // img-src, etc. para no romper la SPA de Keystatic.
-  const existingCsp = headers.get('Content-Security-Policy') || '';
-  if (existingCsp) {
-    // Si ya hay CSP, reemplazar/inyectar script-src con unsafe-inline+eval
-    if (existingCsp.includes('script-src')) {
-      headers.set('Content-Security-Policy', existingCsp.replace(/script-src[^;]+/, "script-src 'self' 'unsafe-inline' 'unsafe-eval'"));
-    } else {
-      headers.set('Content-Security-Policy', existingCsp + "; script-src 'self' 'unsafe-inline' 'unsafe-eval'");
-    }
-  } else {
-    // Sin CSP existente: solo definir script-src (dejar todo lo demas abierto)
-    headers.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline' 'unsafe-eval'");
-  }
+  // CSP deshabilitado para diagnosticar problema de Chrome con datos del singleton.
+  // Si Chrome funciona sin CSP, el problema es la directiva script-src.
+  // return new Response(updated, {
+  //   status: response.status,
+  //   statusText: response.statusText,
+  //   headers,
+  // });
   return new Response(updated, {
     status: response.status,
     statusText: response.statusText,
