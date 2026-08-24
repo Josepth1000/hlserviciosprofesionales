@@ -312,6 +312,18 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   color:currentColor !important;
   stroke:currentColor !important;
 }
+/* Botón Tema dentro de la fila de la marca (logo + texto): se empuja a la
+ * derecha del texto sin romper la fila, con tamaño compacto y hover dorado. */
+.hl-sidebar button[aria-label="Tema"],.hl-sidebar button[aria-label="theme" i]{
+  margin-left:auto !important;flex:none !important;
+  width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:8px !important;border:1px solid rgba(255,255,255,.14) !important;
+}
+.hl-sidebar button[aria-label="Tema"]:hover,.hl-sidebar button[aria-label="theme" i]:hover{
+  background:rgba(201,162,39,.12) !important;
+  border-color:rgba(201,162,39,.55) !important;
+  color:#e4cb7c !important;
+}
 .hl-sidebar > div:first-child img{
   box-shadow:0 0 0 1px rgba(201,162,39,.45),0 4px 16px -6px rgba(201,162,39,.55) !important;
   filter:none !important;
@@ -789,18 +801,33 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     header.appendChild(btn);
   }
 
-  // Mueve el botón "Tema" de Keystatic al header del sidebar.
-  // En GitHub mode, Keystatic coloca el botón en el header principal (barra
-  // superior del contenido). Lo movemos al sidebar junto al logo para que
-  // el cliente pueda acceder fácilmente al toggle de tema.
+  // Mueve el botón "Tema" de Keystatic a la fila de la marca en el sidebar,
+  // justo al lado del texto "HL Servicios Profesionales".
+  // Estructura real renderizada por Keystatic:
+  //   div.kui-9lfu2n > div.kui-tnny0k > [img logo, span[title="HL Servicios Profesionales"]]
+  // Se inserta el botón dentro de esa fila (después del texto). Antes se
+  // agregaba a drawer.firstElementChild y con la estructura actual terminaba
+  // visualmente en la parte inferior del panel.
   function moveThemeButton(){
-    var themeBtn = document.querySelector('button[aria-label="Tema"]');
+    var themeBtn = document.querySelector('button[aria-label="Tema"], button[aria-label="theme" i]');
     if (!themeBtn || themeBtn.__hlMoved) return;
+    // Fila de la marca: el contenedor que envuelve logo + texto.
+    var brandSpan = document.querySelector('#keystatic-side-panel span[title="HL Servicios Profesionales"], .hl-sidebar span[title="HL Servicios Profesionales"]');
+    var row = null;
+    if (brandSpan){
+      row = brandSpan.parentElement;
+      // La fila debe contener también el logo (img); si no, subir un nivel.
+      if (row && !row.querySelector('img') && row.parentElement && row.parentElement.querySelector('img')){
+        row = row.parentElement;
+      }
+    }
+    // Respaldo: cabecera del drawer si la marca aún no está en el DOM.
     var drawer = document.getElementById('keystatic-side-panel');
     var header = drawer && drawer.firstElementChild;
-    if (!header) return;
+    var target = row || header;
+    if (!target) return;
     themeBtn.__hlMoved = true;
-    header.appendChild(themeBtn);
+    target.appendChild(themeBtn);
   }
 
   // Marca el panel lateral de navegación con .hl-sidebar para aplicar el tema
