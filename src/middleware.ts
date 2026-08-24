@@ -651,18 +651,19 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     var grid = document.querySelector('[role="grid"]');
     if (!grid) return;
     if (!grid.__hlScrolled){ grid.__hlScrolled = true; grid.addEventListener('scroll', enhanceTable, { passive: true }); }
-    // En local mode data-key empieza con "key:" (p.ej. key:contables).
-    // En GitHub mode puede tener formatos diferentes (rutas, ids numéricos, etc.).
-    var rows = grid.querySelectorAll('[role="row"][data-key]');
-    for (var i = 0; i < rows.length; i++){
-      var row = rows[i];
-      var rowKey = row.getAttribute('data-key') || '';
-      // Solo procesar filas de datos (no headers)
-      if (!rowKey || row.getAttribute('role') !== 'row') continue;
+    // Estrategia dual: buscar celdas de imagen directamente.
+    // Local mode: la fila tiene role="row" + data-key="key:contables".
+    // GitHub mode: la fila es div[role="presentation"] sin data-key;
+    //             el data-key ("imagecontables") está solo en la celda.
+    var imgCells = grid.querySelectorAll('[role="rowheader"][data-key*="image"]');
+    for (var i = 0; i < imgCells.length; i++){
+      var imgCell = imgCells[i];
+      // Encontrar el contenedor de la fila: role="row" (local) o el padre más cercano
+      var row = imgCell.closest('[role="row"]') || imgCell.parentElement;
+      var rowKey = (row && row.getAttribute('data-key')) || imgCell.getAttribute('data-key') || '';
 
       // Miniatura: se añade como hermano del span de texto (sin tocarlo, para
       // no pelear con React) y se sincroniza la URL en cada pase.
-      var imgCell = row.querySelector('[role="rowheader"][data-key*="image"]');
       if (imgCell){
         var span = imgCell.querySelector('span[title]');
         var url = (imgCell.getAttribute('title') || '');
@@ -677,13 +678,17 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
           var cellText = (imgCell.textContent || '').trim();
           if (cellText && cellText.charAt(0) === '/') url = cellText;
         }
-        var titleCell = row.querySelector('[role="rowheader"][data-key*="title"]');
+        var titleCell = (row || imgCell.parentElement).querySelector('[role="rowheader"][data-key*="title"]');
         var title = titleCell ? (titleCell.textContent || '').trim() : '';
         if (IMAGES[title]) url = IMAGES[title];
-        // Fallback adicional: buscar por slug — extraer del data-key del row
-        // (local: "key:contables" → "contables"; GitHub: "key:src/content/services/contables.yaml" → "contables")
+        // Fallback: buscar por slug — extraer del data-key
+        // Local: "key:contables" → "contables"
+        // GitHub cell: "imagecontables" → "contables" (quitar prefijo "image")
         if (!url){
-          var slug = rowKey.replace(/^key:/, '');
+          var rawKey = rowKey || '';
+          var slug = rawKey.replace(/^key:/, '');
+          // GitHub mode: data-key empieza con "image" + slug (ej. "imagecontables")
+          if (slug.indexOf('image') === 0 && slug.length > 5) slug = slug.substring(5);
           var lastSlash = slug.lastIndexOf('/');
           slug = lastSlash >= 0 ? slug.substring(lastSlash + 1) : slug;
           if (slug.length > 5 && slug.slice(-5) === '.yaml') slug = slug.slice(0, -5);
@@ -716,8 +721,10 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       }
 
       // Botones de acción: solo una vez por fila (sin listeners propios).
+      // Marcar el contenedor para que el listener delegado lo encuentre.
       if (row.__hlEnhanced) continue;
       row.__hlEnhanced = true;
+      row.setAttribute('data-hl-row', '1');
       var acts = document.createElement('div');
       acts.className = 'hl-row-actions';
       acts.innerHTML = '<button data-act="edit" title="Editar registro" aria-label="Editar registro">${ICON_EDIT}</button><button data-act="delete" title="Eliminar registro" aria-label="Eliminar registro">${ICON_TRASH}</button>';
@@ -1159,11 +1166,23 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     if (!btn) return;
     e.preventDefault();
     e.stopPropagation();
-    var row = btn.closest('[role="row"][data-key^="key:"]');
+    // Buscar la fila contenedora: role="row" (local) o data-hl-row (GitHub mode)
+    var row = btn.closest('[role="row"][data-key]') || btn.closest('[role="row"]') || btn.closest('[data-hl-row]');
     if (!row) return;
     if (btn.getAttribute('data-act') === 'edit'){ row.click(); return; }
     // Eliminar: modal de confirmación directo (sin abrir el formulario)
-    var slug = (row.getAttribute('data-key') || '').replace(/^key:/, '');
+    // Extraer slug de cualquier data-key disponible
+    var rowKey = row.getAttribute('data-key') || '';
+    // Si el contenedor no tiene data-key, buscar la celda de imagen más cercana
+    if (!rowKey){
+      var nearImg = row.querySelector('[role="rowheader"][data-key*="image"]');
+      if (nearImg) rowKey = nearImg.getAttribute('data-key') || '';
+    }
+    var slug = rowKey.replace(/^key:/, '');
+    // GitHub mode: data-key empieza con "image" + slug
+    if (slug.indexOf('image') === 0 && slug.length > 5) slug = slug.substring(5);
+    var lastSlash = slug.lastIndexOf('/');
+    slug = lastSlash >= 0 ? slug.substring(lastSlash + 1) : slug;
     var segs = location.pathname.split('/');
     var col = (segs[1] === 'keystatic' && segs[2] === 'collection' && segs[3]) ? segs[3] : '';
     var meta = COLLECTIONS[col];
