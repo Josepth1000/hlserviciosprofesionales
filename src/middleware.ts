@@ -60,15 +60,15 @@ const PANEL_HTML = `<style id="hl-panel-theme">
 .kui-kdr5de:hover .kui-h3uy8{background:rgba(201,162,39,.16);border-color:rgba(201,162,39,.55);transform:scale(1.06)}
 @media (max-width:640px){.kui-1oa3qi3{padding:0 4px 12px}.kui-kdr5de{margin:6px 0}}
 /* ===== Hover dorado en filas de listas de colecciones ===== */
-[role="row"][data-key^="key:"]{transition:background .18s ease}
-[role="row"][data-key^="key:"]:hover{background:rgba(201,162,39,.09) !important;box-shadow:inset 2.5px 0 0 #c9a227}
-[role="row"][data-key^="key:"]:hover [role="rowheader"]{color:#f4f4f5}
-[role="row"][data-key^="key:"]:hover [role="rowheader"] span{color:#e4cb7c}
+[role="row"][data-key]{transition:background .18s ease}
+[role="row"][data-key]:hover{background:rgba(201,162,39,.09) !important;box-shadow:inset 2.5px 0 0 #c9a227}
+[role="row"][data-key]:hover [role="rowheader"]{color:#f4f4f5}
+[role="row"][data-key]:hover [role="rowheader"] span{color:#e4cb7c}
 /* ===== Botones de acceso rápido por fila (Editar / Eliminar) ===== */
 .hl-row-actions{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:4px;opacity:0;z-index:10;pointer-events:none;transition:opacity .15s ease}
-[role="row"][data-key^="key:"]:hover .hl-row-actions,
+[role="row"][data-key]:hover .hl-row-actions,
 .hl-row-actions:focus-within,
-[role="row"][data-key^="key:"]:focus-within .hl-row-actions{opacity:1;pointer-events:auto}
+[role="row"][data-key]:focus-within .hl-row-actions{opacity:1;pointer-events:auto}
 .hl-row-actions button{width:25px;height:25px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#202027;border:1px solid rgba(255,255,255,.16);color:#e4cb7c;cursor:pointer;box-shadow:0 3px 10px -4px rgba(0,0,0,.65);transition:background .15s ease,border-color .15s ease,transform .15s ease,color .15s ease;padding:0}
 .hl-row-actions button:hover{background:#2a2a31;border-color:#c9a227;transform:scale(1.1)}
 .hl-row-actions button:focus-visible{outline:2px solid #c9a227;outline-offset:1px}
@@ -647,9 +647,14 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     var grid = document.querySelector('[role="grid"]');
     if (!grid) return;
     if (!grid.__hlScrolled){ grid.__hlScrolled = true; grid.addEventListener('scroll', enhanceTable, { passive: true }); }
-    var rows = grid.querySelectorAll('[role="row"][data-key^="key:"]');
+    // En local mode data-key empieza con "key:" (p.ej. key:contables).
+    // En GitHub mode puede tener formatos diferentes (rutas, ids numéricos, etc.).
+    var rows = grid.querySelectorAll('[role="row"][data-key]');
     for (var i = 0; i < rows.length; i++){
       var row = rows[i];
+      var rowKey = row.getAttribute('data-key') || '';
+      // Solo procesar filas de datos (no headers)
+      if (!rowKey || row.getAttribute('role') !== 'row') continue;
 
       // Miniatura: se añade como hermano del span de texto (sin tocarlo, para
       // no pelear con React) y se sincroniza la URL en cada pase.
@@ -671,9 +676,14 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
         var titleCell = row.querySelector('[role="rowheader"][data-key*="title"]');
         var title = titleCell ? (titleCell.textContent || '').trim() : '';
         if (IMAGES[title]) url = IMAGES[title];
-        // Fallback adicional: buscar por slug (data-key del row contiene el slug)
+        // Fallback adicional: buscar por slug — extraer del data-key del row
+        // (local: "key:contables" → "contables"; GitHub: "key:src/content/services/contables.yaml" → "contables")
         if (!url){
-          var slug = (row.getAttribute('data-key') || '').replace(/^key:/, '');
+          var slug = rowKey.replace(/^key:/, '');
+          var lastSlash = slug.lastIndexOf('/');
+          slug = lastSlash >= 0 ? slug.substring(lastSlash + 1) : slug;
+          if (slug.length > 5 && slug.slice(-5) === '.yaml') slug = slug.slice(0, -5);
+          else if (slug.length > 4 && slug.slice(-4) === '.yml') slug = slug.slice(0, -4);
           if (IMAGES[slug]) url = IMAGES[slug];
         }
         var thumb = imgCell.querySelector('.hl-thumb');
@@ -804,12 +814,19 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       // IMPORTANTE: no subir más de 2 niveles porque en GitHub mode el dashboard
       // renderiza [UserInfo, BranchSection, DashboardCards] como hijos directos de un
       // Flex. Subir 3+ niveles ocultaría el Flex contenedor y con él DashboardCards.
+      // Solo oculta si encontramos un contenedor de sección real; si no lo encontramos,
+      // ocultar el contenedor a 2 niveles podría borrar DashboardCards junto con todo.
       var cur = el;
-      for (var i = 0; i < 2 && cur && cur !== document.body; i++){
-        if (cur.tagName === 'SECTION' || cur.getAttribute('role') === 'region') break;
+      var found = false;
+      for (var i = 0; i < 3 && cur && cur !== document.body; i++){
+        if (cur.tagName === 'SECTION' || cur.getAttribute('role') === 'region' || (cur.getAttribute('role') === 'group' && cur.parentElement && cur.parentElement.tagName === 'SECTION')){
+          found = true;
+          break;
+        }
         cur = cur.parentElement;
       }
-      if (cur && cur !== document.body) hide(cur);
+      if (found && cur && cur !== document.body) hide(cur);
+      else if (!found) hide(el);
     }
     // --- Botón "git actions" (menú de rama/repo en el header) ---
     document.querySelectorAll('button[aria-label="git actions"]').forEach(function(b){
@@ -848,8 +865,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()){
       var tn = walker.currentNode;
-      if (tn.nodeValue && /^\s*Hello,/i.test(tn.nodeValue)){
-        // text.parentElement = <p> heading, .parentElement = VStack, .parentElement = UserInfo Flex
+      if (tn.nodeValue && /^\s*(Hello|Hola),/i.test(tn.nodeValue)){
+        // text → p (heading) → VStack → Flex (UserInfo) → PageBody Flex
+        // Subir exactamente 3 niveles para ocultar SOLO el Flex de UserInfo
+        // (avatar + saludo) sin tocar el contenedor de DashboardCards.
+        // No usar getComputedStyle porque puede fallar en diferentes modos.
         var helloFlex = tn.parentElement && tn.parentElement.parentElement && tn.parentElement.parentElement.parentElement;
         if (helloFlex && helloFlex !== document.body) hide(helloFlex);
         break;
