@@ -290,6 +290,12 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
 .hl-sidebar > div:first-child{
   background:rgba(255,255,255,.02) !important;
   border-bottom:1px solid rgba(255,255,255,.06) !important;
+  display:flex !important;align-items:center !important;flex-wrap:nowrap !important;
+}
+/* Botón Tema de Keystatic: forzar que permanezca en la cabecera del sidebar */
+.hl-sidebar > div:first-child button[aria-label="Tema"]{
+  order:-1 !important;margin-left:auto !important;flex-shrink:0 !important;
+  position:static !important;
 }
 /* La cabecera siempre va sobre fondo oscuro (el tema del panel es propio), así
  * que el texto y el icono del botón de tema deben ser CLAROS en cualquier tema
