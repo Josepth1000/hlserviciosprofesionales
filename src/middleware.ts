@@ -853,8 +853,10 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       else if (!found) hide(el);
     }
     // --- Botón "git actions" (menú de rama/repo en el header) ---
+    // Solo ocultar el botón, NO su contenedor padre (que puede contener
+    // también el botón "Tema" de Keystatic que NO debe ocultarse).
     document.querySelectorAll('button[aria-label="git actions"]').forEach(function(b){
-      hide(b.closest('[role="group"]') || b.closest('[class*="kui"]') || b.parentElement || b);
+      hide(b);
     });
     // --- Selector de rama (combobox de branch/rama) ---
     document.querySelectorAll('input[aria-label*="branch" i],input[aria-label*="rama" i],select[aria-label*="branch" i],select[aria-label*="rama" i]').forEach(function(el){
