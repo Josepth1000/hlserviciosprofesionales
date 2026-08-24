@@ -914,6 +914,39 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     document.querySelectorAll('[aria-label*="User menu" i]').forEach(function(el){
       hide(el.closest('[class*="kui"]') || el.closest('[role="group"]') || el.parentElement || el);
     });
+    // --- Filas de rama en portales/listas ("main · Rama predeterminada") ---
+    // Keystatic renderiza las opciones del selector de rama en un portal de
+    // React Aria fuera del header, por lo que escapan a los selectores
+    // anteriores. Se localiza el texto "Rama predeterminada" / "Default branch"
+    // y se oculta su fila contenedora (el ancestro con clase kui-* más próximo).
+    var tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    var branchTextNodes = [];
+    while (tw.nextNode()){
+      var bv = tw.currentNode.nodeValue || '';
+      if (/^(Rama predeterminada|Default branch)$/i.test(bv.trim())) branchTextNodes.push(tw.currentNode);
+    }
+    for (var bt = 0; bt < branchTextNodes.length; bt++){
+      var rowEl = branchTextNodes[bt].parentElement;
+      for (var lvl = 0; lvl < 4 && rowEl && rowEl !== document.body; lvl++){
+        if ((rowEl.getAttribute('class') || '').indexOf('kui-') !== -1){ hide(rowEl); break; }
+        rowEl = rowEl.parentElement;
+      }
+    }
+    // --- Restos del combobox de rama: botón "Mostrar sugerencias" y anillo vacío ---
+    // Al ocultar el input de rama quedan a la vista el botón chevron
+    // (aria-label="Mostrar sugerencias"/"Show suggestions", aria-haspopup="listbox")
+    // y un div[role=presentation] vacío con clase kui-1guffr5 que dibuja un
+    // borde visible. OJO: kui-1guffr5 también envuelve campos legítimos
+    // (búsqueda, stepper de Orden), así que SOLO se oculta si está VACÍO.
+    document.querySelectorAll('button[aria-label*="sugerencia" i], button[aria-label*="suggestion" i]').forEach(function(b){
+      hide(b.closest('[role="presentation"]') || b.closest('[class*="kui"]') || b.parentElement || b);
+    });
+    document.querySelectorAll('div[role="presentation"]').forEach(function(el){
+      if (el.children.length === 0 && !(el.textContent || '').trim() &&
+          (el.getAttribute('class') || '').indexOf('kui-1guffr5') !== -1){
+        hide(el);
+      }
+    });
     // --- "View on GitHub" / enlaces al repo (NO OAuth/login de GitHub) ---
     document.querySelectorAll('a[href*="github.com"]').forEach(function(a){
       var href = (a.getAttribute('href') || '').toLowerCase();
