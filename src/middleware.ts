@@ -1497,9 +1497,21 @@ async function injectPanelTheme(response: Response, serviceImages: Record<string
   const headers = new Headers(response.headers);
   headers.set('Content-Type', 'text/html; charset=utf-8');
   headers.delete('Content-Length');
-  // CSP: permitir scripts inline (nuestro panel script) y eval (Keystatic React).
-  // Sin esto, Chrome bloquea el script IIFE del panel completo.
-  headers.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https://api.github.com; frame-src 'self'");
+  // CSP: relajar SOLO script-src para permitir nuestro inline script y
+  // eval de Keystatic/React. NO restrinjimos connect-src, style-src,
+  // img-src, etc. para no romper la SPA de Keystatic.
+  const existingCsp = headers.get('Content-Security-Policy') || '';
+  if (existingCsp) {
+    // Si ya hay CSP, reemplazar/inyectar script-src con unsafe-inline+eval
+    if (existingCsp.includes('script-src')) {
+      headers.set('Content-Security-Policy', existingCsp.replace(/script-src[^;]+/, "script-src 'self' 'unsafe-inline' 'unsafe-eval'"));
+    } else {
+      headers.set('Content-Security-Policy', existingCsp + "; script-src 'self' 'unsafe-inline' 'unsafe-eval'");
+    }
+  } else {
+    // Sin CSP existente: solo definir script-src (dejar todo lo demas abierto)
+    headers.set('Content-Security-Policy', "script-src 'self' 'unsafe-inline' 'unsafe-eval'");
+  }
   return new Response(updated, {
     status: response.status,
     statusText: response.statusText,
