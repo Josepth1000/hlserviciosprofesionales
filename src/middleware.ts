@@ -209,9 +209,13 @@ nav[aria-label="Migas de pan"] [aria-current]:focus{
 /* Oculta vistas previas internas que Keystatic pinte (caja verde IMG / blob interno); el preview propio (hl-img-preview-img) queda visible */
 main [role="group"] img[src][src*="blob"]:not(.hl-img-preview-img),main [role="group"] img[src$=".svg"]:not(.hl-img-preview-img){display:none !important}
 /* ===== Miniaturas de imagen en la lista de Servicios ===== */
-.hl-thumb-wrap{display:flex;align-items:center;margin-right:6px}
-.hl-thumb{width:38px;height:26px;object-fit:cover;border-radius:6px;border:1px solid rgba(201,162,39,.35);display:block;box-shadow:0 2px 6px -2px rgba(0,0,0,.5)}
+/* Anula containment de Keystatic (contain:size layout style) en celdas de imagen
+   para que las miniaturas inyectadas por JS se rendericen correctamente. */
+[role="rowheader"][data-key*="image"]{contain:none !important;overflow:visible !important;position:relative !important}
+.hl-thumb-wrap{display:inline-flex !important;align-items:center !important;margin-right:6px !important;position:relative !important;z-index:2 !important;flex-shrink:0 !important}
+.hl-thumb{width:40px !important;height:28px !important;object-fit:cover !important;border-radius:6px !important;border:1px solid rgba(201,162,39,.35) !important;display:block !important;box-shadow:0 2px 6px -2px rgba(0,0,0,.5) !important;background:#1a1a22 !important;position:relative !important;z-index:2 !important;flex-shrink:0 !important}
 /* Oculta el texto de la URL en la celda (lo sustituye la miniatura) */
+[role="rowheader"][data-key*="image"] span.kui-Text{display:none !important}
 [role="rowheader"][data-key*="image"] span[title]{display:none !important}
 /* ===== Modal de confirmación de borrado ===== */
 #hl-confirm-overlay{position:fixed;inset:0;background:rgba(8,8,10,.66);backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Inter,system-ui,sans-serif}
@@ -691,13 +695,20 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
           if (thumb){
             if (thumb.getAttribute('src') !== url) thumb.setAttribute('src', url);
           } else {
+            // Anular containment de Keystatic en la celda de imagen para que
+            // la miniatura se renderice correctamente en ambos modos (local/GitHub).
+            imgCell.style.cssText = 'contain:none !important;overflow:visible !important';
             var img = document.createElement('img');
             img.src = url;
             img.alt = '';
-            img.loading = 'lazy';
+            // NO usar loading="lazy" — las imágenes insertadas dinámicamente a
+            // veces no activan el IntersectionObserver del navegador y nunca cargan.
             img.className = 'hl-thumb';
+            // Inline styles como respaldo ante specificity de Keystatic
+            img.style.cssText = 'width:40px;height:28px;object-fit:cover;border-radius:6px;border:1px solid rgba(201,162,39,.35);display:block;box-shadow:0 2px 6px -2px rgba(0,0,0,.5);background:#1a1a22;flex-shrink:0';
             var wrap = document.createElement('span');
             wrap.className = 'hl-thumb-wrap';
+            wrap.style.cssText = 'display:inline-flex !important;align-items:center;margin-right:6px;position:relative;z-index:2;flex-shrink:0';
             wrap.appendChild(img);
             imgCell.insertBefore(wrap, imgCell.firstChild);
           }
