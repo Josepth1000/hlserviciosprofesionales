@@ -994,6 +994,29 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
           hide(el);
       }
     });
+    // --- Colapsar contenedores cuyo contenido quedó 100% oculto ---
+    // Ocultar los hijos del selector de rama deja wrappers visibles vacíos
+    // (franjas/cajas sin contenido en el header). Se sube desde cada elemento
+    // de rama oculto y se ocultan los ancestros SOLO mientras TODOS sus hijos
+    // estén marcados como ocultos (nunca toca contenedores con contenido vivo).
+    function collapseHiddenAncestors(start){
+      var p = start && start.parentElement;
+      var d = 0;
+      while (p && p !== document.body && d < 6){
+        var allHidden = true;
+        for (var k = 0; k < p.children.length; k++){
+          if (p.children[k].getAttribute && p.children[k].getAttribute('data-hl-hide') !== 'true'){ allHidden = false; break; }
+        }
+        if (!allHidden) break;
+        hide(p);
+        p = p.parentElement;
+        d++;
+      }
+    }
+    document.querySelectorAll('input[aria-label*="rama" i], input[aria-label*="branch" i], button[aria-label*="sugerencia" i], button[aria-label*="suggestion" i], button[aria-label="git actions"]').forEach(function(el){
+      var marked = el.closest('[data-hl-hide]') || (el.getAttribute('data-hl-hide') ? el : null);
+      if (marked) collapseHiddenAncestors(marked);
+    });
   }
 
   // ---------- Guardar: popup + volver a la lista ----------
