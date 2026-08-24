@@ -696,9 +696,6 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
         }
         var thumb = imgCell.querySelector('.hl-thumb');
         if (url){
-          // Ocultar el texto de la URL cuando hay thumbnail
-          var textSpan = imgCell.querySelector('span.kui-Text');
-          if (textSpan) textSpan.style.display = 'none';
           if (thumb){
             if (thumb.getAttribute('src') !== url) thumb.setAttribute('src', url);
           } else {
@@ -718,10 +715,14 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
             wrap.style.cssText = 'display:inline-flex !important;align-items:center;margin-right:6px;position:relative;z-index:2;flex-shrink:0';
             wrap.appendChild(img);
             imgCell.insertBefore(wrap, imgCell.firstChild);
-            // Ocultar el texto de la URL una vez creado el thumbnail
-            var textSpan = imgCell.querySelector('span.kui-Text');
-            if (textSpan) textSpan.style.display = 'none';
           }
+        }
+      }
+      // Ocultar TODO el contenido de texto de la celda excepto el thumbnail wrap
+      var children = imgCell.children;
+      for (var ci = 0; ci < children.length; ci++){
+        if (children[ci].className && children[ci].className.indexOf('hl-thumb') === -1){
+          children[ci].style.cssText = 'visibility:hidden !important;height:0 !important;overflow:hidden !important;margin:0 !important;padding:0 !important';
         }
       }
 
