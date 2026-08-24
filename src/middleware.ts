@@ -1195,6 +1195,17 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     hlConfirmDelete(meta.dir + '/' + slug + meta.ext, slug);
   }, true);
 
+  // Helpers de path: funcionan tanto en local (/keystatic/collection/...)
+  // como en GitHub mode (/keystatic/branch/main/collection/...).
+  function isCollPage(){ return location.pathname.indexOf('/collection/') !== -1; }
+  function getCollSegs(){
+    var segs = location.pathname.split('/');
+    var idx = segs.indexOf('collection');
+    if (idx === -1) return null;
+    // segs[idx] = 'collection', segs[idx+1] = nombre, segs[idx+2] = 'item'|etc
+    return { collection: segs[idx+1] || '', item: segs[idx+2] === 'item' ? segs[idx+3] || '' : '' };
+  }
+
   // Preview de imagen junto al botón "Escoger imagen", reflejando el estado EN VIVO
   // del campo de Keystatic:
   //  - Si el campo tiene valor (Keystatic muestra su botón "Eliminar"), prefiere el blob
@@ -1207,9 +1218,9 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   //      * sin "Eliminar" (Keystatic no logró cargar el asset) → muestra la imagen
   //        efectiva guardada, para que nunca parezca que el registro perdió su imagen.
   function enhanceImagePreview(){
-    if (location.pathname.indexOf('/keystatic/collection/') !== 0) return;
-    var segs = location.pathname.split('/');
-    if (segs[4] === 'item' && segs[5]) hlSlug = segs[5];
+    if (!isCollPage()) return;
+    var cs = getCollSegs();
+    if (cs && cs.item) hlSlug = cs.item;
     var groups = document.querySelectorAll('main [role="group"]');
     var titleInput = document.querySelector('main input');
     var title = titleInput ? (titleInput.value || '').trim() : '';
@@ -1308,13 +1319,13 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   // local): al guardar, si el YAML nuevo pierde la imagen y NO hubo "Eliminar"
   // intencional, se re-inyecta la línea original para que nunca se borre sola.
   function captureOriginalImage(){
-    if (location.pathname.indexOf('/keystatic/collection/') !== 0) return;
-    var segs = location.pathname.split('/');
-    if (segs[4] !== 'item' || !segs[5]) return;
+    if (!isCollPage()) return;
+    var cs = getCollSegs();
+    if (!cs || !cs.item) return;
     // Solo se captura una vez por entrada (evita fetchs repetidos en cada pase)
-    if (hlCapturedFor === segs[5]) return;
-    hlCapturedFor = segs[5];
-    var meta = COLLECTIONS[segs[3]];
+    if (hlCapturedFor === cs.item) return;
+    hlCapturedFor = cs.item;
+    var meta = COLLECTIONS[cs.collection];
     if (!meta) return;
     hlOrigImage = '';
     var dataPath = meta.dir + '/' + segs[5] + meta.ext;
@@ -1342,7 +1353,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     initCollapseButton();
     initSaveButton();
     if (window.__HL_SAVE_BTN__ && window.__HL_SAVE_BTN__.sync) window.__HL_SAVE_BTN__.sync();
-    if (location.pathname.indexOf('/keystatic/collection/') === 0){
+    if (isCollPage()){
       enhanceTable();
       enhanceImagePreview();
       captureOriginalImage();
