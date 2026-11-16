@@ -1,6 +1,7 @@
 # build output
 dist/
 .freebuff/
+
 # generated types
 .astro/
 
@@ -13,12 +14,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-
-# environment variables
+# environment variables (el archivo de ejemplo sí se versiona)
 .env
-.env.production
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # vercel
 .vercel/
@@ -28,5 +27,3 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
-
-.vercel
