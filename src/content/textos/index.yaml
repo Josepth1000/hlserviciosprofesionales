@@ -66,7 +66,7 @@ privacy:
         Por eso este sitio no muestra un banner de cookies: no hay cookies de analítica ni de publicidad que aceptar.
     - heading: 5. Cookies y servicios de terceros
       body: |
-        El formulario de contacto se envía a través de Formspree (Formspree, Inc., Estados Unidos), un servicio que recibe los datos en nuestro nombre y los reenvía a nuestro correo. Allí se tratan el nombre, el teléfono, el correo y el servicio de interés, y el proveedor los conserva el tiempo necesario para la entrega. Revisa su política de privacidad si quieres conocer cómo los trata.
+        El formulario de contacto se envía a una función de nuestro propio sitio alojada en Vercel y el correo se entrega con Resend (Resend, Inc., Estados Unidos), que actúa como proveedor de envío. Allí se tratan el nombre, el teléfono, el correo, el servicio de interés y el mensaje, y el proveedor conserva el contenido el tiempo necesario para la entrega. Revisa su política de privacidad si quieres conocer cómo lo trata.
 
         El mapa de la página de contacto se dibuja con Leaflet, cargado desde jsDelivr, y con las teselas de CARTO sobre datos de OpenStreetMap. Al mostrarlo, tu navegador solicita imágenes a los servidores de CARTO y a esa red de distribución, que pueden registrar tu dirección IP y datos técnicos de la conexión. No instalamos cookies propias para el mapa.
 
@@ -227,7 +227,7 @@ contact:
     Completa el formulario y te responderemos a la brevedad. También puedes
     escribirnos por WhatsApp para una respuesta inmediata.
   form:
-    action: https://formspree.io/f/YOUR_FORM_ID
+    action: /api/contacto
     nameLabel: Nombre completo *
     namePlaceholder: Tu nombre
     phoneLabel: Teléfono *
@@ -250,6 +250,9 @@ contact:
     messageLabel: Mensaje *
     messagePlaceholder: Cuéntanos cómo podemos ayudarte...
     submitLabel: Enviar mensaje
+    sendingLabel: Enviando…
+    successMessage: ¡Gracias! Tu mensaje fue enviado; te responderemos pronto.
+    errorMessage: No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.
   infoTitle: Información de contacto
   whatsappButton: WhatsApp directo
   instagramButton: Síguenos en Instagram

@@ -678,6 +678,17 @@ export default config({
                 messageLabel: fields.text({ label: 'Etiqueta Mensaje', defaultValue: 'Mensaje *' }),
                 messagePlaceholder: fields.text({ label: 'Marcador Mensaje', defaultValue: 'Cuéntanos cómo podemos ayudarte...' }),
                 submitLabel: fields.text({ label: 'Botón Enviar', defaultValue: 'Enviar mensaje' }),
+                sendingLabel: fields.text({ label: 'Aviso mientras se envía', defaultValue: 'Enviando…' }),
+                successMessage: fields.text({
+                  label: 'Mensaje de éxito',
+                  multiline: true,
+                  defaultValue: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
+                }),
+                errorMessage: fields.text({
+                  label: 'Mensaje de error',
+                  multiline: true,
+                  defaultValue: 'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
+                }),
               },
               { label: 'Formulario de contacto' },
             ),

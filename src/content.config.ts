@@ -671,9 +671,18 @@ const textos = defineCollection({
               .string()
               .default('Cuéntanos cómo podemos ayudarte...'),
             submitLabel: z.string().default('Enviar mensaje'),
+            sendingLabel: z.string().default('Enviando…'),
+            successMessage: z
+              .string()
+              .default('¡Gracias! Tu mensaje fue enviado; te responderemos pronto.'),
+            errorMessage: z
+              .string()
+              .default(
+                'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
+              ),
           })
           .default({
-            action: 'https://formspree.io/f/YOUR_FORM_ID',
+            action: '/api/contacto',
             nameLabel: 'Nombre completo *',
             namePlaceholder: 'Tu nombre',
             phoneLabel: 'Teléfono *',
@@ -692,6 +701,10 @@ const textos = defineCollection({
             messageLabel: 'Mensaje *',
             messagePlaceholder: 'Cuéntanos cómo podemos ayudarte...',
             submitLabel: 'Enviar mensaje',
+            sendingLabel: 'Enviando…',
+            successMessage: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
+            errorMessage:
+              'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
           }),
         infoTitle: z.string().default('Información de contacto'),
         whatsappButton: z.string().default('WhatsApp directo'),
@@ -750,6 +763,10 @@ const textos = defineCollection({
           messageLabel: 'Mensaje *',
           messagePlaceholder: 'Cuéntanos cómo podemos ayudarte...',
           submitLabel: 'Enviar mensaje',
+          sendingLabel: 'Enviando…',
+          successMessage: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
+          errorMessage:
+            'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
         },
         infoTitle: 'Información de contacto',
         whatsappButton: 'WhatsApp directo',

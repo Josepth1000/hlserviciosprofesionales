@@ -516,7 +516,73 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-// Validación del formulario: el servicio de interés es obligatorio
+// ------------------------------------------------------------- formulario
+// Envío sin recarga: el formulario va a /api/contacto (función de Vercel, que
+// entrega el mensaje por correo) y el resultado se muestra en el propio lugar.
+// Solo cuando el servidor confirma el envío se emite `hl:form-enviado`, que es
+// lo que cuenta la analítica: así el evento significa «mensaje entregado» y no
+// «alguien pulsó enviar».
+function mostrarEstado(form: HTMLFormElement, texto: string, tono: 'info' | 'ok' | 'error') {
+  const status = form.querySelector<HTMLElement>('[data-form-status]');
+  if (!status) return;
+  status.textContent = texto;
+  status.classList.remove('hidden', 'text-slate-600', 'text-brand-700', 'text-red-600');
+  status.classList.add(tono === 'ok' ? 'text-brand-700' : tono === 'error' ? 'text-red-600' : 'text-slate-600');
+}
+
+function resetSelect(form: HTMLFormElement) {
+  const select = form.querySelector<HTMLElement>('[data-select]');
+  if (!select) return;
+  // Los <input type="hidden"> no cuentan como campos «reseteables» para
+  // `form.reset()`, así que se vacían a mano o el servicio quedaría pegado.
+  const input = select.querySelector<HTMLInputElement>('[data-select-input]');
+  if (input) input.value = '';
+  const valueEl = select.querySelector<HTMLElement>('[data-select-value]');
+  const placeholder = select.querySelector('[data-select-option=""]')?.textContent?.trim() ?? '';
+  if (valueEl) {
+    valueEl.textContent = placeholder;
+    valueEl.classList.add('text-slate-400');
+    valueEl.classList.remove('text-ink-900');
+  }
+  syncSelectMenu(select);
+}
+
+async function enviarFormulario(form: HTMLFormElement) {
+  const action = form.getAttribute('action') || '/api/contacto';
+  const boton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  const datos = new FormData(form);
+  const cuerpo = {
+    nombre: String(datos.get('nombre') ?? ''),
+    telefono: String(datos.get('telefono') ?? ''),
+    email: String(datos.get('email') ?? ''),
+    servicio: String(datos.get('servicio') ?? ''),
+    mensaje: String(datos.get('mensaje') ?? ''),
+    _empresa: String(datos.get('_empresa') ?? ''),
+  };
+
+  mostrarEstado(form, form.dataset.msgEnviando ?? 'Enviando…', 'info');
+  if (boton) boton.disabled = true;
+
+  try {
+    const respuesta = await fetch(action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(cuerpo),
+    });
+    const resultado = (await respuesta.json().catch(() => ({}))) as { ok?: boolean };
+    if (!respuesta.ok || !resultado.ok) throw new Error('envio');
+
+    form.reset();
+    resetSelect(form); // el desplegable propio devuelve su marcador
+    mostrarEstado(form, form.dataset.msgExito ?? 'Mensaje enviado.', 'ok');
+    form.dispatchEvent(new CustomEvent('hl:form-enviado', { bubbles: true, detail: { servicio: cuerpo.servicio } }));
+  } catch {
+    mostrarEstado(form, form.dataset.msgError ?? 'No se pudo enviar el mensaje.', 'error');
+  } finally {
+    if (boton) boton.disabled = false;
+  }
+}
+
 document.addEventListener('submit', (event) => {
   const form = event.target as HTMLFormElement;
   if (!form.hasAttribute('data-contact-form')) return;
@@ -527,6 +593,7 @@ document.addEventListener('submit', (event) => {
     event.preventDefault();
     return;
   }
+  // El servicio de interés es obligatorio: no hay <select> nativo que lo exija.
   const select = form.querySelector<HTMLElement>('[data-select]');
   const input = select?.querySelector<HTMLInputElement>('[data-select-input]');
   if (select && input && !input.value.trim()) {
@@ -534,7 +601,10 @@ document.addEventListener('submit', (event) => {
     const toggle = select.querySelector<HTMLButtonElement>('[data-select-toggle]');
     toggle?.classList.add('border-brand-600', 'ring-2', 'ring-brand-600/20');
     toggle?.focus();
+    return;
   }
+  event.preventDefault();
+  void enviarFormulario(form);
 });
 
 // ------------------------------------------------------- servicios: lectura activa
