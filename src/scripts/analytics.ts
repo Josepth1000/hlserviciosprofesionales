@@ -115,6 +115,15 @@ document.addEventListener(
     if (!a) return;
     const href = a.getAttribute('href') ?? '';
 
+    // Las celdas de la tabla de planes son enlaces de WhatsApp: se cuentan como
+    // `plan` (no como `whatsapp`) para poder saber qué plan despierta interés
+    // sin gastar dos eventos por clic.
+    if (a.hasAttribute('data-plan-cell')) {
+      const plan = [a.dataset.plan, a.dataset.combo].filter(Boolean).join(' · ');
+      track('plan', plan ? { plan } : undefined);
+      return;
+    }
+
     if (/wa\.me|api\.whatsapp\.com|whatsapp:\/\//i.test(href)) {
       track('whatsapp', { origen: origenDe(a) });
       return;
@@ -137,6 +146,34 @@ document.addEventListener(
         return;
       }
     }
+  },
+  { capture: true },
+);
+
+// ----------------------------------------------------------------- formulario
+// Se cuenta el envío que ya pasó la validación del sitio (`site.ts` cancela los
+// inválidos antes de llegar aquí, y el honeypot descarta a los bots). El evento
+// mide envíos, no confirmaciones del servidor: el formulario se publica a un
+// servicio externo cuya respuesta no controlamos.
+//
+// Como el envío navega fuera de la página, se retrasa 200 ms para que la
+// petición a Umami salga antes de que el navegador descarte las pendientes.
+document.addEventListener(
+  'submit',
+  (event) => {
+    if (!ENABLED || event.defaultPrevented) return;
+    const form = event.target as HTMLFormElement | null;
+    if (!form || !form.hasAttribute('data-contact-form')) return;
+
+    const hp = form.querySelector<HTMLInputElement>('[data-hp]');
+    if (hp && hp.value.trim()) return; // bot: no se cuenta
+
+    const servicio = form.querySelector('[data-select-value]')?.textContent?.trim();
+    track('formulario', { servicio: servicio || 'sin especificar' });
+
+    if (!form.getAttribute('action')) return;
+    event.preventDefault();
+    window.setTimeout(() => form.submit(), 200);
   },
   { capture: true },
 );

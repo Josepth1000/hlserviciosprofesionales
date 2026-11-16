@@ -200,6 +200,7 @@ const textos = defineCollection({
         contactTitle: z.string().default('Contacto'),
         cityLine: z.string().default('Bucaramanga, Santander · Colombia'),
         copyrightSuffix: z.string().default('Todos los derechos reservados.'),
+        privacyLabel: z.string().default('Política de privacidad'),
       })
       .default({
         description:
@@ -209,6 +210,28 @@ const textos = defineCollection({
         contactTitle: 'Contacto',
         cityLine: 'Bucaramanga, Santander · Colombia',
         copyrightSuffix: 'Todos los derechos reservados.',
+        privacyLabel: 'Política de privacidad',
+      }),
+    // Política de privacidad (página /privacidad). El texto es editable desde el
+    // panel; el contenido publicado vive en `src/content/textos/index.yaml`.
+    privacy: z
+      .object({
+        title: z.string().default('Política de privacidad'),
+        subtitle: z.string().default('Cómo tratamos tus datos personales.'),
+        updated: z.string().default(''),
+        contactTitle: z.string().default('Ejerce tus derechos'),
+        contactText: z.string().default(''),
+        sections: z
+          .array(z.object({ heading: z.string(), body: z.string() }))
+          .default([]),
+      })
+      .default({
+        title: 'Política de privacidad',
+        subtitle: 'Cómo tratamos tus datos personales.',
+        updated: '',
+        contactTitle: 'Ejerce tus derechos',
+        contactText: '',
+        sections: [],
       }),
     cta: z
       .object({

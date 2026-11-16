@@ -437,6 +437,33 @@ export default config({
           },
           { label: '🦶 Pie de página' },
         ),
+        privacy: fields.object(
+          {
+            title: fields.text({ label: 'Título de la página', defaultValue: 'Política de privacidad' }),
+            subtitle: fields.text({ label: 'Entradilla', multiline: true }),
+            updated: fields.text({ label: 'Fecha de actualización' }),
+            contactTitle: fields.text({ label: 'Título del bloque de contacto', defaultValue: 'Ejerce tus derechos' }),
+            contactText: fields.text({ label: 'Texto del bloque de contacto', multiline: true }),
+            sections: fields.array(
+              fields.object(
+                {
+                  heading: fields.text({ label: 'Título de la sección' }),
+                  body: fields.text({
+                    label: 'Texto',
+                    multiline: true,
+                    description: 'Separa los párrafos con una línea en blanco.',
+                  }),
+                },
+                { label: 'Sección' },
+              ),
+              {
+                label: 'Secciones',
+                itemLabel: (props) => props.fields.heading.value ?? 'Sección',
+              },
+            ),
+          },
+          { label: '🔒 Política de privacidad' },
+        ),
         cta: fields.object(
           {
             title: fields.text({ label: 'Título', defaultValue: '¿Necesitas asesoría profesional?' }),

@@ -30,6 +30,61 @@ footer:
   contactTitle: Contacto
   cityLine: Bucaramanga, Santander · Colombia
   copyrightSuffix: Todos los derechos reservados.
+  privacyLabel: Política de privacidad
+privacy:
+  title: Política de privacidad
+  subtitle: >-
+    Cómo tratamos los datos personales de quienes visitan este sitio y de
+    quienes nos contactan, conforme a la Ley 1581 de 2012.
+  updated: 'Última actualización: noviembre de 2026'
+  contactTitle: Ejerce tus derechos
+  contactText: >-
+    Escríbenos indicando tu nombre, el derecho que deseas ejercer y los datos
+    involucrados. Atendemos consultas y reclamos dentro de los plazos legales.
+  sections:
+    - heading: 1. Responsable del tratamiento
+      body: |
+        El responsable es HL Servicios Profesionales, firma de asesoría jurídica, contable, en seguridad social y seguros, con oficina en Bucaramanga, Santander (Colombia).
+
+        Las consultas sobre datos personales se atienden por los canales de contacto publicados en este sitio.
+    - heading: 2. Qué datos personales tratamos
+      body: |
+        Los que nos entregas de forma voluntaria en el formulario de contacto: nombre, teléfono, correo electrónico y el servicio de interés que eliges. Si nos escribes por WhatsApp o nos llamas, tratamos los datos que decidas compartirnos en esa conversación.
+
+        No pedimos datos sensibles a través del sitio y te recomendamos no enviarlos por el formulario.
+    - heading: 3. Para qué los usamos
+      body: |
+        Para responder tu solicitud, cotizar planes de afiliación, orientarte en trámites y hacer seguimiento a la asesoría. También para cumplir obligaciones legales cuando corresponda.
+
+        No vendemos, alquilamos ni cedemos tus datos a terceros con fines publicitarios.
+    - heading: 4. Analítica web con Umami
+      body: |
+        Usamos Umami (Umami Software, Inc.), un servicio de analítica que no emplea cookies ni identifica personas. Registra de forma agregada las páginas vistas, el sitio desde el que llegas, el país aproximado, el tipo de dispositivo y acciones como abrir WhatsApp, llamar, escribir un correo o enviar el formulario.
+
+        Umami no guarda direcciones IP completas ni crea perfiles individuales: usa un identificador seudónimo temporal para no contar dos veces la misma visita. La información se conserva durante seis meses y no se usa para publicidad.
+
+        Por eso este sitio no muestra un banner de cookies: no hay cookies de analítica ni de publicidad que aceptar.
+    - heading: 5. Cookies y servicios de terceros
+      body: |
+        El formulario de contacto se envía a través de Formspree (Formspree, Inc., Estados Unidos), un servicio que recibe los datos en nuestro nombre y los reenvía a nuestro correo. Allí se tratan el nombre, el teléfono, el correo y el servicio de interés, y el proveedor los conserva el tiempo necesario para la entrega. Revisa su política de privacidad si quieres conocer cómo los trata.
+
+        El mapa de la página de contacto se dibuja con Leaflet, cargado desde jsDelivr, y con las teselas de CARTO sobre datos de OpenStreetMap. Al mostrarlo, tu navegador solicita imágenes a los servidores de CARTO y a esa red de distribución, que pueden registrar tu dirección IP y datos técnicos de la conexión. No instalamos cookies propias para el mapa.
+
+        Los enlaces a WhatsApp, Instagram, Facebook, TikTok y YouTube te llevan a sitios de terceros que aplican sus propias políticas de privacidad, sobre las que no tenemos control. Este sitio no instala cookies de analítica, publicidad ni redes sociales.
+    - heading: 6. Cuánto tiempo conservamos la información
+      body: |
+        Los datos de analítica se conservan seis meses. Los datos de contacto se mantienen mientras exista una relación comercial o mientras sean necesarios para atender tu solicitud; después se eliminan o se anonimizan.
+    - heading: 7. Tus derechos como titular
+      body: |
+        De acuerdo con la Ley 1581 de 2012 y el Decreto 1377 de 2013 puedes conocer, actualizar y rectificar tus datos; solicitar prueba de la autorización otorgada; ser informado sobre el uso que les damos; presentar quejas ante la Superintendencia de Industria y Comercio; revocar la autorización y pedir la supresión de los datos cuando no exista un deber legal de conservarlos; y acceder a ellos de forma gratuita.
+    - heading: 8. Cómo ejercer tus derechos
+      body: |
+        Escríbenos por el correo o el teléfono que aparecen al final de esta página, indicando tu nombre completo, el derecho que deseas ejercer y los datos involucrados. También puedes acudir a nuestra oficina en Bucaramanga.
+
+        Atendemos las consultas en un plazo máximo de quince (15) días hábiles y los reclamos en un plazo máximo de quince (15) días hábiles, prorrogables en los términos de la ley.
+    - heading: 9. Cambios en esta política
+      body: |
+        Si modificamos esta política publicaremos la versión actualizada en esta misma página con su fecha de actualización. Te recomendamos revisarla cuando vuelvas a visitarnos.
 cta:
   title: ¿Necesitas asesoría profesional?
   subtitle: >-
