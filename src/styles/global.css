@@ -524,16 +524,25 @@ html.js #mobile-menu {
 
 /* ======================================================================
  * Cinta marquee (inicio)
- * Franja dorada sobre fondo oscuro que desliza los nombres de los servicios
- * (datos del panel); se pausa al pasar el cursor. Solo decorativa (aria-hidden).
+ * Franja dorada sobre fondo oscuro con los nombres de los servicios (datos del
+ * panel). Está detenida: el movimiento solo empieza al pasar el cursor, para no
+ * competir con la lectura. Sin puntero (móvil) queda como franja estática.
+ * Solo decorativa (aria-hidden).
  * ====================================================================== */
+/* Desvanecido en el borde derecho: al estar detenida, el nombre que no cabe se
+ * disuelve en vez de cortarse a media palabra. El borde izquierdo queda nítido. */
+.marquee {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 56px), transparent 100%);
+}
 .marquee-track {
   animation: marquee-scroll 34s linear infinite;
+  animation-play-state: paused;
   will-change: transform;
 }
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
-  animation-play-state: paused;
+  animation-play-state: running;
 }
 @keyframes marquee-scroll {
   from {
