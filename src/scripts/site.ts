@@ -559,6 +559,11 @@ async function enviarFormulario(form: HTMLFormElement) {
     mensaje: String(datos.get('mensaje') ?? ''),
     _empresa: String(datos.get('_empresa') ?? ''),
   };
+  // Texto visible del desplegable («Seguridad Social»), no su valor técnico
+  // («seguridad-social»): es lo que se lee en el panel de analítica. Se toma
+  // ahora, antes de que el reseteo devuelva el marcador al desplegable.
+  const etiquetaServicio =
+    form.querySelector('[data-select-value]')?.textContent?.trim() || cuerpo.servicio;
 
   mostrarEstado(form, form.dataset.msgEnviando ?? 'Enviando…', 'info');
   if (boton) boton.disabled = true;
@@ -575,7 +580,7 @@ async function enviarFormulario(form: HTMLFormElement) {
     form.reset();
     resetSelect(form); // el desplegable propio devuelve su marcador
     mostrarEstado(form, form.dataset.msgExito ?? 'Mensaje enviado.', 'ok');
-    form.dispatchEvent(new CustomEvent('hl:form-enviado', { bubbles: true, detail: { servicio: cuerpo.servicio } }));
+    form.dispatchEvent(new CustomEvent('hl:form-enviado', { bubbles: true, detail: { servicio: etiquetaServicio } }));
   } catch {
     mostrarEstado(form, form.dataset.msgError ?? 'No se pudo enviar el mensaje.', 'error');
   } finally {
