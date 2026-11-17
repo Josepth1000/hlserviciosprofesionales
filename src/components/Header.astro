@@ -17,10 +17,19 @@ const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
     <a href="/" class="flex items-center gap-3" aria-label="Ir al inicio">
       <img src={site.logo} alt="" aria-hidden="true" class="h-12 w-12 shrink-0 rounded-full sm:h-13 sm:w-13" width="96" height="96" />
       <span class="flex flex-col leading-none">
-        <span class="font-script text-xl leading-none text-gold-gradient sm:text-2xl">{site.brandName}</span>
-        <span class="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-[9px]">
-          {site.slogan}
-        </span>
+        <!-- leading amplio: con background-clip:text el degradado solo pinta dentro
+             de la caja, y Great Vibes sobrepasa la altura de 1em por ambos extremos. -->
+        <span class="font-script text-xl leading-[1.45] text-gold-gradient sm:text-2xl">{site.brandName}</span>
+        <!-- Línea de marca del logotipo definitivo (sustituye al eslogan de texto). -->
+        <img
+          src="/images/marca-tagline.png"
+          alt="Servicios contables y outsourcing"
+          class="mt-0.5 block h-[10px] w-auto sm:h-[12px]"
+          width="652"
+          height="35"
+          loading="eager"
+          decoding="async"
+        />
       </span>
     </a>
 

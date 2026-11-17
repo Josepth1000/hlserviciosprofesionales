@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { CONTACT_FROM, CONTACT_TO, RESEND_API_KEY } from 'astro:env/server';
+import { getTextosData } from '../../lib/content';
 
 // Función de servidor: recibe el formulario de contacto y lo entrega por correo
 // con Resend. La clave vive en la variable de entorno RESEND_API_KEY (Vercel →
@@ -114,15 +115,27 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const destino = CONTACT_TO ?? DESTINO_POR_DEFECTO;
   const remitente = CONTACT_FROM ?? REMITENTE_POR_DEFECTO;
 
+  // El formulario envía el valor técnico («seguros»); el correo debe leer la
+  // etiqueta del panel («Seguros»). Si el contenido no estuviera disponible en
+  // tiempo de ejecución, se cae al valor técnico sin romper el envío.
+  let etiquetaServicio = servicio;
+  try {
+    const textos = await getTextosData();
+    const opcion = textos.contact.form.serviceOptions.find((o) => o.value === servicio);
+    if (opcion) etiquetaServicio = opcion.label;
+  } catch (error) {
+    console.warn('[contacto] sin etiqueta del servicio', error instanceof Error ? error.message : error);
+  }
+
   const filas: Array<[string, string]> = [
     ['Nombre', nombre],
     ['Teléfono', telefono],
     ['Correo', email || 'No indicado'],
-    ['Servicio de interés', servicio],
+    ['Servicio de interés', etiquetaServicio],
   ];
 
   const texto = [
-    'Nuevo mensaje desde el formulario del sitio',
+    'Nuevo mensaje desde el formulario de Solicitud de Asesoría',
     '',
     ...filas.map(([k, v]) => `${k}: ${v}`),
     '',
@@ -132,7 +145,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   const html = `
     <div style="font-family:Inter,Arial,sans-serif;color:#0B0B0D;line-height:1.6">
-      <h2 style="margin:0 0 16px;font-size:18px">Nuevo mensaje desde el formulario del sitio</h2>
+      <h2 style="margin:0 0 16px;font-size:18px">Nuevo mensaje desde el formulario de Solicitud de Asesoría</h2>
       <table style="border-collapse:collapse;font-size:14px">
         ${filas
           .map(
@@ -145,6 +158,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       <p style="margin:0;white-space:pre-wrap">${escapar(mensaje)}</p>
     </div>`;
 
+  const asunto = `Nuevo mensaje de Solicitud de Asesoría · Tema: ${etiquetaServicio}`;
+
   try {
     const respuesta = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -153,7 +168,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         from: remitente,
         to: [destino],
         reply_to: email || undefined,
-        subject: `Nuevo mensaje del sitio · ${servicio}`,
+        subject: asunto,
         text: texto,
         html,
       }),
