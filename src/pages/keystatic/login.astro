@@ -11,6 +11,10 @@ const site = await getSiteData();
 const next = Astro.url.searchParams.get('next') ?? '/keystatic';
 const hasError = Astro.url.searchParams.get('error') === '1';
 const reasonExpired = Astro.url.searchParams.get('reason') === 'expired';
+// El aviso de desarrollo solo puede anunciar admin/admin cuando ese es el
+// respaldo real. Si .env.local define ADMIN_PASSWORD, getCredentials() usa
+// esas credenciales y el texto anterior anunciaba unas que no funcionaban.
+const envCredentials = Boolean(import.meta.env.ADMIN_PASSWORD);
 ---
 
 <!doctype html>
@@ -114,11 +118,20 @@ const reasonExpired = Astro.url.searchParams.get('reason') === 'expired';
                 <svg class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                 </svg>
-                <span>
-                  Modo desarrollo: usuario <strong class="text-white">admin</strong> / contraseña{" "}
-                  <strong class="text-white">admin</strong>. Define{" "}
-                  <code class="text-xs text-brand-300">ADMIN_PASSWORD</code> para cambiarlas.
-                </span>
+                {envCredentials ? (
+                  <span>
+                    Modo desarrollo: las credenciales se leen de{" "}
+                    <code class="text-xs text-brand-300">ADMIN_USERNAME</code> y{" "}
+                    <code class="text-xs text-brand-300">ADMIN_PASSWORD</code> en{" "}
+                    <code class="text-xs text-brand-300">.env.local</code>.
+                  </span>
+                ) : (
+                  <span>
+                    Modo desarrollo: usuario <strong class="text-white">admin</strong> / contraseña{" "}
+                    <strong class="text-white">admin</strong>. Define{" "}
+                    <code class="text-xs text-brand-300">ADMIN_PASSWORD</code> para cambiarlas.
+                  </span>
+                )}
               </div>
             )
           }
