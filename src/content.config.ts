@@ -65,7 +65,6 @@ const site = defineCollection({
         { name: 'WhatsApp', url: 'https://wa.me/573153401391', icon: 'whatsapp' },
       ]),
     hero: z.object({
-      badge: z.string(),
       titlePrefix: z.string(),
       highlight: z.string(),
       titleSuffix: z.string(),

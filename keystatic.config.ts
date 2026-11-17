@@ -281,7 +281,6 @@ export default config({
         ),
         hero: fields.object(
           {
-            badge: fields.text({ label: 'Texto del sello superior' }),
             titlePrefix: fields.text({ label: 'Título (parte 1)' }),
             highlight: fields.text({ label: 'Título (parte destacada en dorado)' }),
             titleSuffix: fields.text({ label: 'Título (parte final)' }),
