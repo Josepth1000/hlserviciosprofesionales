@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
 import type { APIRoute } from 'astro';
+import { CONTACT_FROM, CONTACT_TO, RESEND_API_KEY } from 'astro:env/server';
 
 // Función de servidor: recibe el formulario de contacto y lo entrega por correo
 // con Resend. La clave vive en la variable de entorno RESEND_API_KEY (Vercel →
@@ -18,37 +18,9 @@ const LIMITE = 5;
 const VENTANA_MS = 10 * 60 * 1000;
 const intentos = new Map<string, number[]>();
 
-// En el servidor se lee `process.env`, nunca `import.meta.env.ALGO`: Vite
-// incrusta esos literales en el paquete de la función y la clave acabaría
-// dentro del artefacto de build. En desarrollo Astro no copia `.env` a
-// `process.env`, así que ahí se lee el archivo (solo cuando DEV es true, valor
-// que sí se resuelve como un booleano y no arrastra secretos).
-let cacheDev: Record<string, string> | undefined;
-
-function envDeDesarrollo(nombre: string): string | undefined {
-  if (!cacheDev) {
-    cacheDev = {};
-    try {
-      const archivo = new URL('../../../.env', import.meta.url);
-      for (const linea of readFileSync(archivo, 'utf8').split('\n')) {
-        const coincidencia = linea.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-        if (coincidencia) {
-          cacheDev[coincidencia[1]] = coincidencia[2].replace(/^['\"]|['\"]$/g, '');
-        }
-      }
-    } catch {
-      /* sin archivo .env: se usan las variables del entorno */
-    }
-  }
-  return cacheDev[nombre];
-}
-
-function env(nombre: string): string | undefined {
-  const deEntorno = typeof process !== 'undefined' ? process.env[nombre] : undefined;
-  if (deEntorno) return deEntorno;
-  if (import.meta.env.DEV) return envDeDesarrollo(nombre);
-  return undefined;
-}
+// Las variables llegan por `astro:env/server` (esquema en astro.config.mjs):
+// son `secret`, así que Astro no las expone al cliente ni las incrusta en el
+// bundle, y en desarrollo las toma de `.env` sin lectores propios.
 
 function json(cuerpo: unknown, status = 200) {
   return new Response(JSON.stringify(cuerpo), {
@@ -137,10 +109,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (!servicio || servicio.length > 60) return json({ ok: false, error: 'servicio' }, 422);
   if (mensaje.length < 5 || mensaje.length > 2000) return json({ ok: false, error: 'mensaje' }, 422);
 
-  const apiKey = env('RESEND_API_KEY');
+  const apiKey = RESEND_API_KEY;
   if (!apiKey) return json({ ok: false, error: 'configuracion' }, 500);
-  const destino = env('CONTACT_TO') ?? DESTINO_POR_DEFECTO;
-  const remitente = env('CONTACT_FROM') ?? REMITENTE_POR_DEFECTO;
+  const destino = CONTACT_TO ?? DESTINO_POR_DEFECTO;
+  const remitente = CONTACT_FROM ?? REMITENTE_POR_DEFECTO;
 
   const filas: Array<[string, string]> = [
     ['Nombre', nombre],
