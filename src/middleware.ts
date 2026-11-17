@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { readPendingYaml, restoreOriginalFormat, type PendingYamlFile } from './lib/keystatic/preserveYaml';
 import { getCollection, getEntry } from 'astro:content';
 import {
   SESSION_COOKIE,
@@ -1525,7 +1526,26 @@ export const onRequest = defineMiddleware(async (context, next) => {
       });
     }
 
+    // Guardado del panel: Keystatic reescribe el YAML completo. Antes de
+    // dejarlo pasar se guarda el texto original, y después de escribir se le
+    // devuelve su formato para que el diff muestre solo el campo editado.
+    const isUpdate = request.method === 'POST' && path === '/api/keystatic/update';
+    let updateBody = '';
+    let pendingYaml: PendingYamlFile[] = [];
+    if (isUpdate) {
+      try {
+        updateBody = await request.clone().text();
+        pendingYaml = await readPendingYaml(updateBody);
+      } catch {
+        pendingYaml = [];
+      }
+    }
+
     const response = await next();
+
+    if (pendingYaml.length && response.ok) {
+      await restoreOriginalFormat(updateBody, pendingYaml);
+    }
 
     // Se inyecta en cualquier ruta del panel (no solo /keystatic): la app de
     // Keystatic navega por rutas como /keystatic/collection/... y /keystatic/
