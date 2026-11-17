@@ -3,7 +3,6 @@
 # contenido original del sitio.
 global:
   whatsappMessage: Hola, quiero una asesoría en HL Servicios Profesionales.
-  pageHeroLabel: HL Servicios Profesionales
   skipLinkLabel: Saltar al contenido
   backToTopLabel: Volver arriba
 nav:

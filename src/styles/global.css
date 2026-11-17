@@ -60,12 +60,25 @@ html {
     color-mix(in srgb, var(--color-brand-500) 70%, white) 0%,
     var(--color-brand-500) 35%,
     color-mix(in srgb, var(--color-brand-500) 60%, white) 52%,
-    color-mix(in srgb, var(--color-brand-500) 75%, black) 72%,
+    color-mix(in srgb, var(--color-brand-500) 78%, white) 72%,
     color-mix(in srgb, var(--color-brand-500) 70%, white) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Modo de contraste alto (Windows): el sistema anula la imagen de fondo pero
+ * respeta `color: transparent` en algunos motores, y la marca desaparece.
+ * Se devuelve un color de sistema legible en lugar del degradado. */
+@media (forced-colors: active) {
+  .text-gold-gradient {
+    background-image: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+  }
 }
 
 /* ======================================================================

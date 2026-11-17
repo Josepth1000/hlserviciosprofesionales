@@ -179,7 +179,11 @@ export default config({
       schema: {
         name: fields.text({ label: 'Nombre de la firma' }),
         brandName: fields.text({ label: 'Marca (texto cursiva del header y footer)' }),
-        slogan: fields.text({ label: 'Eslogan' }),
+        slogan: fields.text({
+          label: 'Eslogan (solo SEO y pantalla de acceso)',
+          description:
+            'Ya no se muestra en la cabecera ni en el pie: allí va la imagen de marca «Servicios contables & outsourcing». Este texto se usa en los datos estructurados que leen los buscadores (Organization → slogan) y en la pantalla de acceso al panel.',
+        }),
         cursor: fields.object(
           {
             enabled: fields.checkbox({
@@ -390,10 +394,6 @@ export default config({
               description: 'Texto que se envía al abrir cualquier botón de WhatsApp.',
               multiline: true,
               defaultValue: 'Hola, quiero una asesoría en HL Servicios Profesionales.',
-            }),
-            pageHeroLabel: fields.text({
-              label: 'Etiqueta sobre el título de las páginas internas',
-              defaultValue: 'HL Servicios Profesionales',
             }),
             skipLinkLabel: fields.text({
               label: 'Enlace “Saltar al contenido” (accesibilidad)',

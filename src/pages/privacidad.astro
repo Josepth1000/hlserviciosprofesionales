@@ -32,7 +32,7 @@ const paragraphs = (body: string) =>
         <section class="mt-10 first:mt-0">
           <h2 class="font-display text-2xl font-bold text-ink-900">{section.heading}</h2>
           {paragraphs(section.body).map((p) => (
-            <p class="mt-4 text-[15px] leading-relaxed text-slate-600">{p}</p>
+            <p class="mt-4 max-w-[54ch] text-[15px] leading-relaxed text-slate-600">{p}</p>
           ))}
         </section>
       ))

@@ -153,13 +153,11 @@ const textos = defineCollection({
         whatsappMessage: z
           .string()
           .default('Hola, quiero una asesoría en HL Servicios Profesionales.'),
-        pageHeroLabel: z.string().default('HL Servicios Profesionales'),
         skipLinkLabel: z.string().default('Saltar al contenido'),
         backToTopLabel: z.string().default('Volver arriba'),
       })
       .default({
         whatsappMessage: 'Hola, quiero una asesoría en HL Servicios Profesionales.',
-        pageHeroLabel: 'HL Servicios Profesionales',
         skipLinkLabel: 'Saltar al contenido',
         backToTopLabel: 'Volver arriba',
       }),
