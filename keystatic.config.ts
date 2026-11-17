@@ -112,7 +112,7 @@ export default config({
         title: fields.slug({ name: { label: 'Título' } }),
         order: fields.integer({ label: 'Orden', defaultValue: 0 }),
         icon: fields.select({ label: 'Icono', options: iconOptions, defaultValue: 'scale' }),
-        image: fields.image({ label: 'Imagen', directory: 'public/images', publicPath: '/images/' }),
+        image: imageField({ label: 'Imagen', directory: 'public/images', publicPath: '/images/' }),
         short: fields.text({ label: 'Resumen (tarjeta)', multiline: true }),
         description: fields.text({ label: 'Descripción (página)', multiline: true }),
         items: fields.array(fields.text({ label: 'Ítem', multiline: true }), {
@@ -212,7 +212,7 @@ export default config({
           },
           { label: '✨ Animación del puntero (cursor)' },
         ),
-        logo: fields.image({
+        logo: imageField({
           label: 'Logo (monograma)',
           directory: 'public/images',
           publicPath: '/images/',
@@ -286,7 +286,7 @@ export default config({
             highlight: fields.text({ label: 'Título (parte destacada en dorado)' }),
             titleSuffix: fields.text({ label: 'Título (parte final)' }),
             subtitle: fields.text({ label: 'Subtítulo', multiline: true }),
-            image: fields.image({
+            image: imageField({
               label: 'Imagen de fondo del hero',
               description:
                 'Imagen de fondo de la portada (se oscurece con un degradado). Tamaño recomendado: 1920 × 952 px.',
@@ -324,7 +324,7 @@ export default config({
                 ],
                 defaultValue: 'Seguridad Social',
               }),
-              image: fields.image({
+              image: imageField({
                 label: 'Imagen',
                 description:
                   'Se muestra en la tarjeta de la portada y en la página de servicios. Tamaño recomendado: 1200 × 800 px (horizontal).',
@@ -434,6 +434,7 @@ export default config({
             contactTitle: fields.text({ label: 'Título de la columna Contacto', defaultValue: 'Contacto' }),
             cityLine: fields.text({ label: 'Línea de ciudad (pie de página)', defaultValue: 'Bucaramanga, Santander · Colombia' }),
             copyrightSuffix: fields.text({ label: 'Texto tras el © año y nombre', defaultValue: 'Todos los derechos reservados.' }),
+            privacyLabel: fields.text({ label: 'Enlace “Política de privacidad” del pie', defaultValue: 'Política de privacidad' }),
           },
           { label: '🦶 Pie de página' },
         ),

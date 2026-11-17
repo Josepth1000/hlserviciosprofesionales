@@ -1430,7 +1430,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     var meta = COLLECTIONS[cs.collection];
     if (!meta) return;
     hlOrigImage = '';
-    var dataPath = meta.dir + '/' + segs[5] + meta.ext;
+    var dataPath = meta.dir + '/' + cs.item + meta.ext;
     fetch('/api/keystatic/tree', { headers: { 'no-cors': '1' } })
       .then(function(r){ return r.json(); })
       .then(function(entries){

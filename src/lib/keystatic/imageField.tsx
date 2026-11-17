@@ -16,7 +16,13 @@ import type { AssetFormField, FormFieldInputProps } from '@keystatic/core';
  * panel para que el campo se vea idéntico al resto de elementos del formulario.
  */
 
-export type ImageFieldValue = { data: Uint8Array; extension: string; filename: string } | null;
+export type ImageFieldValue = {
+  data: Uint8Array;
+  extension: string;
+  filename: string;
+  /** El valor viene de una ruta ya publicada en el YAML (no de una subida). */
+  existingPath?: boolean;
+} | null;
 
 type ImageFieldConfig = {
   label: string;
@@ -69,6 +75,22 @@ export function imageField(config: ImageFieldConfig): AssetFormField<ImageFieldV
 
   return {
     ...base,
+    // Keystatic nombra siempre el archivo con la clave del campo
+    // (`home.heroImage` → `home/heroImage.jpg`) y descarta el anterior, así que
+    // al guardar movía las imágenes ya publicadas y borraba los originales
+    // (las fichas de Servicios quedaban apuntando a rutas inexistentes).
+    // Ahora se conserva la ruta que ya está en el YAML; solo una subida nueva
+    // usa el nombre sugerido por el panel.
+    parse(value, extra) {
+      const parsed = base.parse(value, extra);
+      return parsed ? { ...parsed, existingPath: true } : null;
+    },
+    serialize(value, extra) {
+      if (value?.existingPath) {
+        return base.serialize(value, { ...extra, suggestedFilenamePrefix: undefined });
+      }
+      return base.serialize(value, extra);
+    },
     Input(props: FormFieldInputProps<ImageFieldValue>) {
       return createElement(ImageFieldWithPreview, {
         ...props,

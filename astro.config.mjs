@@ -32,6 +32,12 @@ export default defineConfig({
       // que rompe la hidratación del panel /keystatic en desarrollo. Se sirve
       // el módulo sin pre-bundlear (solo afecta a `npm run dev`).
       exclude: ['react/jsx-runtime', 'react/jsx-dev-runtime'],
+      // El panel se carga con un import dinámico (astro-island), así que el
+      // escáner inicial no ve `@keystatic/core` ni su interfaz: Vite los
+      // optimizaba a mitad de sesión, cambiaba el hash de la caché y los
+      // módulos ya servidos quedaban con "504 (Outdated Optimize Dep)", dejando
+      // el panel en blanco. Al declararlos aquí se pre-bundlean al arrancar.
+      include: ['@keystatic/core', '@keystatic/core/ui'],
     },
     server: {
       watch: {
