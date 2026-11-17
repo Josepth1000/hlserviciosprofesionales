@@ -437,6 +437,33 @@ export default config({
           },
           { label: '🦶 Pie de página' },
         ),
+        privacy: fields.object(
+          {
+            title: fields.text({ label: 'Título de la página', defaultValue: 'Política de privacidad' }),
+            subtitle: fields.text({ label: 'Entradilla', multiline: true }),
+            updated: fields.text({ label: 'Fecha de actualización' }),
+            contactTitle: fields.text({ label: 'Título del bloque de contacto', defaultValue: 'Ejerce tus derechos' }),
+            contactText: fields.text({ label: 'Texto del bloque de contacto', multiline: true }),
+            sections: fields.array(
+              fields.object(
+                {
+                  heading: fields.text({ label: 'Título de la sección' }),
+                  body: fields.text({
+                    label: 'Texto',
+                    multiline: true,
+                    description: 'Separa los párrafos con una línea en blanco.',
+                  }),
+                },
+                { label: 'Sección' },
+              ),
+              {
+                label: 'Secciones',
+                itemLabel: (props) => props.fields.heading.value ?? 'Sección',
+              },
+            ),
+          },
+          { label: '🔒 Política de privacidad' },
+        ),
         cta: fields.object(
           {
             title: fields.text({ label: 'Título', defaultValue: '¿Necesitas asesoría profesional?' }),
@@ -651,6 +678,17 @@ export default config({
                 messageLabel: fields.text({ label: 'Etiqueta Mensaje', defaultValue: 'Mensaje *' }),
                 messagePlaceholder: fields.text({ label: 'Marcador Mensaje', defaultValue: 'Cuéntanos cómo podemos ayudarte...' }),
                 submitLabel: fields.text({ label: 'Botón Enviar', defaultValue: 'Enviar mensaje' }),
+                sendingLabel: fields.text({ label: 'Aviso mientras se envía', defaultValue: 'Enviando…' }),
+                successMessage: fields.text({
+                  label: 'Mensaje de éxito',
+                  multiline: true,
+                  defaultValue: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
+                }),
+                errorMessage: fields.text({
+                  label: 'Mensaje de error',
+                  multiline: true,
+                  defaultValue: 'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
+                }),
               },
               { label: 'Formulario de contacto' },
             ),

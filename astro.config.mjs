@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
@@ -14,6 +14,16 @@ export default defineConfig({
   // panel de administración (/keystatic y /api/keystatic) como funciones.
   adapter: vercel(),
   integrations: [sitemap(), react(), keystatic()],
+  // Variables del formulario. `access: 'secret'` impide que Astro las exponga al
+  // cliente y no las incrusta en el bundle: se leen del entorno en tiempo de
+  // ejecución (en desarrollo, desde los archivos .env).
+  env: {
+    schema: {
+      RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      CONTACT_TO: envField.string({ context: 'server', access: 'secret', optional: true }),
+      CONTACT_FROM: envField.string({ context: 'server', access: 'secret', optional: true }),
+    },
+  },
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {

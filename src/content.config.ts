@@ -200,6 +200,7 @@ const textos = defineCollection({
         contactTitle: z.string().default('Contacto'),
         cityLine: z.string().default('Bucaramanga, Santander · Colombia'),
         copyrightSuffix: z.string().default('Todos los derechos reservados.'),
+        privacyLabel: z.string().default('Política de privacidad'),
       })
       .default({
         description:
@@ -209,6 +210,28 @@ const textos = defineCollection({
         contactTitle: 'Contacto',
         cityLine: 'Bucaramanga, Santander · Colombia',
         copyrightSuffix: 'Todos los derechos reservados.',
+        privacyLabel: 'Política de privacidad',
+      }),
+    // Política de privacidad (página /privacidad). El texto es editable desde el
+    // panel; el contenido publicado vive en `src/content/textos/index.yaml`.
+    privacy: z
+      .object({
+        title: z.string().default('Política de privacidad'),
+        subtitle: z.string().default('Cómo tratamos tus datos personales.'),
+        updated: z.string().default(''),
+        contactTitle: z.string().default('Ejerce tus derechos'),
+        contactText: z.string().default(''),
+        sections: z
+          .array(z.object({ heading: z.string(), body: z.string() }))
+          .default([]),
+      })
+      .default({
+        title: 'Política de privacidad',
+        subtitle: 'Cómo tratamos tus datos personales.',
+        updated: '',
+        contactTitle: 'Ejerce tus derechos',
+        contactText: '',
+        sections: [],
       }),
     cta: z
       .object({
@@ -648,9 +671,18 @@ const textos = defineCollection({
               .string()
               .default('Cuéntanos cómo podemos ayudarte...'),
             submitLabel: z.string().default('Enviar mensaje'),
+            sendingLabel: z.string().default('Enviando…'),
+            successMessage: z
+              .string()
+              .default('¡Gracias! Tu mensaje fue enviado; te responderemos pronto.'),
+            errorMessage: z
+              .string()
+              .default(
+                'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
+              ),
           })
           .default({
-            action: 'https://formspree.io/f/YOUR_FORM_ID',
+            action: '/api/contacto',
             nameLabel: 'Nombre completo *',
             namePlaceholder: 'Tu nombre',
             phoneLabel: 'Teléfono *',
@@ -669,6 +701,10 @@ const textos = defineCollection({
             messageLabel: 'Mensaje *',
             messagePlaceholder: 'Cuéntanos cómo podemos ayudarte...',
             submitLabel: 'Enviar mensaje',
+            sendingLabel: 'Enviando…',
+            successMessage: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
+            errorMessage:
+              'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
           }),
         infoTitle: z.string().default('Información de contacto'),
         whatsappButton: z.string().default('WhatsApp directo'),
@@ -727,6 +763,10 @@ const textos = defineCollection({
           messageLabel: 'Mensaje *',
           messagePlaceholder: 'Cuéntanos cómo podemos ayudarte...',
           submitLabel: 'Enviar mensaje',
+          sendingLabel: 'Enviando…',
+          successMessage: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
+          errorMessage:
+            'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
         },
         infoTitle: 'Información de contacto',
         whatsappButton: 'WhatsApp directo',
