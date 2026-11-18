@@ -23,16 +23,16 @@
     "@keystatic/core": "^0.6.5",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.2.2",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "tailwindcss": "^4.3.3",
     "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@tailwindcss/typography": "^0.5.20",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "semver": "^7.8.6",
     "typescript": "^6.0.3"
   },
