@@ -37,6 +37,11 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@astrojs/*'
         update-types: ['version-update:semver-major']
+      # TypeScript 7 es el port nativo y rompe `npm ci`: @astrojs/check sigue
+      # declarando peer typescript ^5.0.0 || ^6.0.0, así que la instalación
+      # falla por conflicto de peer. Se sube a mano cuando lo acepte.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   # Las propias acciones del flujo de trabajo (checkout, setup-node…).
   - package-ecosystem: github-actions
