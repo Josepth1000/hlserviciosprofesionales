@@ -1,9 +1,27 @@
 ---
+import { iconLoaders } from '../lib/animated-icons';
+import { iconMarkup } from '../lib/icon-markup';
+
+// Contador para que dos instancias del mismo icono no compartan ids internos.
+let iconIds = 0;
+
 interface Props {
   name: string;
   class?: string;
+  /** Dibuja el icono animado del paquete; `false` fuerza el trazo estático. */
+  animated?: boolean;
 }
-const { name, class: className = 'h-6 w-6' } = Astro.props;
+const { name, class: className = 'h-6 w-6', animated = true } = Astro.props;
+
+// Icono animado: se pinta en reposo con los mismos datos que luego anima
+// `play()` en el navegador, así que no hay intercambio de nodos al hacer hover.
+const loader = animated ? iconLoaders[name] : undefined;
+const data = loader ? await loader() : undefined;
+let iconSvg: string | undefined;
+if (data) {
+  iconIds += 1;
+  iconSvg = iconMarkup(data, { name, className, idScope: `${name}-${iconIds}` });
+}
 
 // Iconos tipo Heroicons (trazo) + marcas sociales (relleno)
 const icons: Record<string, string> = {
@@ -55,7 +73,9 @@ const isFilled = ['whatsapp', 'instagram', 'facebook', 'star', 'tiktok', 'youtub
 ---
 
 {
-  isFilled ? (
+  iconSvg ? (
+    <Fragment set:html={iconSvg} />
+  ) : isFilled ? (
     <svg class={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d={d} />
     </svg>
