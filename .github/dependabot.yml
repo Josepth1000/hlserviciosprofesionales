@@ -1,0 +1,47 @@
+version: 2
+
+updates:
+  # Dependencias del sitio (Astro, Tailwind, Keystatic, React…).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Bogota
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # Astro y sus integraciones se mueven juntos: subirlos por separado deja
+      # el proyecto a medio actualizar.
+      astro:
+        patterns:
+          - astro
+          - '@astrojs/*'
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+      tailwind:
+        patterns:
+          - tailwindcss
+          - '@tailwindcss/*'
+    ignore:
+      # Las versiones mayores de Astro cambian el adaptador de Vercel y las
+      # APIs de contenido: se actualizan a mano, no en un PR automático.
+      - dependency-name: astro
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@astrojs/*'
+        update-types: ['version-update:semver-major']
+
+  # Las propias acciones del flujo de trabajo (checkout, setup-node…).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
