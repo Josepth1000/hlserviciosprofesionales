@@ -291,7 +291,17 @@ document.addEventListener('click', async (event) => {
 
   const status = document.getElementById('faq-copy-status');
   if (status) {
-    status.textContent = copied ? 'Enlace copiado' : 'No se pudo copiar el enlace';
+    // Si el mensaje se repite, se vacía y se vuelve a escribir para que la
+    // región viva registre una mutación y lo anuncie otra vez.
+    const message = copied ? 'Enlace copiado' : 'No se pudo copiar el enlace';
+    if (status.textContent === message) {
+      status.textContent = '';
+      window.setTimeout(() => {
+        status.textContent = message;
+      }, 30);
+    } else {
+      status.textContent = message;
+    }
     if (toastTimer) window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => {
       status.textContent = '';

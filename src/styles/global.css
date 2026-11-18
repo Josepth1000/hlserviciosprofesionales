@@ -612,9 +612,18 @@ html.js #mobile-menu {
   white-space: nowrap;
   box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.55);
   pointer-events: none;
+  transition: opacity 0.2s ease;
 }
+/* Vacío se oculta con opacidad, no con display ni visibility: así el aviso sigue
+ * en el árbol de accesibilidad y los lectores de pantalla lo anuncian cuando
+ * llega el texto. */
 .faq-toast:empty {
-  display: none;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-toast {
+    transition: none;
+  }
 }
 @keyframes faq-copy-pop {
   0% {
