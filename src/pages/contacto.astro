@@ -435,25 +435,15 @@ const contactItems = [
         var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
 
         // Teselas del mapa. Con PUBLIC_CARTO_KEY se usa CARTO dark_all (el estilo de
-        // siempre); sin clave se cae a Esri Dark Gray Canvas, que no pide ninguna.
-        // CARTO dejó de servir raster sin clave el 25-09-2026: sin clave sus teselas
-        // solo traen la marca de agua "API KEY REQUIRED".
+        // siempre); si no hay clave, o CARTO la rechaza, se cae a Esri Dark Gray
+        // Canvas, que no pide ninguna. CARTO dejó de servir raster sin clave el
+        // 25-09-2026: sin clave sus teselas solo traen la marca de agua.
         var cartoKey = (el.dataset.cartoKey || '').trim();
         var creditosOSM =
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+        var esriCanvas = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas';
 
-        if (cartoKey) {
-          L.tileLayer(
-            'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + encodeURIComponent(cartoKey),
-            {
-              attribution: creditosOSM + ' &copy; <a href="https://carto.com/attributions">CARTO</a>',
-              subdomains: 'abcd',
-              maxZoom: 20,
-            },
-          ).addTo(map);
-        } else {
-          var esriCanvas = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas';
-
+        function capaEsri() {
           // Base: calles y manzanas oscuras, sin nombres.
           L.tileLayer(esriCanvas + '/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
             attribution:
@@ -465,6 +455,62 @@ const contactItems = [
           L.tileLayer(esriCanvas + '/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 16,
           }).addTo(map);
+        }
+
+        function capaCarto(key) {
+          return L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + encodeURIComponent(key),
+            {
+              attribution: creditosOSM + ' &copy; <a href="https://carto.com/attributions">CARTO</a>',
+              subdomains: 'abcd',
+              maxZoom: 20,
+            },
+          );
+        }
+
+        // CARTO responde 200 también cuando rechaza la clave: devuelve la misma
+        // tesela con la marca de agua para cualquier coordenada. Se piden dos
+        // teselas distintas y, si llegan idénticas (o no llegan), la clave no
+        // sirve y se usa Esri.
+        function claveAceptada(key, cuandoSepa) {
+          var base = 'https://a.basemaps.cartocdn.com/dark_all/1/';
+          var urls = [base + '0/0.png', base + '1/0.png'].map(function (u) {
+            return u + '?key=' + encodeURIComponent(key);
+          });
+
+          function traer(u) {
+            return fetch(u, { mode: 'cors' }).then(function (r) {
+              return r.ok ? r.arrayBuffer() : null;
+            });
+          }
+
+          function identicas(a, b) {
+            if (a.byteLength !== b.byteLength) return false;
+            var x = new Uint8Array(a);
+            var y = new Uint8Array(b);
+            for (var i = 0; i < x.length; i++) {
+              if (x[i] !== y[i]) return false;
+            }
+            return true;
+          }
+
+          Promise.all([traer(urls[0]), traer(urls[1])])
+            .then(function (bufs) {
+              var sirve = !!(bufs[0] && bufs[1]) && !identicas(bufs[0], bufs[1]);
+              cuandoSepa(sirve);
+            })
+            .catch(function () {
+              cuandoSepa(false);
+            });
+        }
+
+        if (!cartoKey) {
+          capaEsri();
+        } else {
+          claveAceptada(cartoKey, function (sirve) {
+            if (sirve) capaCarto(cartoKey).addTo(map);
+            else capaEsri();
+          });
         }
 
         // Edificio resaltado: doble anillo dorado (halo exterior + círculo punteado).
