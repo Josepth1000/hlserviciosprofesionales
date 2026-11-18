@@ -197,7 +197,9 @@ const textos = defineCollection({
         contactTitle: z.string().default('Contacto'),
         cityLine: z.string().default('Bucaramanga, Santander · Colombia'),
         copyrightSuffix: z.string().default('Todos los derechos reservados.'),
-        privacyLabel: z.string().default('Política de privacidad'),
+        legalNoticeLabel: z.string().default('Aviso legal'),
+        privacyLabel: z.string().default('Tratamiento de datos'),
+        cookiesLabel: z.string().default('Cookies'),
       })
       .default({
         description:
@@ -207,7 +209,9 @@ const textos = defineCollection({
         contactTitle: 'Contacto',
         cityLine: 'Bucaramanga, Santander · Colombia',
         copyrightSuffix: 'Todos los derechos reservados.',
-        privacyLabel: 'Política de privacidad',
+        legalNoticeLabel: 'Aviso legal',
+        privacyLabel: 'Tratamiento de datos',
+        cookiesLabel: 'Cookies',
       }),
     // Política de privacidad (página /privacidad). El texto es editable desde el
     // panel; el contenido publicado vive en `src/content/textos/index.yaml`.
@@ -227,6 +231,48 @@ const textos = defineCollection({
         subtitle: 'Cómo tratamos tus datos personales.',
         updated: '',
         contactTitle: 'Ejerce tus derechos',
+        contactText: '',
+        sections: [],
+      }),
+    // Aviso legal (página /aviso-legal). Tiene la misma forma que `privacy`:
+    // lo edita el panel y el texto publicado vive en `src/content/textos/index.yaml`.
+    legalNotice: z
+      .object({
+        title: z.string().default('Aviso legal'),
+        subtitle: z
+          .string()
+          .default('Quién está detrás de este sitio y con qué condiciones se usa.'),
+        updated: z.string().default(''),
+        contactTitle: z.string().default('¿Dudas sobre este aviso?'),
+        contactText: z.string().default(''),
+        sections: z.array(z.object({ heading: z.string(), body: z.string() })).default([]),
+      })
+      .default({
+        title: 'Aviso legal',
+        subtitle: 'Quién está detrás de este sitio y con qué condiciones se usa.',
+        updated: '',
+        contactTitle: '¿Dudas sobre este aviso?',
+        contactText: '',
+        sections: [],
+      }),
+    // Política de cookies (página /cookies).
+    cookies: z
+      .object({
+        title: z.string().default('Política de cookies'),
+        subtitle: z
+          .string()
+          .default('Qué guarda este sitio en tu navegador y qué recursos de terceros se cargan al visitarlo.'),
+        updated: z.string().default(''),
+        contactTitle: z.string().default('¿Preguntas sobre cookies?'),
+        contactText: z.string().default(''),
+        sections: z.array(z.object({ heading: z.string(), body: z.string() })).default([]),
+      })
+      .default({
+        title: 'Política de cookies',
+        subtitle:
+          'Qué guarda este sitio en tu navegador y qué recursos de terceros se cargan al visitarlo.',
+        updated: '',
+        contactTitle: '¿Preguntas sobre cookies?',
         contactText: '',
         sections: [],
       }),

@@ -29,9 +29,11 @@ footer:
   contactTitle: Contacto
   cityLine: Bucaramanga, Santander · Colombia
   copyrightSuffix: Todos los derechos reservados.
-  privacyLabel: Política de privacidad
+  legalNoticeLabel: Aviso legal
+  privacyLabel: Tratamiento de datos
+  cookiesLabel: Cookies
 privacy:
-  title: Política de privacidad
+  title: Política de tratamiento de datos personales
   subtitle: >-
     Cómo tratamos los datos personales de quienes visitan este sitio y de
     quienes nos contactan, conforme a la Ley 1581 de 2012.
@@ -84,6 +86,87 @@ privacy:
     - heading: 9. Cambios en esta política
       body: |
         Si modificamos esta política publicaremos la versión actualizada en esta misma página con su fecha de actualización. Te recomendamos revisarla cuando vuelvas a visitarnos.
+legalNotice:
+  title: Aviso legal
+  subtitle: >-
+    Quién está detrás de este sitio, con qué condiciones se usa y cómo se
+    protege su contenido.
+  updated: 'Última actualización: noviembre de 2026'
+  contactTitle: ¿Dudas sobre este aviso?
+  contactText: >-
+    Escríbenos por el correo o el teléfono que aparecen al final de esta página
+    y te respondemos lo antes posible.
+  sections:
+    - heading: 1. Titular del sitio
+      body: |
+        Este sitio web es operado por HL Servicios Profesionales, firma de asesoría jurídica, contable, en seguridad social y seguros, con oficina en Bucaramanga, Santander (Colombia).
+
+        Puedes contactarnos por el correo, el teléfono y el WhatsApp publicados en la página de contacto.
+    - heading: 2. Objeto
+      body: |
+        El sitio presenta nuestros servicios, los planes de afiliación al sistema de seguridad social y las vías para solicitar asesoría. La información tiene carácter informativo y no sustituye una asesoría profesional sobre tu caso concreto.
+    - heading: 3. Propiedad intelectual
+      body: |
+        Los textos, el nombre comercial, el monograma, las fotografías y el diseño del sitio pertenecen a HL Servicios Profesionales o se usan con autorización de sus titulares.
+
+        No se permite reproducir, distribuir ni modificar estos contenidos con fines comerciales sin nuestra autorización escrita. Puedes citarlos indicando la fuente con un enlace a esta web.
+    - heading: 4. Exactitud de la información
+      body: |
+        Revisamos los contenidos para que estén actualizados, pero los planes, precios, requisitos y condiciones de afiliación pueden cambiar por decisiones de las entidades del sistema o por ajustes normativos.
+
+        Antes de afiliarte o contratar un servicio, confirma las condiciones vigentes con nosotros por los canales de contacto.
+    - heading: 5. Enlaces a otros sitios
+      body: |
+        El sitio enlaza a plataformas de terceros, como WhatsApp, Instagram, Facebook, TikTok y YouTube. No controlamos sus contenidos ni sus políticas, y no respondemos por la información o los servicios que ofrecen.
+    - heading: 6. Responsabilidad
+      body: |
+        Trabajamos para que el sitio esté disponible y libre de errores, pero no garantizamos que el acceso sea continuo ni que no haya interrupciones por mantenimiento, fallas de la red o causas ajenas.
+
+        Tampoco respondemos por decisiones tomadas únicamente a partir de la información general publicada aquí.
+    - heading: 7. Legislación aplicable
+      body: |
+        Este aviso se rige por la legislación colombiana. Cualquier controversia relacionada con el sitio se someterá a los jueces competentes de Bucaramanga, Santander.
+    - heading: 8. Cambios en este aviso
+      body: |
+        Si modificamos este aviso publicaremos la versión actualizada en esta misma página con su fecha de actualización.
+cookies:
+  title: Política de cookies
+  subtitle: >-
+    Qué guarda este sitio en tu navegador y qué recursos de terceros se cargan
+    al visitarlo.
+  updated: 'Última actualización: noviembre de 2026'
+  contactTitle: ¿Preguntas sobre cookies?
+  contactText: >-
+    Escríbenos por el correo o el teléfono que aparecen al final de esta página
+    y te explicamos cualquier detalle.
+  sections:
+    - heading: 1. Qué son las cookies
+      body: |
+        Las cookies son archivos pequeños que un sitio guarda en tu navegador para recordar información entre visitas. Existen tecnologías parecidas, como el almacenamiento local, que cumplen funciones similares y se rigen por las mismas reglas de transparencia.
+    - heading: 2. Este sitio no usa cookies de analítica ni de publicidad
+      body: |
+        No instalamos cookies de analítica, publicidad ni redes sociales, y por eso no verás un banner pidiéndote que las aceptes.
+
+        Para saber cuántas personas visitan el sitio usamos Umami, una herramienta que no emplea cookies ni identifica personas: mide páginas vistas y acciones como abrir WhatsApp, llamar o enviar el formulario de forma agregada.
+    - heading: '3. La única cookie propia: la sesión del panel'
+      body: |
+        Si formas parte del equipo y entras al editor del sitio, el panel guarda una cookie técnica de sesión que mantiene tu acceso mientras trabajas. Es imprescindible para usar el panel y se elimina al cerrar la sesión o al vencer el tiempo de inactividad.
+
+        Esa cookie no se instala a quienes solo visitan el sitio público.
+    - heading: 4. Almacenamiento local
+      body: |
+        El sitio público no guarda información en el almacenamiento local de tu navegador.
+    - heading: 5. Recursos de terceros
+      body: |
+        Al abrir algunas páginas, tu navegador descarga archivos de servidores externos: las tipografías desde Google Fonts, la librería del mapa desde jsDelivr y las teselas del mapa desde CARTO y OpenStreetMap, con Esri como respaldo. Esos servidores reciben tu dirección IP y datos técnicos de la conexión, aunque no instalan cookies para identificarte.
+
+        El formulario de contacto se procesa en nuestro propio servidor alojado en Vercel y el correo se entrega con Resend (Resend, Inc., Estados Unidos).
+    - heading: 6. Cómo controlar las cookies
+      body: |
+        Puedes borrar o bloquear las cookies desde la configuración de tu navegador. Si bloqueas todas, el sitio público seguirá funcionando; el panel del equipo no podrá mantener la sesión abierta.
+    - heading: 7. Cambios en esta política
+      body: |
+        Si cambiamos el uso de cookies o de tecnologías similares, actualizaremos esta página con su fecha.
 cta:
   title: ¿Necesitas asesoría profesional?
   subtitle: >-

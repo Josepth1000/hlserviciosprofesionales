@@ -88,6 +88,40 @@ const storage: { kind: 'local' } | { kind: 'github'; repo: `${string}/${string}`
   ? { kind: 'github', repo: githubRepo as `${string}/${string}` }
   : { kind: 'local' };
 
+// Las tres páginas legales comparten estructura (título, entradilla, fecha,
+// bloque de contacto y secciones), así que se declaran una sola vez.
+const legalPageFields = (label: string, titleDefault: string, contactTitleDefault: string) =>
+  fields.object(
+    {
+      title: fields.text({ label: 'Título de la página', defaultValue: titleDefault }),
+      subtitle: fields.text({ label: 'Entradilla', multiline: true }),
+      updated: fields.text({ label: 'Fecha de actualización' }),
+      contactTitle: fields.text({
+        label: 'Título del bloque de contacto',
+        defaultValue: contactTitleDefault,
+      }),
+      contactText: fields.text({ label: 'Texto del bloque de contacto', multiline: true }),
+      sections: fields.array(
+        fields.object(
+          {
+            heading: fields.text({ label: 'Título de la sección' }),
+            body: fields.text({
+              label: 'Texto',
+              multiline: true,
+              description: 'Separa los párrafos con una línea en blanco.',
+            }),
+          },
+          { label: 'Sección' },
+        ),
+        {
+          label: 'Secciones',
+          itemLabel: (props) => props.fields.heading.value ?? 'Sección',
+        },
+      ),
+    },
+    { label },
+  );
+
 export default config({
   storage,
   locale: 'es-ES',
@@ -432,36 +466,31 @@ export default config({
             contactTitle: fields.text({ label: 'Título de la columna Contacto', defaultValue: 'Contacto' }),
             cityLine: fields.text({ label: 'Línea de ciudad (pie de página)', defaultValue: 'Bucaramanga, Santander · Colombia' }),
             copyrightSuffix: fields.text({ label: 'Texto tras el © año y nombre', defaultValue: 'Todos los derechos reservados.' }),
-            privacyLabel: fields.text({ label: 'Enlace “Política de privacidad” del pie', defaultValue: 'Política de privacidad' }),
+            legalNoticeLabel: fields.text({
+              label: 'Enlace “Aviso legal” del pie',
+              defaultValue: 'Aviso legal',
+            }),
+            privacyLabel: fields.text({
+              label: 'Enlace “Tratamiento de datos” del pie',
+              defaultValue: 'Tratamiento de datos',
+            }),
+            cookiesLabel: fields.text({
+              label: 'Enlace “Cookies” del pie',
+              defaultValue: 'Cookies',
+            }),
           },
           { label: '🦶 Pie de página' },
         ),
-        privacy: fields.object(
-          {
-            title: fields.text({ label: 'Título de la página', defaultValue: 'Política de privacidad' }),
-            subtitle: fields.text({ label: 'Entradilla', multiline: true }),
-            updated: fields.text({ label: 'Fecha de actualización' }),
-            contactTitle: fields.text({ label: 'Título del bloque de contacto', defaultValue: 'Ejerce tus derechos' }),
-            contactText: fields.text({ label: 'Texto del bloque de contacto', multiline: true }),
-            sections: fields.array(
-              fields.object(
-                {
-                  heading: fields.text({ label: 'Título de la sección' }),
-                  body: fields.text({
-                    label: 'Texto',
-                    multiline: true,
-                    description: 'Separa los párrafos con una línea en blanco.',
-                  }),
-                },
-                { label: 'Sección' },
-              ),
-              {
-                label: 'Secciones',
-                itemLabel: (props) => props.fields.heading.value ?? 'Sección',
-              },
-            ),
-          },
-          { label: '🔒 Política de privacidad' },
+        privacy: legalPageFields(
+          '🔒 Tratamiento de datos personales',
+          'Política de tratamiento de datos personales',
+          'Ejerce tus derechos',
+        ),
+        legalNotice: legalPageFields('⚖️ Aviso legal', 'Aviso legal', '¿Dudas sobre este aviso?'),
+        cookies: legalPageFields(
+          '🍪 Política de cookies',
+          'Política de cookies',
+          '¿Preguntas sobre cookies?',
         ),
         cta: fields.object(
           {

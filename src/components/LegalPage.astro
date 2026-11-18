@@ -1,0 +1,84 @@
+---
+import Icon from './Icon.astro';
+import { getSiteData } from '../lib/content';
+
+// Cuerpo común de las páginas legales (aviso legal, tratamiento de datos y
+// cookies). El contenido llega del panel: cada página es un objeto de `textos`
+// con título, entradilla, fecha y secciones.
+interface LegalPageData {
+  title: string;
+  subtitle: string;
+  updated: string;
+  contactTitle: string;
+  contactText: string;
+  sections: { heading: string; body: string }[];
+}
+
+interface Props {
+  page: LegalPageData;
+}
+
+const { page } = Astro.props;
+const site = await getSiteData();
+const phoneHref = `tel:${site.phone.replace(/\s/g, '')}`;
+const waLink = `https://wa.me/${site.whatsapp}`;
+
+// El texto del panel es un campo multilínea: cada línea en blanco abre párrafo.
+const paragraphs = (body: string) =>
+  body
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+---
+
+<section class="bg-ink-950 text-white">
+  <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <h1 class="max-w-3xl font-display text-4xl font-bold sm:text-5xl">{page.title}</h1>
+    <p class="mt-4 max-w-2xl text-ink-200">{page.subtitle}</p>
+    <p class="mt-6 text-sm text-brand-300">{page.updated}</p>
+  </div>
+</section>
+
+<article class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+  {
+    page.sections.map((section) => (
+      <section class="mt-10 first:mt-0">
+        <h2 class="font-display text-2xl font-bold text-ink-900">{section.heading}</h2>
+        {paragraphs(section.body).map((p) => (
+          <p class="mt-4 max-w-[54ch] text-[15px] leading-relaxed text-slate-600">{p}</p>
+        ))}
+      </section>
+    ))
+  }
+
+  <div class="mt-12 rounded-xl border border-brand-200 bg-brand-50 p-6 sm:p-8">
+    <h2 class="font-display text-xl font-bold text-ink-900">{page.contactTitle}</h2>
+    <p class="mt-2 text-sm leading-relaxed text-slate-700">{page.contactText}</p>
+    <div class="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
+      <a
+        href={`mailto:${site.email}`}
+        class="inline-flex max-w-full items-center gap-2 break-all rounded-md bg-brand-500 px-4 py-2.5 text-left text-ink-950 transition hover:bg-brand-400"
+      >
+        <Icon name="mail" class="h-4 w-4" />
+        {site.email}
+      </a>
+      <a
+        href={phoneHref}
+        class="inline-flex items-center gap-2 rounded-md border border-ink-900/15 bg-white px-4 py-2.5 text-ink-900 transition hover:border-brand-500"
+      >
+        <Icon name="phone" class="h-4 w-4 text-brand-700" />
+        {site.phone}
+      </a>
+      <a
+        href={waLink}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-2 rounded-md border border-ink-900/15 bg-white px-4 py-2.5 text-ink-900 transition hover:border-brand-500"
+      >
+        <Icon name="whatsapp" class="h-4 w-4 text-brand-700" />
+        WhatsApp
+      </a>
+    </div>
+    <p class="mt-5 text-xs leading-relaxed text-slate-500">{site.address}</p>
+  </div>
+</article>

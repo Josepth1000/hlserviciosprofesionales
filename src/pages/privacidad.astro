@@ -1,72 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Icon from '../components/Icon.astro';
+import LegalPage from '../components/LegalPage.astro';
 import { getSiteData, getTextosData } from '../lib/content';
 
 const site = await getSiteData();
 const textos = await getTextosData();
-const privacy = textos.privacy;
-const phoneHref = `tel:${site.phone.replace(/\s/g, '')}`;
-const waLink = `https://wa.me/${site.whatsapp}`;
-
-// El texto del panel es un campo multilínea: cada línea en blanco abre párrafo.
-const paragraphs = (body: string) =>
-  body
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+// Política de tratamiento de datos personales (Ley 1581 de 2012).
+const page = textos.privacy;
 ---
 
-<Layout title={`${privacy.title} · ${site.name}`} description={privacy.subtitle}>
-  <section class="bg-ink-950 text-white">
-    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-      <h1 class="max-w-3xl font-display text-4xl font-bold sm:text-5xl">{privacy.title}</h1>
-      <p class="mt-4 max-w-2xl text-ink-200">{privacy.subtitle}</p>
-      <p class="mt-6 text-sm text-brand-300">{privacy.updated}</p>
-    </div>
-  </section>
-
-  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-    {
-      privacy.sections.map((section) => (
-        <section class="mt-10 first:mt-0">
-          <h2 class="font-display text-2xl font-bold text-ink-900">{section.heading}</h2>
-          {paragraphs(section.body).map((p) => (
-            <p class="mt-4 max-w-[54ch] text-[15px] leading-relaxed text-slate-600">{p}</p>
-          ))}
-        </section>
-      ))
-    }
-
-    <div class="mt-12 rounded-xl border border-brand-200 bg-brand-50 p-6 sm:p-8">
-      <h2 class="font-display text-xl font-bold text-ink-900">{privacy.contactTitle}</h2>
-      <p class="mt-2 text-sm leading-relaxed text-slate-700">{privacy.contactText}</p>
-      <div class="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
-        <a
-          href={`mailto:${site.email}`}
-          class="inline-flex items-center gap-2 rounded-md bg-brand-500 px-4 py-2.5 text-ink-950 transition hover:bg-brand-400"
-        >
-          <Icon name="mail" class="h-4 w-4" />
-          {site.email}
-        </a>
-        <a
-          href={phoneHref}
-          class="inline-flex items-center gap-2 rounded-md border border-ink-900/15 bg-white px-4 py-2.5 text-ink-900 transition hover:border-brand-500"
-        >
-          <Icon name="phone" class="h-4 w-4 text-brand-700" />
-          {site.phone}
-        </a>
-        <a
-          href={waLink}
-          target="_blank"
-          rel="noopener"
-          class="inline-flex items-center gap-2 rounded-md border border-ink-900/15 bg-white px-4 py-2.5 text-ink-900 transition hover:border-brand-500"
-        >
-          <Icon name="whatsapp" class="h-4 w-4 text-brand-700" />
-          WhatsApp
-        </a>
-      </div>
-      <p class="mt-5 text-xs leading-relaxed text-slate-500">{site.address}</p>
-    </div>
-  </article>
+<Layout title={`${page.title} · ${site.name}`} description={page.subtitle}>
+  <LegalPage page={page} />
 </Layout>

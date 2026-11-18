@@ -99,13 +99,23 @@ const socials = site.social?.length
   <div class="border-t border-ink-800">
     <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row sm:px-6 lg:px-8">
       <p>© {year} {site.name}. {textos.footer.copyrightSuffix}</p>
-      <p class="flex items-center gap-2">
-        <a href="/privacidad" class="underline decoration-brand-400/40 underline-offset-4 transition hover:text-brand-300">
-          {textos.footer.privacyLabel}
-        </a>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <nav aria-label="Legal" class="flex flex-wrap items-center justify-center gap-2">
+          <a href="/aviso-legal" class="underline decoration-brand-400/40 underline-offset-4 transition hover:text-brand-300">
+            {textos.footer.legalNoticeLabel}
+          </a>
+          <span aria-hidden="true" class="text-ink-500">·</span>
+          <a href="/privacidad" class="underline decoration-brand-400/40 underline-offset-4 transition hover:text-brand-300">
+            {textos.footer.privacyLabel}
+          </a>
+          <span aria-hidden="true" class="text-ink-500">·</span>
+          <a href="/cookies" class="underline decoration-brand-400/40 underline-offset-4 transition hover:text-brand-300">
+            {textos.footer.cookiesLabel}
+          </a>
+        </nav>
         <span aria-hidden="true" class="text-ink-500">·</span>
         <span>{textos.footer.cityLine}</span>
-      </p>
+      </div>
     </div>
   </div>
 </footer>
