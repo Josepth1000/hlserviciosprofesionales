@@ -34,16 +34,13 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      # El plan pedía `npm audit` en CI. Por ahora informa pero no bloquea:
-      #  · npm marca como crítica GHSA-26w7-cxv4-gfx2 (RCE en la optimización de
-      #    AVIF), que este proyecto ya tiene resuelta con astro 7.4.13 y sharp
-      #    0.35.5, cuando la versión parcheada es 7.2.8.
-      #  · Las altas que quedan viven en el árbol de @astrojs/vercel y el
-      #    «arreglo» que propone npm es bajar el adaptador a 8.0.4.
-      # Cuando esas dos cosas se resuelvan, se quita `continue-on-error`.
+      # `npm audit --audit-level=high` a secas agrupa los avisos por paquete: le
+      # pega a un nodo el rango unión de todos sus avisos y la severidad del
+      # peor, así que marca como crítica una versión que ningún aviso cubre.
+      # El script revisa aviso por aviso contra la versión del lockfile y solo
+      # bloquea lo que tiene parche sin cambiar de versión mayor.
       - name: Auditar dependencias
-        run: npm audit --audit-level=high
-        continue-on-error: true
+        run: node scripts/audit.mjs
 
       - name: Revisar tipos y plantillas
         run: npm run check
