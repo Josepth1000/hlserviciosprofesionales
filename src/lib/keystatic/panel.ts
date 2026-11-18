@@ -465,6 +465,10 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     'Choose file': 'Escoger imagen',
     'Remove': 'Eliminar',
     'Edit Item': 'Editar elemento',
+    // Keystatic escribe el título del diálogo como "Edit item" (i minúscula),
+    // así que sin esta clave el diálogo de los elementos de una lista quedaba
+    // en inglés.
+    'Edit item': 'Editar elemento',
     'Edit entry': 'Editar registro',
     'Delete entry': 'Eliminar registro',
     'Reset changes': 'Descartar cambios',
@@ -525,7 +529,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   function translateNode(el){
     if (!el || el.nodeType !== 1) return;
     var tag = el.tagName;
-    if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'LABEL' && tag !== 'LI' &&
+    // Los títulos del panel (p. ej. el encabezado "Edit item" del diálogo de un
+    // elemento de lista) son <h2> sin atributo role, así que se aceptan las
+    // etiquetas de encabezado además de las que llevan role explícito.
+    var isHeading = /^H[1-6]$/.test(tag);
+    if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'LABEL' && tag !== 'LI' && !isHeading &&
         el.getAttribute('role') !== 'menuitem' && el.getAttribute('role') !== 'columnheader' &&
         el.getAttribute('role') !== 'button' && el.getAttribute('role') !== 'heading' &&
         el.getAttribute('role') !== 'tooltip' && el.getAttribute('role') !== 'separator') return;
@@ -565,7 +573,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
 
   function scan(){
     translateCounts();
-    var nodes = document.querySelectorAll('button, a, label, li, [role="menuitem"], [role="columnheader"], [role="button"], [role="heading"], [role="tooltip"], [role="separator"]');
+    var nodes = document.querySelectorAll('button, a, label, li, h1, h2, h3, [role="menuitem"], [role="columnheader"], [role="button"], [role="heading"], [role="tooltip"], [role="separator"]');
     for (var i = 0; i < nodes.length; i++) translateNode(nodes[i]);
     var dlg = document.querySelector('[role="alertdialog"]');
     if (dlg){
