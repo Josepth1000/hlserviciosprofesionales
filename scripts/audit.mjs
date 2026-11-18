@@ -55,25 +55,35 @@ if (!informe || typeof informe.vulnerabilities !== 'object' || informe.vulnerabi
 }
 
 // La versión se lee del lockfile, que sí conoce las copias anidadas (y no falla
-// con los paquetes cuyo `exports` esconde el package.json, como sharp).
+// con los paquetes cuyo `exports` esconde el package.json, como sharp). Sin
+// lockfile no hay forma fiable de saber qué está instalado: se aborta en vez de
+// adivinar con `require`, que devolvería la copia elevada a la raíz.
 const lock = (() => {
   try {
     return JSON.parse(readFileSync('package-lock.json', 'utf8'));
   } catch {
-    return null;
+    console.error('No se pudo leer package-lock.json: no se sabe qué versión está instalada.');
+    process.exit(2);
   }
 })();
 
-const versionInstalada = (nombre, dato) => {
+// Todas las copias instaladas, una por versión distinta. npm marca el paquete,
+// no la copia: si el árbol tiene 6.3.0 arriba y 6.1.0 anidada, quedarse solo
+// con la primera dejaba pasar la vulnerable.
+const versionesInstaladas = (nombre, dato) => {
+  const versiones = new Set();
   for (const ruta of dato.nodes ?? []) {
-    const version = lock?.packages?.[ruta]?.version;
-    if (version) return version;
+    const version = lock.packages?.[ruta]?.version;
+    if (version) versiones.add(version);
   }
-  try {
-    return require(`${nombre}/package.json`).version;
-  } catch {
-    return null;
+  if (!versiones.size) {
+    try {
+      versiones.add(require(`${nombre}/package.json`).version);
+    } catch {
+      versiones.add(null); // sin versión conocida: se asume afectada
+    }
   }
+  return [...versiones];
 };
 
 const aplica = (version, rango) => {
@@ -82,43 +92,55 @@ const aplica = (version, rango) => {
 };
 
 const peso = { info: 0, low: 1, moderate: 2, high: 3, critical: 4 };
+// Una severidad que npm estrene (o deje vacía) se trata como alta: es preferible
+// bloquear de más que dejar pasar una vulnerabilidad por un rótulo desconocido.
+const gravedad = (severidad) => peso[severidad] ?? peso.high;
 
 const bloqueantes = [];
 const avisos = [];
 const ignoradas = [];
 
 for (const [nombre, dato] of Object.entries(informe.vulnerabilities ?? {})) {
-  const version = versionInstalada(nombre, dato);
   const propios = (dato.via ?? []).filter((via) => typeof via === 'object');
 
   // Un nodo puede venir marcado solo por propagación (su `via` son nombres de
   // otros paquetes). Esos no se evalúan aquí: se evalúa el paquete de origen.
   if (!propios.length) continue;
 
-  const aplicables = propios.filter((via) => aplica(version, via.range));
-  if (!aplicables.length) {
-    ignoradas.push({ nombre, version, severidad: dato.severity });
-    continue;
+  // Se revisa copia por copia: basta que una esté afectada para bloquear.
+  const versiones = versionesInstaladas(nombre, dato);
+  let algunaAplicable = false;
+
+  for (const version of versiones) {
+    const aplicables = propios.filter((via) => aplica(version, via.range));
+    if (!aplicables.length) continue;
+    algunaAplicable = true;
+
+    const peor = aplicables.reduce((a, b) => (gravedad(b.severity) > gravedad(a.severity) ? b : a));
+    if (gravedad(peor.severity) < peso.high) continue;
+
+    const arreglo = dato.fixAvailable;
+    const linea = {
+      nombre,
+      version,
+      severidad: peor.severity,
+      rango: peor.range,
+      aviso: (peor.url ?? '').split('/').pop() ?? '',
+      arreglo:
+        arreglo === true
+          ? 'parche disponible'
+          : arreglo?.isSemVerMajor === true
+            ? 'requiere salto de versión mayor'
+            : 'sin parche',
+    };
+
+    if (arreglo === true) bloqueantes.push(linea);
+    else avisos.push(linea);
   }
 
-  const peor = aplicables.reduce((a, b) => (peso[b.severity] > peso[a.severity] ? b : a));
-  if (peso[peor.severity] < peso.high) continue;
-
-  const arreglo = dato.fixAvailable;
-  const tieneParche = arreglo === true;
-  const soloMayor = typeof arreglo === 'object' && arreglo?.isSemVerMajor === true;
-
-  const linea = {
-    nombre,
-    version,
-    severidad: peor.severity,
-    rango: peor.range,
-    aviso: (peor.url ?? '').split('/').pop() ?? '',
-    arreglo: tieneParche ? 'parche disponible' : soloMayor ? 'requiere salto de versión mayor' : 'sin parche',
-  };
-
-  if (tieneParche) bloqueantes.push(linea);
-  else avisos.push(linea);
+  if (!algunaAplicable) {
+    ignoradas.push({ nombre, version: versiones.join(' / '), severidad: dato.severity });
+  }
 }
 
 const escribir = (titulo, lista) => {
