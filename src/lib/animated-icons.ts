@@ -17,6 +17,7 @@ export const iconLoaders: Record<string, () => Promise<IconData>> = {
   chevron: () => import('@animateicons/vanilla/lucide/chevron-down').then((m) => m.ChevronDown),
   clock: () => import('@animateicons/vanilla/lucide/clock').then((m) => m.Clock),
   document: () => import('@animateicons/vanilla/lucide/file-text').then((m) => m.FileText),
+  link: () => import('@animateicons/vanilla/lucide/link').then((m) => m.Link),
   mail: () => import('@animateicons/vanilla/lucide/mail').then((m) => m.Mail),
   phone: () => import('@animateicons/vanilla/lucide/phone').then((m) => m.Phone),
   pin: () => import('@animateicons/vanilla/lucide/map-pin').then((m) => m.MapPin),

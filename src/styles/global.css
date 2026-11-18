@@ -528,6 +528,13 @@ html.js #mobile-menu {
 }
 
 /* Acordeón FAQ con animación suave (grid-rows 0fr → 1fr) */
+/* El ancla #faq-<slug> deja la pregunta bajo el header fijo al abrir el enlace */
+.faq-item {
+  scroll-margin-top: 6rem;
+}
+.faq-item:target {
+  border-color: var(--color-brand-500);
+}
 .faq-answer {
   display: grid;
   grid-template-rows: 0fr;
@@ -545,6 +552,88 @@ html.js #mobile-menu {
 }
 .faq-item.is-open .faq-chevron {
   transform: rotate(180deg);
+}
+/* Enlace permanente de cada pregunta: al pulsarlo se copia la URL para pegarla
+ * en redes o en un chat, y la pregunta se abre como confirmación visual. */
+.faq-copy {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 0.5rem;
+  color: var(--color-brand-700);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+.faq-copy:hover,
+.faq-copy:focus-visible {
+  color: var(--color-ink-950);
+  background: color-mix(in srgb, var(--color-brand-500) 22%, transparent);
+}
+.faq-copy:focus-visible {
+  outline: 2px solid var(--color-brand-700);
+  outline-offset: 2px;
+}
+/* El pulsado se hunde un poco: el gesto de "ya lo copié" */
+.faq-copy:active {
+  transform: scale(0.9);
+}
+.faq-copy-check,
+.faq-copy.is-copied .faq-copy-icon {
+  display: none;
+}
+.faq-copy.is-copied {
+  color: var(--color-ink-950);
+  background: var(--color-brand-500);
+}
+.faq-copy.is-copied .faq-copy-check {
+  display: block;
+  animation: faq-copy-pop 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Aviso de copiado: pastilla flotante abajo al centro, fuera de la tarjeta para
+ * que no tape el final de la pregunta ni lo recorte el overflow redondeado. */
+.faq-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 60;
+  transform: translateX(-50%);
+  padding: 0.55rem 1rem;
+  border-radius: 9999px;
+  background: var(--color-ink-950);
+  color: #fff;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.55);
+  pointer-events: none;
+}
+.faq-toast:empty {
+  display: none;
+}
+@keyframes faq-copy-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-copy {
+    transition: none;
+  }
+  .faq-copy.is-copied .faq-copy-check {
+    animation: none;
+  }
 }
 
 /* ======================================================================

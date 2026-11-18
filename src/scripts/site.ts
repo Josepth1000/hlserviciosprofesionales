@@ -241,6 +241,81 @@ document.addEventListener('click', (event) => {
   setFaq(item, !open);
 });
 
+// Cada pregunta tiene su ancla (#faq-<slug>): al abrir el enlace se despliega
+// esa respuesta, se lleva el foco a la pregunta y se deja a la vista bajo el
+// header fijo (el margen lo pone `.faq-item` en el CSS).
+function openFaq(id: string, focus = true) {
+  const item = document.getElementById(id);
+  if (!item || !item.classList.contains('faq-item')) return;
+
+  for (const other of qa<HTMLElement>('.faq-item.is-open', item.parentElement ?? document)) {
+    if (other !== item) setFaq(other, false);
+  }
+  setFaq(item, true);
+  item.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
+  if (focus) item.querySelector<HTMLElement>('.faq-toggle')?.focus({ preventScroll: true });
+}
+
+function openFaqFromHash() {
+  const hash = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+  if (hash) openFaq(hash);
+}
+
+window.addEventListener('hashchange', openFaqFromHash);
+
+// Copiar el enlace de una pregunta: es lo que se pega en redes o en un chat.
+// El sitio se sirve por https, así que el portapapeles moderno basta; si el
+// navegador lo niega, se avisa y queda la URL en la barra de direcciones.
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const copyTimers = new WeakMap<HTMLElement, number>();
+let toastTimer: number | undefined;
+
+document.addEventListener('click', async (event) => {
+  const button = (event.target as Element).closest<HTMLElement>('[data-faq-copy]');
+  const anchor = button?.dataset.faqCopy;
+  if (!button || !anchor) return;
+
+  // Abre la pregunta y deja la URL a la vista, pero sin robar el foco al botón
+  // que acaba de pulsarse.
+  openFaq(anchor, false);
+  window.history.replaceState(null, '', `#${anchor}`);
+  const copied = await copyText(new URL(`#${anchor}`, window.location.href).href);
+
+  const status = document.getElementById('faq-copy-status');
+  if (status) {
+    status.textContent = copied ? 'Enlace copiado' : 'No se pudo copiar el enlace';
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      status.textContent = '';
+    }, 2400);
+  }
+
+  button.classList.toggle('is-copied', copied);
+  button.setAttribute(
+    'aria-label',
+    copied ? 'Enlace copiado' : 'No se pudo copiar el enlace de la pregunta',
+  );
+
+  const pending = copyTimers.get(button);
+  if (pending) window.clearTimeout(pending);
+  copyTimers.set(
+    button,
+    window.setTimeout(() => {
+      button.classList.remove('is-copied');
+      const original = button.getAttribute('data-faq-label');
+      if (original) button.setAttribute('aria-label', original);
+    }, 2200),
+  );
+});
+
 // --------------------------------------------------------- spotlight cards
 // Un halo dorado que sigue al cursor dentro de las tarjetas con [data-spotlight]
 // (guiño al efecto "gooey": luz líquida que se desliza sobre la superficie).
@@ -621,6 +696,7 @@ function init() {
   initCounters();
   initCursor();
   initServiceReading();
+  openFaqFromHash();
   // El menú móvil siempre arranca cerrado (el estado no sobrevive a la
   // navegación; el DOM nuevo se sirve sin la clase is-open).
   const menu = q<HTMLElement>('#mobile-menu');
