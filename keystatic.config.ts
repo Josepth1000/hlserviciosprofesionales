@@ -199,7 +199,6 @@ export default config({
               options: [
                 { label: 'Halo dorado (resplandor suave)', value: 'halo' },
                 { label: 'Anillo dorado (se agranda en enlaces)', value: 'ring' },
-                { label: 'Destellos (partículas doradas)', value: 'sparkles' },
               ],
               defaultValue: 'halo',
             }),

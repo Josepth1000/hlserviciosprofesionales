@@ -292,11 +292,11 @@ if (finePointer && !reducedMotion) {
 
 // ------------------------------------------------- animación del puntero
 // Configurable desde el panel (✨ Animación del puntero): activar/desactivar,
-// elegir efecto (halo dorado, anillo o destellos) y tamaño del halo. La
+// elegir efecto (halo dorado o anillo) y tamaño del halo. La
 // configuración viaja en data-attributes del <body> (se re-renderiza en cada
 // página). Los elementos se recrean tras cada navegación porque el <body> se
 // reemplaza en las view transitions.
-type CursorEffect = 'halo' | 'ring' | 'sparkles';
+type CursorEffect = 'halo' | 'ring';
 
 let cursorConfig: { enabled: boolean; effect: CursorEffect } = { enabled: true, effect: 'halo' };
 let cursorEl: HTMLElement | null = null;
@@ -305,8 +305,6 @@ let cursorY = window.innerHeight / 2;
 let cursorTx = cursorX;
 let cursorTy = cursorY;
 let cursorRunning = false;
-let sparklesActive = false;
-let lastSparkTime = 0;
 
 function getCursorConfig() {
   const body = document.body;
@@ -343,14 +341,6 @@ function initCursor() {
   cursorConfig = getCursorConfig();
   document.documentElement.classList.toggle('no-cursor-anim', !cursorConfig.enabled);
 
-  if (cursorConfig.effect === 'sparkles') {
-    removeCursorElements();
-    cursorEl = null;
-    cursorRunning = false;
-    sparklesActive = cursorConfig.enabled && finePointer && !reducedMotion;
-    return;
-  }
-  sparklesActive = false;
   cursorEl = ensureCursorElement(cursorConfig.effect);
   if (!cursorEl || cursorRunning) return;
   cursorRunning = true;
@@ -373,10 +363,6 @@ if (finePointer && !reducedMotion) {
     (event) => {
       cursorTx = event.clientX;
       cursorTy = event.clientY;
-      if (sparklesActive) {
-        spawnSpark(event.clientX, event.clientY);
-        return;
-      }
       // Anillo: crece al pasar sobre enlaces y controles
       const target = event.target as Element | null;
       const overInteractive = !!target?.closest('a, button, [role="button"], input, select, textarea, summary');
@@ -385,36 +371,6 @@ if (finePointer && !reducedMotion) {
     },
     { passive: true },
   );
-}
-
-function spawnSpark(x: number, y: number) {
-  const now = performance.now();
-  if (now - lastSparkTime < 45) return;
-  lastSparkTime = now;
-  const spark = document.createElement('span');
-  spark.className = 'cursor-spark';
-  const size = 3 + Math.random() * 4;
-  spark.style.width = `${size}px`;
-  spark.style.height = `${size}px`;
-  spark.style.left = `${x}px`;
-  spark.style.top = `${y}px`;
-  document.body.appendChild(spark);
-  const dx = (Math.random() - 0.5) * 70;
-  const dy = -Math.random() * 55 - 8;
-  const anim = spark.animate(
-    [
-      { opacity: 0.9, transform: 'translate(-50%, -50%) scale(1)' },
-      {
-        opacity: 0,
-        transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.35)`,
-      },
-    ],
-    { duration: 550 + Math.random() * 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-  );
-  anim.onfinish = () => spark.remove();
-  // Red de seguridad: si la animación no avanza (rAF congelado), el destello
-  // no queda acumulado en el DOM.
-  window.setTimeout(() => spark.remove(), 1600);
 }
 
 // --------------------------------------------------- desplegable personalizado

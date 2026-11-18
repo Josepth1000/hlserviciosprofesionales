@@ -185,8 +185,7 @@ html.js [data-reveal].is-revealed {
  * Animación del puntero configurable (panel → ✨ Animación del puntero)
  * - halo: resplandor dorado difuso (tamaño configurable vía --cursor-size)
  * - ring: anillo dorado que sigue al cursor y crece sobre enlaces/botones
- * - sparkles: pequeñas partículas doradas que se desprenden del puntero
- * Los tres elementos son decorativos (pointer-events: none) y solo se
+ * Los dos elementos son decorativos (pointer-events: none) y solo se
  * muestran en dispositivos con puntero fino.
  * ====================================================================== */
 #cursor-glow {
@@ -237,17 +236,6 @@ html.js [data-reveal].is-revealed {
   width: 62px;
   height: 62px;
   border-color: color-mix(in srgb, var(--color-brand-400) 95%, transparent);
-}
-
-.cursor-spark {
-  position: fixed;
-  width: 5px;
-  height: 5px;
-  border-radius: 9999px;
-  background: var(--color-brand-500);
-  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-brand-400) 60%, transparent);
-  pointer-events: none;
-  z-index: 40;
 }
 
 /* Si la animación del puntero está desactivada desde el panel, también se
@@ -479,20 +467,6 @@ html.js #mobile-menu {
   transform: translateY(-3px) scale(1.06);
 }
 /* Pulso dorado en reposo: invita al clic sin ser invasivo */
-#wa-fab {
-  animation: wa-fab-idle 2.8s ease-in-out infinite;
-}
-@keyframes wa-fab-idle {
-  0%,
-  100% {
-    box-shadow: 0 14px 30px -10px rgb(0 0 0 / 0.45);
-  }
-  50% {
-    box-shadow:
-      0 16px 34px -10px color-mix(in srgb, var(--color-brand-500) 60%, transparent),
-      0 0 0 5px color-mix(in srgb, var(--color-brand-500) 16%, transparent);
-  }
-}
 /* Anillo que pulsa al pasar el cursor */
 #wa-fab::after {
   content: "";
@@ -536,13 +510,13 @@ html.js #mobile-menu {
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 56px), transparent 100%);
 }
 .marquee-track {
-  animation: marquee-scroll 34s linear infinite;
-  animation-play-state: paused;
   will-change: transform;
 }
+/* La animación se declara solo al interactuar: en reposo no existe, así que no
+ * hay bucle que detener ni movimiento que compita con la lectura. */
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track {
-  animation-play-state: running;
+  animation: marquee-scroll 34s linear infinite;
 }
 @keyframes marquee-scroll {
   from {
@@ -598,21 +572,6 @@ html.js #mobile-menu {
 .social-btn svg {
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* Pulso dorado suave en reposo: atrae la mirada e invita al clic */
-.social-btn {
-  animation: social-idle 2.6s ease-in-out infinite;
-}
-@keyframes social-idle {
-  0%,
-  100% {
-    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.5);
-  }
-  50% {
-    box-shadow:
-      0 8px 22px -8px color-mix(in srgb, var(--color-brand-500) 55%, transparent),
-      0 0 0 3px color-mix(in srgb, var(--color-brand-500) 18%, transparent);
-  }
-}
 .social-btn:hover,
 .social-btn:focus-visible {
   transform: translateY(-4px);
@@ -666,10 +625,9 @@ html.js #mobile-menu {
 }
 .service-block.is-reading .service-img {
   transform: scale(1.04);
-  box-shadow:
-    0 28px 64px -22px rgb(0 0 0 / 0.5),
-    0 0 0 4px color-mix(in srgb, var(--color-brand-500) 55%, transparent),
-    0 0 46px -8px color-mix(in srgb, var(--color-brand-400) 50%, transparent);
+  box-shadow: 0 28px 64px -22px rgb(0 0 0 / 0.5);
+  outline: 1px solid color-mix(in srgb, var(--color-brand-500) 55%, transparent);
+  outline-offset: -1px;
 }
 
 .service-cta {
@@ -749,8 +707,11 @@ html.js #mobile-menu {
   .animate-blob-slow,
   .animate-rise,
   .social-btn,
-  #wa-fab,
-  .marquee-track {
+  #wa-fab {
+    animation: none;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
     animation: none;
   }
   #scroll-progress {
@@ -774,7 +735,6 @@ html.js #mobile-menu {
   }
   #cursor-glow,
   #cursor-ring,
-  .cursor-spark,
   [data-spotlight]::before {
     display: none;
   }

@@ -63,11 +63,14 @@ marca no desaparezca.
 
 ## 5. Elevación y movimiento
 
-- Sombras **neutras** (`rgb(0 0 0 / …)`); el color se reserva a pulsos de
-  interacción (WhatsApp, redes, foco) y nunca a la elevación en reposo.
+- Sombras **neutras** (`rgb(0 0 0 / …)`) en reposo; ninguna pieza late ni brilla
+  sola. El color aparece solo al interactuar (hover, focus) y nunca como
+  elevación permanente.
+- El elemento que se está leyendo se destaca con elevación neutra y un borde
+  dorado de 1 px (`outline`), no con halos de color.
 - Los realces con color se apagan con `prefers-reduced-motion`.
-- La marquesina de servicios arranca detenida y solo se mueve con hover o
-  focus. Cualquier animación nueva debe tener estado de reposo quieto.
+- La marquesina de servicios no declara animación hasta que se pasa el cursor o
+  se enfoca; en reposo es una franja quieta.
 
 ## 6. Encabezados
 

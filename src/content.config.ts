@@ -12,7 +12,7 @@ const site = defineCollection({
     cursor: z
       .object({
         enabled: z.boolean().default(true),
-        effect: z.enum(['halo', 'ring', 'sparkles']).default('halo'),
+        effect: z.enum(['halo', 'ring']).default('halo'),
         size: z.number().default(360),
       })
       .default({ enabled: true, effect: 'halo', size: 360 }),

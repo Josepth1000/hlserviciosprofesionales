@@ -148,39 +148,17 @@ function planWhatsAppMessage(plan: (typeof plans)[number], col: (typeof columns)
 </Layout>
 
 <style>
+  /* Pista de la tabla de planes: informativa y quieta. Antes latía con un
+   * resplandor dorado en bucle, que competía con la lectura y se sumaba a los
+   * halos que el bloque 2.4 retiró. */
   .plans-hint {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    animation: hint-glow 2.6s ease-in-out infinite;
   }
 
   .plans-hint svg {
     color: var(--color-brand-600);
-    filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--color-brand-500) 40%, transparent));
-  }
-
-  @keyframes hint-glow {
-    0%,
-    100% {
-      text-shadow:
-        0 0 0 transparent,
-        0 0 0 transparent;
-      color: var(--color-slate-500);
-    }
-    50% {
-      text-shadow:
-        0 0 5px color-mix(in srgb, var(--color-brand-400) 60%, transparent),
-        0 2px 16px color-mix(in srgb, var(--color-brand-500) 70%, transparent);
-      color: var(--color-ink-800);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .plans-hint {
-      animation: none;
-      color: var(--color-slate-500);
-    }
   }
 </style>
