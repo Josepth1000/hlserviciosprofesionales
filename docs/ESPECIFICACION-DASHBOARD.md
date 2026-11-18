@@ -47,7 +47,7 @@ Documento rellenado a partir del prompt de especificación, con los datos reales
   | `ink-100…500` | Grises neutros | Texto secundario |
 
   Definidos como design tokens en `src/styles/global.css` (`@theme`).
-- ✅ **Tipografía:** Playfair Display (títulos, serif de firma de abogados) + Inter (texto, sans moderna).
+- ✅ **Tipografía:** Playfair Display (títulos, serif de firma de abogados) + Instrument Sans (texto, sans con carácter) + Great Vibes (marca).
 - ✅ **Dark mode:** el panel de Keystatic sigue la preferencia del sistema (oscuro/claro); el sitio público usa secciones oscuras + claras por diseño.
 - ✅ **Iconografía:** iconos SVG propios (diccionario en `src/components/Icon.astro`). 🔜 Lucide/Phosphor si se crea el dashboard de analítica.
 - 🔜 **Bento grid** para el futuro dashboard de KPIs.

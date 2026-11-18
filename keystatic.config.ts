@@ -356,8 +356,8 @@ export default config({
           {
             body: fields.text({
               label: 'Tipografía del texto',
-              description: 'Familia de Google Fonts para el texto general (por defecto Inter).',
-              defaultValue: 'Inter',
+              description: 'Familia de Google Fonts para el texto general (por defecto Instrument Sans).',
+              defaultValue: 'Instrument Sans',
             }),
             display: fields.text({
               label: 'Tipografía de títulos',
@@ -374,7 +374,7 @@ export default config({
               description:
                 'URL completa de Google Fonts que carga las tres familias. Déjala con el valor predeterminado o pega la tuya propia.',
               defaultValue:
-                'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap',
+                'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap',
             }),
           },
           { label: '🔤 Tipografías' },

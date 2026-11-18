@@ -18,21 +18,21 @@ const site = defineCollection({
       .default({ enabled: true, effect: 'halo', size: 360 }),
     fonts: z
       .object({
-        body: z.string().default('Inter'),
+        body: z.string().default('Instrument Sans'),
         display: z.string().default('Playfair Display'),
         script: z.string().default('Great Vibes'),
         googleFontsUrl: z
           .string()
           .default(
-            'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap',
+            'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap',
           ),
       })
       .default({
-        body: 'Inter',
+        body: 'Instrument Sans',
         display: 'Playfair Display',
         script: 'Great Vibes',
         googleFontsUrl:
-          'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap',
+          'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap',
       }),
     palette: z
       .array(
