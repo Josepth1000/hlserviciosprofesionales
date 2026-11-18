@@ -153,6 +153,12 @@ export default config({
           label: 'Características',
           itemLabel: (props) => props.value ?? 'Ítem',
         }),
+        whatsappMessage: fields.text({
+          label: 'Mensaje de WhatsApp de este servicio',
+          description:
+            'Texto que se envía al pulsar el botón de WhatsApp en la página de Servicios. Si lo dejas vacío se usa el mensaje general del sitio.',
+          multiline: true,
+        }),
       },
     }),
     testimonials: collection({
@@ -613,6 +619,10 @@ export default config({
               { label: 'Encabezado de la página' },
             ),
             ctaLabel: fields.text({ label: 'Botón “Solicitar asesoría”', defaultValue: 'Solicitar asesoría' }),
+            whatsappLabel: fields.text({
+              label: 'Botón de WhatsApp de cada servicio',
+              defaultValue: 'Consultar por WhatsApp',
+            }),
           },
           { label: '🛠️ Servicios' },
         ),

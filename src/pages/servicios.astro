@@ -3,7 +3,13 @@ import Layout from '../layouts/Layout.astro';
 import PageHero from '../components/PageHero.astro';
 import Icon from '../components/Icon.astro';
 import CTABand from '../components/CTABand.astro';
-import { getServices, getSiteData, getServiceImageMap, getTextosData } from '../lib/content';
+import {
+  getServices,
+  getSiteData,
+  getServiceImageMap,
+  getTextosData,
+  getWhatsAppLink,
+} from '../lib/content';
 
 const services = await getServices();
 const site = await getSiteData();
@@ -47,13 +53,29 @@ const serviceImageMap = getServiceImageMap(site);
                 </li>
               ))}
             </ul>
-            <a
-              href="/contacto"
-              class="service-cta mt-8 inline-flex items-center gap-2 rounded-md bg-ink-800 px-6 py-3 text-sm font-semibold text-white hover:bg-ink-700"
-            >
-              {textos.servicesPage.ctaLabel}
-              <Icon name="arrow" class="h-4 w-4" />
-            </a>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href="/contacto"
+                class="service-cta inline-flex items-center gap-2 rounded-md bg-ink-800 px-6 py-3 text-sm font-semibold text-white hover:bg-ink-700"
+              >
+                {textos.servicesPage.ctaLabel}
+                <Icon name="arrow" class="h-4 w-4" />
+              </a>
+              {/* WhatsApp con el mensaje propio del servicio; si la ficha no
+                  define uno, se usa el mensaje general del sitio. */}
+              <a
+                href={getWhatsAppLink(
+                  site.whatsapp,
+                  service.data.whatsappMessage || textos.global.whatsappMessage,
+                )}
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-2 rounded-md border border-ink-900/15 bg-white px-5 py-3 text-sm font-semibold text-ink-900 transition hover:border-brand-500 hover:text-brand-700"
+              >
+                <Icon name="whatsapp" class="h-4 w-4 text-brand-700" />
+                {textos.servicesPage.whatsappLabel}
+              </a>
+            </div>
           </div>
 
           <div class:list={[i % 2 === 1 && 'lg:order-1']} data-reveal style={`--reveal-delay: 140ms`}>

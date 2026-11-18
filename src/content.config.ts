@@ -107,6 +107,8 @@ const services = defineCollection({
     short: z.string(),
     description: z.string(),
     items: z.array(z.string()),
+    // Mensaje de WhatsApp propio del servicio. Vacío = mensaje general del sitio.
+    whatsappMessage: z.string().default(''),
   }),
 });
 
@@ -560,6 +562,7 @@ const textos = defineCollection({
             image: '/images/hero/image.jpg',
           }),
         ctaLabel: z.string().default('Solicitar asesoría'),
+        whatsappLabel: z.string().default('Consultar por WhatsApp'),
       })
       .default({
         seoTitle: 'Servicios',
@@ -572,6 +575,7 @@ const textos = defineCollection({
           image: '/images/hero/image.jpg',
         },
         ctaLabel: 'Solicitar asesoría',
+        whatsappLabel: 'Consultar por WhatsApp',
       }),
     afiliacion: z
       .object({
