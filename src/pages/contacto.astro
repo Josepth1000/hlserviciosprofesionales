@@ -434,10 +434,9 @@ const contactItems = [
 
         var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
 
-        // Teselas del mapa. Con PUBLIC_CARTO_KEY se usa CARTO dark_all (el estilo de
-        // siempre); si no hay clave, o CARTO la rechaza, se cae a Esri Dark Gray
-        // Canvas, que no pide ninguna. CARTO dejó de servir raster sin clave el
-        // 25-09-2026: sin clave sus teselas solo traen la marca de agua.
+        // Teselas del mapa: CARTO dark_all si hay clave válida; si no hay clave o
+        // CARTO la rechaza, Esri Dark Gray Canvas, que no pide ninguna. CARTO solo
+        // sirve raster con clave desde el 25-09-2026.
         var cartoKey = (el.dataset.cartoKey || '').trim();
         var creditosOSM =
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -450,16 +449,15 @@ const contactItems = [
               creditosOSM + ' &middot; Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin',
             maxZoom: 16,
           }).addTo(map);
-
           // Rótulos de calles y sitios, encima de la base y debajo del marcador.
           L.tileLayer(esriCanvas + '/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 16,
           }).addTo(map);
         }
 
-        function capaCarto(key) {
+        function capaCarto() {
           return L.tileLayer(
-            'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + encodeURIComponent(key),
+            'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + encodeURIComponent(cartoKey),
             {
               attribution: creditosOSM + ' &copy; <a href="https://carto.com/attributions">CARTO</a>',
               subdomains: 'abcd',
@@ -468,47 +466,40 @@ const contactItems = [
           );
         }
 
-        // CARTO responde 200 también cuando rechaza la clave: devuelve la misma
-        // tesela con la marca de agua para cualquier coordenada. Se piden dos
-        // teselas distintas y, si llegan idénticas (o no llegan), la clave no
-        // sirve y se usa Esri.
-        function claveAceptada(key, cuandoSepa) {
-          var base = 'https://a.basemaps.cartocdn.com/dark_all/1/';
-          var urls = [base + '0/0.png', base + '1/0.png'].map(function (u) {
-            return u + '?key=' + encodeURIComponent(key);
+        // CARTO responde 200 aunque rechace la clave: devuelve la misma tesela con
+        // la marca de agua para cualquier coordenada. Dos teselas distintas que
+        // llegan idénticas (o que no llegan) delatan la clave inservible.
+        function claveAceptada() {
+          function pedir(xy) {
+            return fetch('https://a.basemaps.cartocdn.com/dark_all/1/' + xy + '.png?key=' + encodeURIComponent(cartoKey))
+              .then(function (r) {
+                return r.ok ? r.arrayBuffer() : null;
+              })
+              .catch(function () {
+                return null;
+              });
+          }
+
+          return Promise.all([pedir('0/0'), pedir('1/0')]).then(function (teselas) {
+            return !!teselas[0] && !!teselas[1] && !mismasTeselas(teselas[0], teselas[1]);
           });
+        }
 
-          function traer(u) {
-            return fetch(u, { mode: 'cors' }).then(function (r) {
-              return r.ok ? r.arrayBuffer() : null;
-            });
+        function mismasTeselas(a, b) {
+          if (a.byteLength !== b.byteLength) return false;
+          var x = new Uint8Array(a);
+          var y = new Uint8Array(b);
+          for (var i = 0; i < x.length; i++) {
+            if (x[i] !== y[i]) return false;
           }
-
-          function identicas(a, b) {
-            if (a.byteLength !== b.byteLength) return false;
-            var x = new Uint8Array(a);
-            var y = new Uint8Array(b);
-            for (var i = 0; i < x.length; i++) {
-              if (x[i] !== y[i]) return false;
-            }
-            return true;
-          }
-
-          Promise.all([traer(urls[0]), traer(urls[1])])
-            .then(function (bufs) {
-              var sirve = !!(bufs[0] && bufs[1]) && !identicas(bufs[0], bufs[1]);
-              cuandoSepa(sirve);
-            })
-            .catch(function () {
-              cuandoSepa(false);
-            });
+          return true;
         }
 
         if (!cartoKey) {
           capaEsri();
         } else {
-          claveAceptada(cartoKey, function (sirve) {
-            if (sirve) capaCarto(cartoKey).addTo(map);
+          claveAceptada().then(function (sirve) {
+            if (sirve) capaCarto().addTo(map);
             else capaEsri();
           });
         }
