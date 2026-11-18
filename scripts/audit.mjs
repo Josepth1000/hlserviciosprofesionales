@@ -22,15 +22,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 
-// `semver` no está declarado en package.json, pero npm lo instala por las
-// dependencias de Astro. Si no estuviera, se trata todo aviso como aplicable:
-// el flujo se vuelve más estricto, nunca más laxo.
-let semver = null;
-try {
-  semver = require('semver');
-} catch {
-  semver = null;
-}
+const semver = require('semver');
 
 const archivo = process.argv.indexOf('--from');
 let salida;
@@ -85,8 +77,7 @@ const versionInstalada = (nombre, dato) => {
 };
 
 const aplica = (version, rango) => {
-  if (!version) return true; // sin versión a mano, se asume afectada
-  if (!semver) return true;
+  if (!version) return true; // sin versión en el lockfile, se asume afectada
   return semver.satisfies(version, rango, { includePrerelease: true });
 };
 
