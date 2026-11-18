@@ -15,6 +15,10 @@ const officeLat = textos.contact.map.lat;
 const officeLng = textos.contact.map.lng;
 const mapsDirections = textos.contact.map.directionsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(site.address)}`;
 
+// Clave pública de CARTO Basemaps para las teselas del mapa. Va en el HTML (por
+// eso es PUBLIC_); si no está, el mapa cae a Esri Dark Gray Canvas.
+const cartoKey = import.meta.env.PUBLIC_CARTO_KEY ?? '';
+
 const contactItems = [
   { icon: 'pin', label: 'Dirección', value: site.address, href: undefined },
   { icon: 'phone', label: 'Teléfono', value: site.phone, href: `tel:${site.phone.replace(/\s/g, '')}` },
@@ -222,6 +226,7 @@ const contactItems = [
             class="h-[26rem] w-full"
             data-lat={officeLat}
             data-lng={officeLng}
+            data-carto-key={cartoKey}
             data-name={site.name}
             data-address={site.address}
             data-label={textos.contact.map.label}
@@ -429,12 +434,38 @@ const contactItems = [
 
         var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: 'abcd',
-          maxZoom: 20,
-        }).addTo(map);
+        // Teselas del mapa. Con PUBLIC_CARTO_KEY se usa CARTO dark_all (el estilo de
+        // siempre); sin clave se cae a Esri Dark Gray Canvas, que no pide ninguna.
+        // CARTO dejó de servir raster sin clave el 25-09-2026: sin clave sus teselas
+        // solo traen la marca de agua "API KEY REQUIRED".
+        var cartoKey = (el.dataset.cartoKey || '').trim();
+        var creditosOSM =
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+        if (cartoKey) {
+          L.tileLayer(
+            'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=' + encodeURIComponent(cartoKey),
+            {
+              attribution: creditosOSM + ' &copy; <a href="https://carto.com/attributions">CARTO</a>',
+              subdomains: 'abcd',
+              maxZoom: 20,
+            },
+          ).addTo(map);
+        } else {
+          var esriCanvas = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas';
+
+          // Base: calles y manzanas oscuras, sin nombres.
+          L.tileLayer(esriCanvas + '/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution:
+              creditosOSM + ' &middot; Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin',
+            maxZoom: 16,
+          }).addTo(map);
+
+          // Rótulos de calles y sitios, encima de la base y debajo del marcador.
+          L.tileLayer(esriCanvas + '/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 16,
+          }).addTo(map);
+        }
 
         // Edificio resaltado: doble anillo dorado (halo exterior + círculo punteado).
         L.circle([lat, lng], {
