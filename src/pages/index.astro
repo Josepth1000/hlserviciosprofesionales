@@ -74,7 +74,8 @@ const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
       <div class="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:px-8">
         {site.stats.map((stat, i) => (
           <div class="text-center" data-reveal style={`--reveal-delay: ${i * 130}ms`}>
-            <p class="font-display text-3xl font-bold text-brand-400" data-counter>{stat.value}</p>
+            {/* tabular-nums: el contador cambia de dígitos sin mover el ancho */}
+            <p class="font-display text-3xl font-bold tabular-nums text-brand-400" data-counter>{stat.value}</p>
             <p class="mt-1 text-sm text-ink-100">{stat.label}</p>
           </div>
         ))}

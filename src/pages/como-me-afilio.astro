@@ -56,14 +56,14 @@ function planWhatsAppMessage(plan: (typeof plans)[number], col: (typeof columns)
           <tr class="bg-ink-900 text-left text-white">
             <th scope="col" class="px-5 py-4 font-semibold">{textos.afiliacion.planColumnHeader}</th>
             {columns.map((col) => (
-              <th scope="col" class="px-5 py-4 text-right font-semibold">{col.label}</th>
+              <th scope="col" class="px-5 py-4 text-right font-semibold whitespace-nowrap">{col.label}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {plans.map((plan, i) => (
             <tr class:list={['border-t border-slate-100', i % 2 === 1 && 'bg-brand-50/50']}>
-              <th scope="row" class="px-5 py-4 text-left font-semibold text-ink-900">{plan.id}</th>
+              <th scope="row" class="px-5 py-4 text-left font-semibold whitespace-nowrap text-ink-900">{plan.id}</th>
               {columns.map((col) => (
                 <td class="px-2 py-2 text-right">
                   <a
@@ -76,8 +76,10 @@ function planWhatsAppMessage(plan: (typeof plans)[number], col: (typeof columns)
                     class="plan-cell group inline-flex items-center justify-end gap-1.5 rounded-md px-3 py-2.5 font-semibold tabular-nums text-slate-700 transition duration-200 hover:bg-brand-500 hover:text-ink-950 hover:shadow-md"
                     aria-label={`${plan.id} ${col.label}: ${formatCOP(plan[col.key])} · cotizar por WhatsApp`}
                   >
-                    {formatCOP(plan[col.key])}
+                    {/* El icono va antes del precio para que el número quede pegado
+                        al borde derecho y las columnas alineen con la cabecera. */}
                     <Icon name="whatsapp" class="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+                    {formatCOP(plan[col.key])}
                   </a>
                 </td>
               ))}
