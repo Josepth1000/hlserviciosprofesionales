@@ -107,7 +107,7 @@ La paleta se extrajo del **logo oficial del perfil de Instagram** (`@serviciospr
 | `ink-950` | `#0B0B0D` negro | Héroes, header, footer y superficies oscuras |
 | `ink-100…500` | Grises neutros | Texto y elementos secundarios |
 
-Los tokens viven en `src/styles/global.css` (`@theme`). Tipografías: **Playfair Display** (títulos) + **Instrument Sans** (texto) + **Great Vibes** (marca). La especificación completa del sistema de diseño y del dashboard está en [`docs/ESPECIFICACION-DASHBOARD.md`](docs/ESPECIFICACION-DASHBOARD.md).
+Los tokens viven en `src/styles/global.css` (`@theme`). Tipografías: **Playfair Display** (títulos) + **Instrument Sans** (texto) + **Great Vibes** (marca). La especificación completa del sistema de diseño y del dashboard está en [`docs/ESPECIFICACION-DASHBOARD.md`](docs/ESPECIFICACION-DASHBOARD.md); las decisiones de identidad (degradado reservado a la marca, contraste, movimiento) están en [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ## 🚀 Publicación automática con GitHub (paso a paso)
 
