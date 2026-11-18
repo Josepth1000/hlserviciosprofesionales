@@ -645,7 +645,7 @@ const textos = defineCollection({
           ),
         form: z
           .object({
-            action: z.string().default('https://formspree.io/f/YOUR_FORM_ID'),
+            action: z.string().default('/api/contacto'),
             nameLabel: z.string().default('Nombre completo *'),
             namePlaceholder: z.string().default('Tu nombre'),
             phoneLabel: z.string().default('Teléfono *'),
@@ -677,6 +677,16 @@ const textos = defineCollection({
               .default(
                 'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
               ),
+            nameError: z.string().default('Escribe tu nombre completo (mínimo 2 letras).'),
+            phoneError: z.string().default('Escribe un teléfono válido (mínimo 6 dígitos).'),
+            emailError: z.string().default('Ese correo no parece válido.'),
+            serviceError: z.string().default('Elige el servicio que te interesa.'),
+            messageError: z.string().default('Cuéntanos un poco más (mínimo 5 caracteres).'),
+            limitMessage: z
+              .string()
+              .default(
+                'Recibimos varios envíos seguidos. Espera unos minutos o escríbenos por WhatsApp.',
+              ),
           })
           .default({
             action: '/api/contacto',
@@ -702,6 +712,13 @@ const textos = defineCollection({
             successMessage: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
             errorMessage:
               'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
+            nameError: 'Escribe tu nombre completo (mínimo 2 letras).',
+            phoneError: 'Escribe un teléfono válido (mínimo 6 dígitos).',
+            emailError: 'Ese correo no parece válido.',
+            serviceError: 'Elige el servicio que te interesa.',
+            messageError: 'Cuéntanos un poco más (mínimo 5 caracteres).',
+            limitMessage:
+              'Recibimos varios envíos seguidos. Espera unos minutos o escríbenos por WhatsApp.',
           }),
         infoTitle: z.string().default('Información de contacto'),
         whatsappButton: z.string().default('WhatsApp directo'),
@@ -741,7 +758,7 @@ const textos = defineCollection({
         intro:
           'Completa el formulario y te responderemos a la brevedad. También puedes escribirnos por WhatsApp para una respuesta inmediata.',
         form: {
-          action: 'https://formspree.io/f/YOUR_FORM_ID',
+          action: '/api/contacto',
           nameLabel: 'Nombre completo *',
           namePlaceholder: 'Tu nombre',
           phoneLabel: 'Teléfono *',
@@ -764,6 +781,13 @@ const textos = defineCollection({
           successMessage: '¡Gracias! Tu mensaje fue enviado; te responderemos pronto.',
           errorMessage:
             'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
+          nameError: 'Escribe tu nombre completo (mínimo 2 letras).',
+          phoneError: 'Escribe un teléfono válido (mínimo 6 dígitos).',
+          emailError: 'Ese correo no parece válido.',
+          serviceError: 'Elige el servicio que te interesa.',
+          messageError: 'Cuéntanos un poco más (mínimo 5 caracteres).',
+          limitMessage:
+            'Recibimos varios envíos seguidos. Espera unos minutos o escríbenos por WhatsApp.',
         },
         infoTitle: 'Información de contacto',
         whatsappButton: 'WhatsApp directo',

@@ -688,6 +688,31 @@ export default config({
                   multiline: true,
                   defaultValue: 'No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.',
                 }),
+                nameError: fields.text({
+                  label: 'Aviso: nombre no válido',
+                  defaultValue: 'Escribe tu nombre completo (mínimo 2 letras).',
+                }),
+                phoneError: fields.text({
+                  label: 'Aviso: teléfono no válido',
+                  defaultValue: 'Escribe un teléfono válido (mínimo 6 dígitos).',
+                }),
+                emailError: fields.text({
+                  label: 'Aviso: correo no válido',
+                  defaultValue: 'Ese correo no parece válido.',
+                }),
+                serviceError: fields.text({
+                  label: 'Aviso: falta el servicio',
+                  defaultValue: 'Elige el servicio que te interesa.',
+                }),
+                messageError: fields.text({
+                  label: 'Aviso: mensaje demasiado corto',
+                  defaultValue: 'Cuéntanos un poco más (mínimo 5 caracteres).',
+                }),
+                limitMessage: fields.text({
+                  label: 'Aviso: demasiados envíos seguidos',
+                  defaultValue:
+                    'Recibimos varios envíos seguidos. Espera unos minutos o escríbenos por WhatsApp.',
+                }),
               },
               { label: 'Formulario de contacto' },
             ),

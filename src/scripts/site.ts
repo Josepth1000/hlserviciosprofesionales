@@ -515,6 +515,9 @@ document.addEventListener('click', (event) => {
     }
     syncSelectMenu(select);
     setSelectOpen(select, false);
+    // Elegir un servicio retira su aviso de «falta el servicio».
+    const form = select.closest<HTMLFormElement>('[data-contact-form]');
+    if (form) limpiarError(form, 'servicio');
     return;
   }
   // Clic fuera: cerrar todos
@@ -563,12 +566,77 @@ document.addEventListener('keydown', (event) => {
 // Solo cuando el servidor confirma el envío se emite `hl:form-enviado`, que es
 // lo que cuenta la analítica: así el evento significa «mensaje entregado» y no
 // «alguien pulsó enviar».
+// Los campos que el servidor puede rechazar por nombre (ver api/contacto.ts).
+const CAMPOS_FORMULARIO = ['nombre', 'telefono', 'email', 'servicio', 'mensaje'] as const;
+
+function textoDe(form: HTMLFormElement, clave: string): string {
+  return (form.dataset as Record<string, string | undefined>)[clave] ?? '';
+}
+
+function controlesDe(form: HTMLFormElement, campo: string): HTMLElement[] {
+  return qa<HTMLElement>(`[data-field="${campo}"]`, form);
+}
+
+function limpiarError(form: HTMLFormElement, campo: string) {
+  const aviso = form.querySelector<HTMLElement>(`[data-error-for="${campo}"]`);
+  if (aviso) {
+    aviso.textContent = '';
+    aviso.classList.add('hidden');
+  }
+  for (const control of controlesDe(form, campo)) control.setAttribute('aria-invalid', 'false');
+}
+
+function limpiarErrores(form: HTMLFormElement) {
+  for (const campo of CAMPOS_FORMULARIO) limpiarError(form, campo);
+}
+
+// Marca el campo rechazado y devuelve su control: al enfocarlo, el lector de
+// pantalla lee el aviso que cuelga de su aria-describedby.
+function marcarError(form: HTMLFormElement, campo: string): HTMLElement | null {
+  const texto =
+    textoDe(form, `msg${campo.charAt(0).toUpperCase()}${campo.slice(1)}`) ||
+    form.dataset.msgError ||
+    'Revisa este campo.';
+  const aviso = form.querySelector<HTMLElement>(`[data-error-for="${campo}"]`);
+  if (aviso) {
+    aviso.textContent = texto;
+    aviso.classList.remove('hidden');
+  }
+  const controles = controlesDe(form, campo);
+  for (const control of controles) control.setAttribute('aria-invalid', 'true');
+  return controles[0] ?? null;
+}
+
+let estadoTimer: ReturnType<typeof setTimeout> | undefined;
+
 function mostrarEstado(form: HTMLFormElement, texto: string, tono: 'info' | 'ok' | 'error') {
   const status = form.querySelector<HTMLElement>('[data-form-status]');
   if (!status) return;
-  status.textContent = texto;
-  status.classList.remove('hidden', 'text-slate-600', 'text-brand-700', 'text-red-600');
-  status.classList.add(tono === 'ok' ? 'text-brand-700' : tono === 'error' ? 'text-red-600' : 'text-slate-600');
+  // Primero se muestra y después se escribe: un aria-live oculto (display:none)
+  // no anuncia lo que se escribe dentro. El texto entra en un tick aparte para
+  // que un mensaje repetido se vuelva a leer.
+  status.classList.remove('hidden');
+  status.classList.remove('text-slate-600', 'text-brand-700', 'text-red-600', 'text-red-700');
+  status.classList.add(
+    tono === 'ok' ? 'text-brand-700' : tono === 'error' ? 'text-red-700' : 'text-slate-600',
+  );
+  clearTimeout(estadoTimer);
+  status.textContent = '';
+  estadoTimer = setTimeout(() => {
+    status.textContent = texto;
+  }, 30);
+}
+
+// Retira el estado general: se usa cuando el aviso ya lo da el propio campo,
+// para que el lector de pantalla no anuncie dos veces lo mismo.
+function ocultarEstado(form: HTMLFormElement) {
+  // Se cancela el texto pendiente de mostrarEstado: si escribiera después,
+  // dejaría el «Enviando…» dentro del aviso ya retirado.
+  clearTimeout(estadoTimer);
+  const status = form.querySelector<HTMLElement>('[data-form-status]');
+  if (!status) return;
+  status.textContent = '';
+  status.classList.add('hidden');
 }
 
 function resetSelect(form: HTMLFormElement) {
@@ -606,6 +674,8 @@ async function enviarFormulario(form: HTMLFormElement) {
   const etiquetaServicio =
     form.querySelector('[data-select-value]')?.textContent?.trim() || cuerpo.servicio;
 
+  limpiarErrores(form);
+  form.setAttribute('aria-busy', 'true');
   mostrarEstado(form, form.dataset.msgEnviando ?? 'Enviando…', 'info');
   if (boton) boton.disabled = true;
 
@@ -615,17 +685,37 @@ async function enviarFormulario(form: HTMLFormElement) {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(cuerpo),
     });
-    const resultado = (await respuesta.json().catch(() => ({}))) as { ok?: boolean };
-    if (!respuesta.ok || !resultado.ok) throw new Error('envio');
+    const resultado = (await respuesta.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+    if (!respuesta.ok || !resultado.ok) {
+      const motivo = resultado.error ?? '';
+      if (motivo === 'limite') {
+        mostrarEstado(
+          form,
+          textoDe(form, 'msgLimite') || (form.dataset.msgError ?? 'Intenta de nuevo.'),
+          'error',
+        );
+      } else if ((CAMPOS_FORMULARIO as readonly string[]).includes(motivo)) {
+        // El aviso del campo se lee al enfocarlo (aria-describedby): repetirlo en
+        // el estado general haría que el lector lo anunciara dos veces.
+        const control = marcarError(form, motivo);
+        ocultarEstado(form);
+        control?.focus();
+      } else {
+        mostrarEstado(form, form.dataset.msgError ?? 'No se pudo enviar el mensaje.', 'error');
+      }
+      return;
+    }
 
     form.reset();
     resetSelect(form); // el desplegable propio devuelve su marcador
+    limpiarErrores(form);
     mostrarEstado(form, form.dataset.msgExito ?? 'Mensaje enviado.', 'ok');
     form.dispatchEvent(new CustomEvent('hl:form-enviado', { bubbles: true, detail: { servicio: etiquetaServicio } }));
   } catch {
     mostrarEstado(form, form.dataset.msgError ?? 'No se pudo enviar el mensaje.', 'error');
   } finally {
     if (boton) boton.disabled = false;
+    form.setAttribute('aria-busy', 'false');
   }
 }
 
@@ -644,13 +734,22 @@ document.addEventListener('submit', (event) => {
   const input = select?.querySelector<HTMLInputElement>('[data-select-input]');
   if (select && input && !input.value.trim()) {
     event.preventDefault();
-    const toggle = select.querySelector<HTMLButtonElement>('[data-select-toggle]');
-    toggle?.classList.add('border-brand-600', 'ring-2', 'ring-brand-600/20');
-    toggle?.focus();
+    ocultarEstado(form);
+    marcarError(form, 'servicio')?.focus();
     return;
   }
+  limpiarErrores(form);
   event.preventDefault();
   void enviarFormulario(form);
+});
+
+// Al corregir un campo se retira su aviso, para no dejar el borde rojo puesto.
+document.addEventListener('input', (event) => {
+  const control = event.target as HTMLElement;
+  const campo = control.dataset?.field;
+  if (!campo) return;
+  const form = control.closest<HTMLFormElement>('[data-contact-form]');
+  if (form) limpiarError(form, campo);
 });
 
 // ------------------------------------------------------- servicios: lectura activa

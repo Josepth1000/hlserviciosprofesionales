@@ -252,6 +252,12 @@ contact:
     sendingLabel: Enviando…
     successMessage: ¡Gracias! Tu mensaje fue enviado; te responderemos pronto.
     errorMessage: No pudimos enviar el mensaje. Intenta de nuevo o escríbenos por WhatsApp.
+    nameError: Escribe tu nombre completo (mínimo 2 letras).
+    phoneError: Escribe un teléfono válido (mínimo 6 dígitos).
+    emailError: Ese correo no parece válido.
+    serviceError: Elige el servicio que te interesa.
+    messageError: Cuéntanos un poco más (mínimo 5 caracteres).
+    limitMessage: Recibimos varios envíos seguidos. Espera unos minutos o escríbenos por WhatsApp.
   infoTitle: Información de contacto
   whatsappButton: WhatsApp directo
   instagramButton: Síguenos en Instagram

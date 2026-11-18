@@ -51,6 +51,12 @@ const contactItems = [
           data-msg-enviando={textos.contact.form.sendingLabel}
           data-msg-exito={textos.contact.form.successMessage}
           data-msg-error={textos.contact.form.errorMessage}
+          data-msg-nombre={textos.contact.form.nameError}
+          data-msg-telefono={textos.contact.form.phoneError}
+          data-msg-email={textos.contact.form.emailError}
+          data-msg-servicio={textos.contact.form.serviceError}
+          data-msg-mensaje={textos.contact.form.messageError}
+          data-msg-limite={textos.contact.form.limitMessage}
           data-astro-reload
           class="mt-8 grid gap-5 sm:grid-cols-2"
         >
@@ -62,9 +68,13 @@ const contactItems = [
               type="text"
               required
               autocomplete="name"
+              data-field="nombre"
+              aria-describedby="error-nombre"
+              aria-invalid="false"
               placeholder={textos.contact.form.namePlaceholder}
               class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
             />
+            <p id="error-nombre" data-error-for="nombre" class="mt-1.5 hidden text-sm text-red-700"></p>
           </div>
           <div>
             <label for="telefono" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.phoneLabel}</label>
@@ -74,9 +84,13 @@ const contactItems = [
               type="tel"
               required
               autocomplete="tel"
+              data-field="telefono"
+              aria-describedby="error-telefono"
+              aria-invalid="false"
               placeholder={textos.contact.form.phonePlaceholder}
               class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
             />
+            <p id="error-telefono" data-error-for="telefono" class="mt-1.5 hidden text-sm text-red-700"></p>
           </div>
           <div>
             <label for="email" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.emailLabel}</label>
@@ -85,9 +99,13 @@ const contactItems = [
               name="email"
               type="email"
               autocomplete="email"
+              data-field="email"
+              aria-describedby="error-email"
+              aria-invalid="false"
               placeholder={textos.contact.form.emailPlaceholder}
               class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
             />
+            <p id="error-email" data-error-for="email" class="mt-1.5 hidden text-sm text-red-700"></p>
           </div>
           <div class="relative" data-select>
             <label for="servicio-toggle" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.serviceLabel}</label>
@@ -97,9 +115,13 @@ const contactItems = [
               id="servicio-toggle"
               type="button"
               data-select-toggle
+              data-field="servicio"
               aria-haspopup="listbox"
               aria-expanded="false"
               aria-labelledby="servicio-toggle"
+              aria-required="true"
+              aria-describedby="error-servicio"
+              aria-invalid="false"
               class="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-left text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
             >
               <span data-select-value class="truncate text-slate-500">{textos.contact.form.servicePlaceholder}</span>
@@ -137,6 +159,7 @@ const contactItems = [
               ))}
             </ul>
             <input type="hidden" name="servicio" data-select-input value="" />
+            <p id="error-servicio" data-error-for="servicio" class="mt-1.5 hidden text-sm text-red-700"></p>
           </div>
           <div class="sm:col-span-2">
             <label for="mensaje" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.messageLabel}</label>
@@ -145,9 +168,13 @@ const contactItems = [
               name="mensaje"
               rows={5}
               required
+              data-field="mensaje"
+              aria-describedby="error-mensaje"
+              aria-invalid="false"
               placeholder={textos.contact.form.messagePlaceholder}
               class="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
             ></textarea>
+            <p id="error-mensaje" data-error-for="mensaje" class="mt-1.5 hidden text-sm text-red-700"></p>
           </div>
           <div class="sm:col-span-2">
             <button
@@ -161,7 +188,7 @@ const contactItems = [
           </div>
           <!-- Resultado del envío (se rellena desde src/scripts/site.ts).
                role=status + aria-live: los lectores de pantalla lo anuncian. -->
-          <p data-form-status role="status" aria-live="polite" class="hidden text-sm sm:col-span-2"></p>
+          <p data-form-status role="status" aria-live="polite" aria-atomic="true" class="hidden text-sm sm:col-span-2"></p>
           <!-- Honeypot anti-spam: campo invisible que los bots rellenan; se
                ignora y se descarta el envío en src/scripts/site.ts -->
           <div class="hp-field" aria-hidden="true">
@@ -254,6 +281,11 @@ const contactItems = [
       overflow: hidden;
       opacity: 0;
       pointer-events: none;
+    }
+    /* Campo que rechazó el servidor: borde rojo (#b91c1c da 6,3:1 sobre blanco).
+       Se pinta con aria-invalid, que es lo que también anuncian los lectores. */
+    [data-contact-form] [aria-invalid='true'] {
+      border-color: #b91c1c;
     }
     /* ===== Mapa Leaflet (contacto): marcador dorado + edificio resaltado ===== */
     #map {
