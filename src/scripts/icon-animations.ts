@@ -7,17 +7,13 @@ import { iconLoaders } from '../lib/animated-icons';
  * arranca `play()` cuando el visitante interactúa con el enlace, el botón o la
  * tarjeta que lo contiene. No se reemplaza ningún nodo, así que no hay CLS.
  */
-type Player = { start: () => void; stop: () => void };
+type Player = { start: () => void };
 
 const players = new WeakMap<SVGSVGElement, Player>();
+const wired = new WeakSet<SVGSVGElement>();
 let engine: Promise<typeof import('@animateicons/vanilla')> | null = null;
-let warmed = false;
 
 const loadEngine = () => (engine ??= import('@animateicons/vanilla'));
-
-function reducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 function animate(svg: SVGSVGElement) {
   const ready = players.get(svg);
@@ -38,9 +34,9 @@ function animate(svg: SVGSVGElement) {
 }
 
 function wire() {
-  document.querySelectorAll<SVGSVGElement>('svg[data-icon-anim]').forEach((svg) => {
-    if (svg.dataset.iconWired) return;
-    svg.dataset.iconWired = '1';
+  document.querySelectorAll<SVGSVGElement>('svg[data-icon]').forEach((svg) => {
+    if (wired.has(svg)) return;
+    wired.add(svg);
 
     const host = svg.closest<HTMLElement>('a, button, [data-icon-hover]') ?? svg;
     const trigger = () => animate(svg);
@@ -49,22 +45,9 @@ function wire() {
   });
 }
 
-function warmEngine() {
-  if (warmed || !document.querySelector('svg[data-icon-anim]')) return;
-  warmed = true;
-  void loadEngine();
-}
-
 function init() {
-  if (reducedMotion()) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   wire();
-
-  // Adelanta el motor de animación cuando el navegador está libre, para que el
-  // primer hover no espere a la red.
-  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void })
-    .requestIdleCallback;
-  if (idle) idle(warmEngine, { timeout: 3000 });
-  else window.setTimeout(warmEngine, 2000);
 }
 
 document.addEventListener('astro:page-load', init);
