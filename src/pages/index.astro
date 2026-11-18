@@ -67,32 +67,6 @@ const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
           </a>
         </div>
       </div>
-
-      <!-- Barra de datos: dirección, horario y WhatsApp de un vistazo -->
-      <ul
-        class="animate-rise mt-10 grid gap-4 border-t border-white/10 pt-6 text-sm leading-snug text-ink-200 sm:grid-cols-2 lg:grid-cols-3"
-        style="animation-delay: 360ms"
-      >
-        <li class="flex items-start gap-2">
-          <Icon name="pin" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
-          <span>{site.address}</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <Icon name="clock" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
-          <span>{site.hours}</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <Icon name="whatsapp" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener"
-            class="font-medium text-brand-300 underline-offset-4 transition hover:text-brand-200 hover:underline"
-          >
-            {site.phone}
-          </a>
-        </li>
-      </ul>
     </div>
 
     <!-- Banda de cifras -->
