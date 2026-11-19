@@ -584,7 +584,35 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     // Menú del tema
     'Light': 'Claro',
     'Dark': 'Oscuro',
-    'System': 'Sistema'
+    'System': 'Sistema',
+    // Modo GitHub (ramas y solicitudes de cambio). En local no se muestran,
+    // pero si el panel se conecta a un repositorio deben salir en español.
+    'Based on': 'Basado en',
+    'Branches': 'Ramas',
+    'Branch name': 'Nombre de la rama',
+    'Collection': 'Colección',
+    'Collections': 'Colecciones',
+    'Create pull request': 'Crear solicitud de cambio',
+    'Current branch': 'Rama actual',
+    'Dashboard': 'Inicio',
+    'Default branch': 'Rama predeterminada',
+    'Delete branch': 'Eliminar rama',
+    'New branch': 'Nueva rama',
+    'Other branches': 'Otras ramas',
+    'Pull requests': 'Solicitudes de cambio',
+    'Singleton': 'Contenido único',
+    'Singletons': 'Contenidos únicos',
+    'View on GitHub': 'Ver en GitHub',
+    'View pull requests': 'Ver solicitudes de cambio',
+    'The currently checked out branch. Choose this if you need to build on existing work from the current branch.':
+      'La rama seleccionada actualmente. Elige esta si necesitas partir del trabajo que ya hay en la rama actual.',
+    "The default branch in your repository. Choose this to start something new that's not dependent on your current branch.":
+      'La rama predeterminada del repositorio. Elige esta para empezar algo nuevo que no dependa de tu rama actual.',
+    // Palabras sueltas de la interfaz; van acotadas en GENERIC
+    'Clear': 'Borrar',
+    'Create': 'Crear',
+    'Loading': 'Cargando',
+    'Search': 'Buscar'
   };
   // aria-labels / títulos de botones sin texto visible
   var AT = {
@@ -609,7 +637,10 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   // Claves de una sola palabra o muy generales: solo se traducen dentro de un
   // control (tooltip, etiqueta, botón, opción). En el texto visible de un
   // registro —título, migas, enlaces— se dejan tal cual, porque es del usuario.
-  var GENERIC = { 'Insert': 1, 'Options': 1, 'File name': 1, 'Filename': 1 };
+  var GENERIC = {
+    'Insert': 1, 'Options': 1, 'File name': 1, 'Filename': 1,
+    'Clear': 1, 'Create': 1, 'Loading': 1, 'Search': 1
+  };
 
   // Zona donde el usuario escribe su contenido (editor de Markdoc). Aquí no se
   // traduce nada: el texto es suyo y puede contener palabras como "entries".
@@ -703,7 +734,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     // que escribe el usuario
     if (el.isContentEditable || inUserContent(el)) return;
     var t = norm(el.textContent);
-    if (!t || t.length > 90) return;
+    if (!t) return;
+    // Los textos largos solo se traducen si tienen una traducción exacta: así
+    // las descripciones del modo GitHub también salen en español sin recorrer
+    // contenedores enormes.
+    if (t.length > 90 && TR[t] === undefined) return;
     // Las claves genéricas solo valen en controles: nunca en el título de un
     // registro ni en otros textos que vengan del contenido.
     if (GENERIC[baseKey(t)] && !isControl(el)) return;
@@ -765,7 +800,20 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
       var placeholderTo = placeholderText ? trValue(placeholderText) : undefined;
       if (placeholderTo !== undefined) editorPlaceholders[p].textContent = placeholderTo;
     }
-    // 4) Recuentos de la lista ("12 entries" → "12 registros"). Va al final
+    // 4) Mensaje de la búsqueda sin coincidencias: Keystatic lo compone con el
+    // término buscado, así que no se puede comparar como texto exacto.
+    var emptyWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (emptyWalker.nextNode()){
+      var emptyNode = emptyWalker.currentNode;
+      var emptyText = emptyNode.nodeValue || '';
+      if (emptyText.indexOf('No items matching ') === -1) continue;
+      if (inUserContent(emptyNode.parentElement)) continue;
+      emptyNode.nodeValue = emptyText.replace(
+        /No items matching (.*?) were found\./,
+        'No se encontraron elementos que coincidan con $1.'
+      );
+    }
+    // 5) Recuentos de la lista ("12 entries" → "12 registros"). Va al final
     // para no estropear los textos que se traducen antes ("Loading Entries").
     translateCounts();
     var dlg = document.querySelector('[role="alertdialog"]');
