@@ -41,6 +41,7 @@ const textos = await getTextosData();
               </span>
               <div
                 class="flex items-center gap-0.5"
+                role="img"
                 aria-label={`Valoración: ${t.data.rating} de 5 estrellas`}
               >
                 {Array.from({ length: 5 }).map((_, s) => (

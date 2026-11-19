@@ -61,6 +61,11 @@ const schemaOrg = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0B0B0D" />
+    <!-- Marca el documento como «con JS» ANTES del primer pintado: así el menú
+         móvil nace plegado (html.js #mobile-menu) y no empuja el contenido al
+         cargar el script, que era la mayor fuente de CLS. Sin JS se mantiene el
+         respaldo: el menú queda visible y accesible. -->
+    <script is:inline>document.documentElement.classList.add('js');</script>
     <title>{title} | {site.name}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />

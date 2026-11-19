@@ -109,6 +109,10 @@ const contactItems = [
           </div>
           <div class="relative" data-select>
             <label for="servicio-toggle" class="mb-1.5 block text-sm font-medium text-ink-900">{textos.contact.form.serviceLabel}</label>
+            <!-- El selector es un button, no admite required ni aria-required
+                 (Lighthouse: aria-allowed-attr). El aviso de obligatoriedad se
+                 anuncia como descripción accesible, antes del mensaje de error. -->
+            <span id="servicio-requerido" class="sr-only">Campo obligatorio</span>
             <!-- Desplegable personalizado con la identidad de la marca (dorado),
                  en lugar del <select> nativo que pinta de azul en algunos navegadores. -->
             <button
@@ -119,8 +123,7 @@ const contactItems = [
               aria-haspopup="listbox"
               aria-expanded="false"
               aria-labelledby="servicio-toggle"
-              aria-required="true"
-              aria-describedby="error-servicio"
+              aria-describedby="servicio-requerido error-servicio"
               aria-invalid="false"
               class="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-left text-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20"
             >
@@ -572,7 +575,11 @@ const contactItems = [
           '</a>' +
           '</div>';
 
-        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup(popup).openPopup();
+        var marcador = L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup(popup).openPopup();
+        // El icono es un div con role="button" y tabindex=0: sin nombre accesible
+        // Lighthouse lo marcaba (aria-command-name).
+        var marcadorEl = marcador.getElement();
+        if (marcadorEl) marcadorEl.setAttribute('aria-label', 'Ubicación de la oficina');
 
         // El scroll del mapa se activa solo al hacer clic (no interfiere con el
         // scroll de la página).

@@ -30,7 +30,15 @@ const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
 >
   <!-- Hero -->
   <section class="relative overflow-hidden bg-ink-950">
-    <img src={site.hero.image} alt="" aria-hidden="true" class="absolute inset-0 h-full w-full object-cover opacity-30" />
+    <!-- fetchpriority=high: es el elemento LCP de la portada. -->
+    <img
+      src={site.hero.image}
+      alt=""
+      aria-hidden="true"
+      class="absolute inset-0 h-full w-full object-cover opacity-30"
+      fetchpriority="high"
+      decoding="async"
+    />
     <div class="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/85 to-ink-900/50"></div>
     <div
       class="pointer-events-none absolute inset-0 opacity-[0.035]"

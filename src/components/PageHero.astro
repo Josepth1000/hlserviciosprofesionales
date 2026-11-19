@@ -9,7 +9,15 @@ const { title, subtitle, image = '/images/hero/image.jpg' } = Astro.props;
 ---
 
 <section class="relative overflow-hidden bg-ink-950">
-  <img src={image} alt="" aria-hidden="true" class="absolute inset-0 h-full w-full object-cover opacity-25" />
+  <!-- fetchpriority=high: en estas páginas el hero es el elemento LCP. -->
+  <img
+    src={image}
+    alt=""
+    aria-hidden="true"
+    class="absolute inset-0 h-full w-full object-cover opacity-25"
+    fetchpriority="high"
+    decoding="async"
+  />
   <div class="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/80 to-ink-900/40"></div>
   <div class="animate-blob pointer-events-none absolute -right-32 -top-40 h-[26rem] w-[26rem] rounded-full bg-brand-600/20 blur-3xl"></div>
   <div class="animate-blob-slow pointer-events-none absolute -bottom-48 -left-32 h-96 w-96 rounded-full bg-brand-500/15 blur-3xl"></div>
