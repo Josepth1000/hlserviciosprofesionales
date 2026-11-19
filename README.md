@@ -115,7 +115,7 @@ Con el modo GitHub activo, editas desde la web y los cambios se publican solos: 
 
 > ⚠️ **Keystatic necesita una GitHub App, no una OAuth App.** Es el error más común al dejar el panel operativo: con una OAuth App el login con GitHub funciona y el contenido se ve, pero al guardar aparece
 > `[GraphQL] Your token has not been granted the required scopes to execute this query. The 'createCommitOnBranch' field requires one of the following scopes: ['public_repo'], but your token has only been granted the: [''] scopes`.
-> Se distinguen a simple vista: el **Client ID** de una OAuth App empieza por `Ov23li…`; el de una GitHub App, por `Iv23li…`.
+> Se distinguen a simple vista: el **Client ID** de una OAuth App empieza por `Ov…` (el de este proyecto, `Ov23li…`); el de una GitHub App, por `Iv…`.
 
 ### 1. Sube el proyecto a GitHub
 
@@ -142,12 +142,12 @@ El asistente **Create GitHub App** que aparece en el panel **solo funciona con `
    - `https://hlserviciosprofesionales.vercel.app/api/keystatic/github/oauth/callback`
    - `https://pruebas.hlserviciosprofesionales.com/api/keystatic/github/oauth/callback`
    - `https://hlserviciosprofesionales.com/api/keystatic/github/oauth/callback` (cuando el dominio apunte a este proyecto)
-   - `http://127.0.0.1:4321/api/keystatic/github/oauth/callback` (solo si además vas a editar en local)
-5. **Webhook**: deja **Active** desmarcado; Keystatic no usa webhooks.
-6. **Repository permissions → Contents: Read and write**. No hace falta nada más: *Metadata* queda en *Read-only* automáticamente. El resto, en **No access**. No concedas permisos de cuenta.
-7. **Where can this GitHub App be installed?**: *Only on this account* (o *Any account* si el repositorio es de una organización).
+   - `http://127.0.0.1:4321/api/keystatic/github/oauth/callback` (solo si además vas a editar en local; entra al panel por `127.0.0.1`, no por `localhost`, porque Keystatic usa el origen exacto de la petición)
+5. **Webhook**: deja **Active** desmarcado; Keystatic no usa webhooks. En **User authorization (OAuth)**, deja marcado *Request user authorization (OAuth) during installation* (el asistente de Keystatic crea la app con esa opción: al terminar la instalación GitHub encadena la autorización y vuelves directo al panel).
+6. **Repository permissions**: *Contents* → **Read and write** y *Pull requests* → **Read-only**. Es exactamente lo que pide el manifiesto del propio asistente de Keystatic (`contents: write`, `metadata: read`, `pull_requests: read`); *Metadata* queda en *Read-only* automáticamente y el resto, en **No access**. No concedas permisos de cuenta.
+7. **Where can this GitHub App be installed?**: *Only on this account* (o *Any account* si el repositorio es de una organización). El asistente de Keystatic la crea como pública —instalable por cualquier cuenta—; limitarla a la tuya funciona igual y es más estricta.
 8. **Create GitHub App**.
-9. En la página de la app, copia el **Client ID** (`Iv23li…`) y pulsa **Generate a new client secret**. El secreto solo se muestra una vez.
+9. En la página de la app, copia el **Client ID** (`Iv…`) y pulsa **Generate a new client secret**. El secreto solo se muestra una vez.
 10. **Install App** → elige la cuenta → **Only select repositories** → `hlserviciosprofesionales` → *Install*.
 
 ### 4. Define las variables de entorno
@@ -156,10 +156,10 @@ El asistente **Create GitHub App** que aparece en el panel **solo funciona con `
 |---|---|
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | credenciales del panel (contraseña larga y única) |
 | `PUBLIC_KEYSTATIC_GITHUB_REPO` | `Josepth1000/hlserviciosprofesionales` |
-| `KEYSTATIC_GITHUB_CLIENT_ID` | el **Client ID** de la GitHub App (`Iv23li…`) |
+| `KEYSTATIC_GITHUB_CLIENT_ID` | el **Client ID** de la GitHub App (`Iv…`) |
 | `KEYSTATIC_GITHUB_CLIENT_SECRET` | el client secret generado en el paso 3.9 |
-| `KEYSTATIC_SECRET` | cadena aleatoria de 32+ caracteres; cifra la cookie del *refresh token* |
-| `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` | *slug* de la app: la parte final de `https://github.com/settings/apps/<slug>` (`hl-keystatic` si usaste ese nombre) |
+| `KEYSTATIC_SECRET` | cadena aleatoria de 32+ caracteres; cifra la cookie del *refresh token*. Si tiene menos, la API falla con *«KEYSTATIC_SECRET must be at least 32 characters long»* |
+| `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` | *slug* de la app: la parte final de `https://github.com/settings/apps/<slug>` (`hl-keystatic` si usaste ese nombre). Keystatic lo usa para el botón **Install GitHub App** (`https://github.com/apps/<slug>/installations/new`); si falta, el panel muestra *«Find the App on GitHub and add the repo»* |
 
 Para generar `KEYSTATIC_SECRET`:
 
@@ -167,26 +167,30 @@ Para generar `KEYSTATIC_SECRET`:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
+Las variables `PUBLIC_*` se insertan en el bundle durante `npm run build`, así que cambiar `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` o `PUBLIC_KEYSTATIC_GITHUB_REPO` exige compilar de nuevo (en Vercel, un despliegue nuevo).
+
 En Vercel: *Project → Settings → Environment Variables*, en **Production** y **Preview**. Las variables solo entran en vigor en un despliegue nuevo, así que después de guardarlas hay que **redesplegar**.
 
 ### 5. Entra al panel y comprueba el guardado
 
 1. Abre `https://…/keystatic`, inicia sesión con tu contraseña y pulsa **Log in with GitHub**.
 2. Si aparece *«The redirect_uri is not associated with this application»*, falta el callback del origen exacto desde el que estás entrando (paso 3.4).
-3. Edita algo en *Configuración del sitio* y pulsa **Guardar**: debe crearse un commit en `main` y Vercel redespliega solo.
+3. Edita algo en *Configuración del sitio* y pulsa **Guardar**: debe crearse un commit en la rama que muestre el selector (por defecto `main`) y Vercel redespliega solo.
 4. Si antes habías entrado con la OAuth App, **cierra la sesión de GitHub** en el panel (menú de usuario → *Log out*, o visita `/api/keystatic/github/logout`) y vuelve a entrar: la cookie `keystatic-gh-access-token` anterior seguiría apuntando a la app vieja. Si el error de scopes persiste, revoca la autorización en `https://github.com/settings/applications` y borra las cookies del sitio.
 
 > El modo GitHub añade la autenticación de GitHub encima de la contraseña del panel: dos capas de seguridad. Solo quien tenga acceso de escritura al repositorio **y** la contraseña puede publicar.
 
+> 🔎 **Contrastado con el código instalado** (`@keystatic/core` 0.6.10, `@keystatic/astro` 5.2.0): `githubLogin` fija el callback en `<origen>/api/keystatic/github/oauth/callback` y no envía `scope`; `createdGithubApp` solo responde en desarrollo; el manifiesto del asistente declara esas callbacks, `request_oauth_on_install: true` y los permisos `contents: write` / `metadata: read` / `pull_requests: read`; el botón de instalación se arma con `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`; y `deriveKey` exige 32 caracteres de `KEYSTATIC_SECRET`. Si actualizas Keystatic, vuelve a revisar estos pasos.
+
 ### Alternativa descartada: OAuth App con el scope `public_repo`
 
-Una OAuth App **podría** servir en teoría —GitHub pide exactamente `public_repo` en el error de `createCommitOnBranch`—, pero Keystatic no permite pedir scopes: `githubLogin` (en `@keystatic/core@0.6.10`) construye `https://github.com/login/oauth/authorize` con `client_id` y `redirect_uri` únicamente, sin `scope`, y no hay opción de configuración ni variable de entorno para añadirlo. Para que funcionara habría que parchear `node_modules/@keystatic/core` o interceptar `/api/keystatic/github/login` con una ruta propia que redirija con `scope=public_repo`; ambas cosas se pierden en el siguiente `npm ci` (Vercel usa `installCommand: npm ci`) y dependen de detalles internos de Keystatic. Los riesgos frente a la GitHub App, además, son claros:
+Una OAuth App **podría** servir en teoría —GitHub pide exactamente `public_repo` en el error de `createCommitOnBranch`—, pero Keystatic no permite pedir scopes: `githubLogin` (en `@keystatic/core@0.6.10`) construye `https://github.com/login/oauth/authorize` con `client_id` y `redirect_uri` únicamente, sin `scope`, y no hay opción de configuración ni variable de entorno para añadirlo. Para que funcionara habría que parchear `node_modules/@keystatic/core` o interceptar `/api/keystatic/github/login` con una ruta propia que redirija con `scope=public_repo`; ambas cosas se pierden en el siguiente `npm ci` (Vercel usa `installCommand: npm ci`) y dependen de detalles internos de Keystatic. Hay un detalle más: el callback de Keystatic exige que la respuesta del token traiga `expires_in` y `refresh_token` —si faltan, devuelve 401 *«Authorization failed»*—, así que la OAuth App tiene que tener activada *Expire user authorization tokens* en GitHub. Los riesgos frente a la GitHub App, además, son claros:
 
 | | OAuth App con `public_repo` | GitHub App (Contents: Read and write) |
 |---|---|---|
 | Alcance del token | Escritura en **todos** los repositorios públicos donde el usuario tenga permisos, no solo en este | Solo el repositorio donde se instaló, y solo su contenido |
-| Duración | Token del usuario: sigue válido hasta revocarlo a mano | Token de instalación de ~1 hora, renovado por Keystatic |
-| Si se filtra | Permite escribir en todos esos repositorios | Permite escribir en este repositorio, menos de 1 hora |
+| Duración | Token de usuario de 8 h, con un *refresh token* que se renueva solo mientras se use: el permiso concedido persiste hasta revocarlo en GitHub | Token de instalación de ~1 hora, renovado por Keystatic |
+| Si se filtra | Permite escribir en todos esos repositorios mientras el token siga vigente | Permite escribir en este repositorio, menos de 1 hora |
 | Autoría del commit | Tu cuenta personal | La app (`…[bot]`), separada de tu identidad |
 | Mantenimiento | Exige parche o wrapper propio en cada actualización de Keystatic | Ruta soportada y documentada por Keystatic |
 
