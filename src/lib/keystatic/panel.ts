@@ -491,7 +491,89 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     'Add': 'Agregar',
     'Move up': 'Subir',
     'Move down': 'Bajar',
-    'Are you sure? This action cannot be undone.': '¿Seguro? Esta acción no se puede deshacer.'
+    'Are you sure? This action cannot be undone.': '¿Seguro? Esta acción no se puede deshacer.',
+    // Listas, estados vacíos y mensajes del panel
+    'Add item': 'Agregar elemento',
+    'Add the first item to see it here.': 'Agrega el primer elemento para verlo aquí.',
+    'Empty list': 'Lista vacía',
+    'Empty collection': 'Colección vacía',
+    'Create the first entry': 'Crea el primer registro',
+    'Entry created': 'Registro creado',
+    'Entry pasted': 'Registro pegado',
+    'Save and duplicate': 'Guardar y duplicar',
+    'Save and duplicate entry': 'Guardar y duplicar registro',
+    'Loading Item': 'Cargando elemento',
+    'Loading Entries': 'Cargando registros',
+    'No results': 'Sin resultados',
+    'No results…': 'Sin resultados…',
+    'Contains invalid fields. Please edit.': 'Hay campos no válidos. Edítalos.',
+    // Editor de contenido (Markdoc): barra de formato y menú de bloques
+    'Paragraph': 'Párrafo',
+    'Text block': 'Bloque de texto',
+    'Formatting options': 'Opciones de formato',
+    'Text formatting': 'Formato de texto',
+    'Bold': 'Negrita',
+    'Italic': 'Cursiva',
+    'Strikethrough': 'Tachado',
+    'Code': 'Código',
+    'Clear formatting': 'Borrar formato',
+    'Lists': 'Listas',
+    'Bullet list': 'Lista con viñetas',
+    'Bullet List': 'Lista con viñetas',
+    'Numbered list': 'Lista numerada',
+    'Numbered List': 'Lista numerada',
+    'Ordered list': 'Lista numerada',
+    'Blocks': 'Bloques',
+    'Insert block': 'Insertar bloque',
+    'Insert menu': 'Menú de inserción',
+    'Divider': 'Separador',
+    'Quote': 'Cita',
+    'Code block': 'Bloque de código',
+    'Code Block': 'Bloque de código',
+    'Code block language': 'Lenguaje del bloque de código',
+    'Display code with syntax highlighting': 'Mostrar el código con resaltado de sintaxis',
+    'Plain text': 'Texto sin formato',
+    'Table': 'Tabla',
+    'Image': 'Imagen',
+    'Text Alignment': 'Alineación del texto',
+    'Align Start': 'Alinear al inicio',
+    'Align Center': 'Centrar',
+    'Align End': 'Alinear al final',
+    'Header row': 'Fila de encabezado',
+    'Insert row below': 'Insertar fila debajo',
+    'Insert column right': 'Insertar columna a la derecha',
+    'Delete row': 'Eliminar fila',
+    'Delete column': 'Eliminar columna',
+    'Select Row': 'Seleccionar fila',
+    'Select Column': 'Seleccionar columna',
+    'Select Table': 'Seleccionar tabla',
+    'All selected': 'Todo seleccionado',
+    'Insert a table': 'Insertar una tabla',
+    'Insert an image': 'Insertar una imagen',
+    'Insert an ordered list': 'Insertar una lista numerada',
+    'Insert an unordered list': 'Insertar una lista con viñetas',
+    'Insert a quote or citation': 'Insertar una cita',
+    'Image details': 'Detalles de la imagen',
+    'Image library': 'Biblioteca de imágenes',
+    'Image Library': 'Biblioteca de imágenes',
+    'Image URL': 'URL de la imagen',
+    'Alt text': 'Texto alternativo',
+    'Image uploaded': 'Imagen subida',
+    'Remove Image': 'Quitar imagen',
+    'Image URL is required.': 'La URL de la imagen es obligatoria.',
+    'Please provide a valid URL.': 'Escribe una URL válida.',
+    // Marcador de posición del editor de contenido (norm recorta el "…" final)
+    'Start writing or press "/" for commands': 'Empieza a escribir o pulsa «/» para ver los comandos…',
+    'Use this for a top level heading': 'Úsalo para un título principal',
+    'Use this for deep headings': 'Úsalo para títulos secundarios',
+    'Use this for low-level headings': 'Úsalo para títulos de menor nivel',
+    'Use this for grouping list items': 'Úsalo para agrupar elementos de una lista',
+    // Opción de icono definida en keystatic.config.ts
+    'Check': 'Marca de verificación',
+    // Menú del tema
+    'Light': 'Claro',
+    'Dark': 'Oscuro',
+    'System': 'Sistema'
   };
   // aria-labels / títulos de botones sin texto visible
   var AT = {
@@ -510,6 +592,12 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     return s;
   }
 
+  // Zona donde el usuario escribe su contenido (editor de Markdoc). Aquí no se
+  // traduce nada: el texto es suyo y puede contener palabras como "entries".
+  function inUserContent(el){
+    return !!(el && el.closest && el.closest('[contenteditable="true"]'));
+  }
+
   function replaceInText(el, from, to){
     var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     var nodes = [];
@@ -526,35 +614,63 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     }
   }
 
+  // Traduce un valor exacto (texto visible o etiqueta accesible) y devuelve
+  // undefined cuando no hay traducción conocida.
+  function trValue(value){
+    var v = norm(value);
+    if (!v) return undefined;
+    if (TR[v] !== undefined) return TR[v];
+    if (AT[v] !== undefined) return AT[v];
+    // Nombres que Keystatic genera solo: los elementos de una lista ("Item 2")
+    // y las opciones del menú de bloques ("Heading 3").
+    // Ojo: el panel se sirve dentro de una plantilla, así que los patrones
+    // llevan la barra escapada dos veces (\\d) para que el navegador reciba \d.
+    var m = /^Item (\\d+)$/.exec(v);
+    if (m) return 'Elemento ' + m[1];
+    m = /^Heading (\\d)$/.exec(v);
+    if (m) return 'Título ' + m[1];
+    // El asa de arrastre antepone "Arrastrar" al nombre del elemento.
+    m = /^(.*?)\\s+Item (\\d+)$/.exec(v);
+    if (m) return (m[1] ? m[1] + ' ' : '') + 'Elemento ' + m[2];
+    return undefined;
+  }
+
   function translateNode(el){
     if (!el || el.nodeType !== 1) return;
     var tag = el.tagName;
     // Los títulos del panel (p. ej. el encabezado "Edit item" del diálogo de un
     // elemento de lista) son <h2> sin atributo role, así que se aceptan las
-    // etiquetas de encabezado además de las que llevan role explícito.
+    // etiquetas de encabezado además de las que llevan role explícito. Los
+    // <span> y <p> hacen falta para los estados vacíos del editor ("Add the
+    // first item to see it here.") y para los nombres "Item 1".
     var isHeading = /^H[1-6]$/.test(tag);
-    if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'LABEL' && tag !== 'LI' && !isHeading &&
-        el.getAttribute('role') !== 'menuitem' && el.getAttribute('role') !== 'columnheader' &&
+    if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'LABEL' && tag !== 'LI' && tag !== 'SPAN' && tag !== 'P' && tag !== 'OPTION' && !isHeading &&
+        el.getAttribute('role') !== 'menuitem' && el.getAttribute('role') !== 'menuitemradio' &&
+        el.getAttribute('role') !== 'columnheader' &&
         el.getAttribute('role') !== 'button' && el.getAttribute('role') !== 'heading' &&
         el.getAttribute('role') !== 'tooltip' && el.getAttribute('role') !== 'separator') return;
     // aria-label y title
     ['aria-label', 'title'].forEach(function(attr){
       var v = el.getAttribute(attr);
-      if (v && AT[norm(v)] !== undefined) el.setAttribute(attr, AT[norm(v)]);
-      else if (v && TR[norm(v)] !== undefined) el.setAttribute(attr, TR[norm(v)]);
+      var t = v ? trValue(v) : undefined;
+      if (t !== undefined) el.setAttribute(attr, t);
     });
-    // texto visible
+    // texto visible: nunca dentro del editor de contenido, donde está el texto
+    // que escribe el usuario
+    if (el.isContentEditable || inUserContent(el)) return;
     var t = norm(el.textContent);
-    if (t && TR[t] !== undefined){
-      var hasIcon = el.querySelector && (el.querySelector('svg') || el.querySelector('img'));
-      var role = el.getAttribute('role');
-      // En tooltips y elementos con icono se reemplaza solo el texto (nunca el
-      // contenido completo), para no romper la estructura del componente. Los
-      // tooltips de Keystatic se montan en un portal con role="tooltip" y por
-      // eso el texto (p. ej. "Paste entry") quedaba en inglés al pasar el mouse.
-      if (hasIcon || role === 'tooltip') replaceInText(el, t, TR[t]);
-      else el.textContent = TR[t];
-    }
+    if (!t || t.length > 90) return;
+    var to = trValue(t);
+    if (to === undefined) return;
+    var hasIcon = el.querySelector && (el.querySelector('svg') || el.querySelector('img'));
+    var role = el.getAttribute('role');
+    // En tooltips y elementos con icono o hijos se reemplaza solo el texto
+    // (nunca el contenido completo), para no romper la estructura del
+    // componente. Los tooltips de Keystatic se montan en un portal con
+    // role="tooltip" y por eso el texto (p. ej. "Paste entry") quedaba en
+    // inglés al pasar el mouse.
+    if (hasIcon || role === 'tooltip' || (el.children && el.children.length > 0)) replaceInText(el, t, to);
+    else el.textContent = to;
   }
 
   function translateCounts(){
@@ -562,7 +678,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     var nodes = [];
     while (walker.nextNode()){
       var tn = walker.currentNode;
-      if (tn.nodeValue && tn.nodeValue.indexOf('entries') !== -1) nodes.push(tn);
+      if (tn.nodeValue && tn.nodeValue.indexOf('entries') !== -1 && !inUserContent(tn.parentElement)) nodes.push(tn);
     }
     for (var i = 0; i < nodes.length; i++){
       nodes[i].nodeValue = nodes[i].nodeValue.replace(/entries?/gi, function(word){
@@ -572,9 +688,35 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
   }
 
   function scan(){
-    translateCounts();
-    var nodes = document.querySelectorAll('button, a, label, li, h1, h2, h3, [role="menuitem"], [role="columnheader"], [role="button"], [role="heading"], [role="tooltip"], [role="separator"]');
+    // 1) Texto visible de controles, encabezados, celdas y etiquetas cortas.
+    var nodes = document.querySelectorAll('button, a, label, li, span, p, option, h1, h2, h3, h4, h5, h6, [role="menuitem"], [role="menuitemradio"], [role="columnheader"], [role="button"], [role="heading"], [role="tooltip"], [role="separator"]');
     for (var i = 0; i < nodes.length; i++) translateNode(nodes[i]);
+    // 2) Etiquetas accesibles de cualquier elemento: los grupos del editor
+    // (toolbar, group, radiogroup) y las casillas de formato solo se anuncian
+    // por aria-label, y quedaban en inglés.
+    var labelled = document.querySelectorAll('[aria-label], [title], [placeholder]');
+    for (var j = 0; j < labelled.length; j++){
+      var labelledEl = labelled[j];
+      for (var k = 0; k < 3; k++){
+        var attr = k === 0 ? 'aria-label' : (k === 1 ? 'title' : 'placeholder');
+        var attrValue = labelledEl.getAttribute(attr);
+        var attrTranslation = attrValue ? trValue(attrValue) : undefined;
+        if (attrTranslation !== undefined) labelledEl.setAttribute(attr, attrTranslation);
+      }
+    }
+    // 3) Marcador de posición del editor de contenido: Keystatic lo pinta
+    // dentro del área editable como ProseMirror-placeholder
+    // (contenteditable="false"), así que se traduce sin tocar el texto que
+    // escribe el usuario.
+    var editorPlaceholders = document.querySelectorAll('.ProseMirror-placeholder');
+    for (var p = 0; p < editorPlaceholders.length; p++){
+      var placeholderText = norm(editorPlaceholders[p].textContent);
+      var placeholderTo = placeholderText ? trValue(placeholderText) : undefined;
+      if (placeholderTo !== undefined) editorPlaceholders[p].textContent = placeholderTo;
+    }
+    // 4) Recuentos de la lista ("12 entries" → "12 registros"). Va al final
+    // para no estropear los textos que se traducen antes ("Loading Entries").
+    translateCounts();
     var dlg = document.querySelector('[role="alertdialog"]');
     if (dlg){
       var ps = dlg.querySelectorAll('p, span, h1, h2, h3');
