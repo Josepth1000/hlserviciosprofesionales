@@ -562,6 +562,17 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     'Remove Image': 'Quitar imagen',
     'Image URL is required.': 'La URL de la imagen es obligatoria.',
     'Please provide a valid URL.': 'Escribe una URL válida.',
+    // Diálogo "Image details" que se abre al editar una imagen del contenido
+    'File name': 'Nombre del archivo',
+    'Filename': 'Nombre del archivo',
+    'Please provide a file name.': 'Escribe un nombre para el archivo.',
+    'This text will be used by screen readers and search engines.':
+      'Este texto lo usan los lectores de pantalla y los buscadores.',
+    // Menú de la celda de una tabla (botón de la esquina)
+    'Cell options': 'Opciones de la celda',
+    'Options': 'Opciones',
+    // Tooltip del botón «+» de insertar bloque, que lleva el atajo «/» al final
+    'Insert': 'Insertar',
     // Marcador de posición del editor de contenido (norm recorta el "…" final)
     'Start writing or press "/" for commands': 'Empieza a escribir o pulsa «/» para ver los comandos…',
     'Use this for a top level heading': 'Úsalo para un título principal',
@@ -589,6 +600,9 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     s = (s || '').trim();
     if (s.slice(-1) === '…') s = s.slice(0, -1);
     if (s.slice(-3) === '...') s = s.slice(0, -3);
+    // El asterisco de campo obligatorio va en su propio <span>, pero el
+    // textContent del <label> lo incluye; se ignora para poder comparar.
+    if (s.slice(-1) === '*') s = s.slice(0, -1).trim();
     return s;
   }
 
@@ -616,7 +630,7 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
 
   // Traduce un valor exacto (texto visible o etiqueta accesible) y devuelve
   // undefined cuando no hay traducción conocida.
-  function trValue(value){
+  function lookupTranslation(value){
     var v = norm(value);
     if (!v) return undefined;
     if (TR[v] !== undefined) return TR[v];
@@ -633,6 +647,18 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     m = /^(.*?)\\s+Item (\\d+)$/.exec(v);
     if (m) return (m[1] ? m[1] + ' ' : '') + 'Elemento ' + m[2];
     return undefined;
+  }
+
+  function trValue(value){
+    var v = norm(value);
+    if (!v) return undefined;
+    // Algunos tooltips añaden un atajo al final ("Insert /"): se traduce el
+    // texto y se conserva el atajo.
+    var shortcut = '';
+    var m = /^(.*?)\\s*\\/$/.exec(v);
+    if (m){ v = m[1]; shortcut = ' /'; }
+    var t = lookupTranslation(v);
+    return t === undefined ? undefined : t + shortcut;
   }
 
   function translateNode(el){
