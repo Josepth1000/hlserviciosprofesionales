@@ -53,10 +53,13 @@ function normalizar(entrada: unknown): Informe | null {
   const registro = entrada as Record<string, unknown>;
 
   // Reporting API: { type, body: { … } }
+  // CSP clásico:   { "csp-report": { … } }
   const cuerpo =
     registro.body && typeof registro.body === 'object'
       ? (registro.body as Record<string, unknown>)
-      : registro;
+      : registro['csp-report'] && typeof registro['csp-report'] === 'object'
+        ? (registro['csp-report'] as Record<string, unknown>)
+        : registro;
 
   if (typeof registro.type === 'string' && registro.type !== 'csp-violation') return null;
 
