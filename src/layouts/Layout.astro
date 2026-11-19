@@ -94,9 +94,10 @@ const schemaOrg = {
 
     <meta name="generator" content={Astro.generator} />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    {fonts.googleFontsUrl && <link href={fonts.googleFontsUrl} rel="stylesheet" />}
+    <!-- Fuentes autoalojadas (ver @font-face en global.css): ya no hay hoja de
+         estilos de terceros bloqueando el render. No se precargan a propósito:
+         bajo el perfil móvil competirían por el ancho de banda con la imagen del
+         hero, que es el elemento LCP, y retrasarían su pintado. -->
     <PaletteStyle />
     <!-- Navegación SPA con transiciones animadas (respecta prefers-reduced-motion) -->
     <ClientRouter />

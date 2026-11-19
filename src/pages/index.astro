@@ -10,6 +10,8 @@ import SectionHeading from '../components/SectionHeading.astro';
 import { getSiteData, getServices, getServiceImageMap, getAfiliacionData, getTestimonials, getFaqs, getTextosData, getWhatsAppLink } from '../lib/content';
 import { formatCOP } from '../lib/format';
 import { getCollection } from 'astro:content';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 const site = await getSiteData();
 const textos = await getTextosData();
@@ -22,6 +24,21 @@ const posts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueO
 const serviceImageMap = getServiceImageMap(site);
 const minSalud = Math.min(...afiliacion.plans.map((p) => p.salud));
 const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
+
+/* Variantes responsive del hero, generadas con sharp (ya es dependencia de Astro)
+ * a partir de public/images/hero/image.jpg, 640/960/1280 px a calidad 78:
+ *   node -e "const s=require('sharp');[640,960,1280].forEach(w=>s('public/images/hero/image.jpg').resize({width:w}).jpeg({quality:78,progressive:true,mozjpeg:true}).toFile('public/images/hero/image-'+w+'.jpg'))"
+ * El original de 1920 px sigue siendo el candidato mayor. Solo se emite srcset
+ * si los archivos existen para la imagen configurada: si el CMS cambia el hero,
+ * el <img> vuelve a servirse con el original y nunca apunta a un archivo ausente.
+ */
+const heroImage = site.hero.image;
+const heroVariants = [640, 960, 1280]
+  .map((width) => ({ width, url: heroImage.replace(/\.jpg$/, `-${width}.jpg`) }))
+  .filter(({ url }) => existsSync(join(process.cwd(), 'public', url.replace(/^\//, ''))));
+const heroSrcset = heroVariants.length
+  ? [...heroVariants.map(({ url, width }) => `${url} ${width}w`), `${heroImage} 1920w`].join(', ')
+  : undefined;
 ---
 
 <Layout
@@ -30,9 +47,15 @@ const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
 >
   <!-- Hero -->
   <section class="relative overflow-hidden bg-ink-950">
-    <!-- fetchpriority=high: es el elemento LCP de la portada. -->
+    <!-- fetchpriority=high: es el elemento LCP de la portada. El srcset sirve
+         una variante ligera en pantallas pequeñas (1280 px ≈ 60 KB frente a
+         207 KB del original). -->
     <img
-      src={site.hero.image}
+      src={heroImage}
+      srcset={heroSrcset}
+      sizes="100vw"
+      width="1920"
+      height="952"
       alt=""
       aria-hidden="true"
       class="absolute inset-0 h-full w-full object-cover opacity-30"

@@ -14,6 +14,11 @@ export default defineConfig({
   // panel de administración (/keystatic y /api/keystatic) como funciones.
   adapter: vercel(),
   integrations: [sitemap(), react(), keystatic()],
+  build: {
+    // La hoja de estilos se incrusta en el HTML: el primer pintado ya no espera
+    // una petición de CSS aparte (era el último recurso bloqueante del render).
+    inlineStylesheets: 'always',
+  },
   // Variables del formulario. `access: 'secret'` impide que Astro las exponga al
   // cliente y no las incrusta en el bundle: se leen del entorno en tiempo de
   // ejecución (en desarrollo, desde los archivos .env).
