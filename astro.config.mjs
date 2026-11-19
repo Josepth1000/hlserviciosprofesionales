@@ -26,7 +26,14 @@ export default defineConfig({
   // Las páginas se generan como HTML estático; el adaptador sirve las rutas del
   // panel de administración (/keystatic y /api/keystatic) como funciones.
   adapter: vercel(),
-  integrations: [variantesHero, sitemap(), react(), keystatic()],
+  integrations: [
+    variantesHero,
+    // El panel no se anuncia a los buscadores: ya lleva noindex y además
+    // ensuciaba el sitemap con /keystatic/login.
+    sitemap({ filter: (page) => !page.includes('/keystatic') }),
+    react(),
+    keystatic(),
+  ],
   build: {
     // La hoja de estilos se incrusta en el HTML: el primer pintado ya no espera
     // una petición de CSS aparte (era el último recurso bloqueante del render).
@@ -37,6 +44,10 @@ export default defineConfig({
   // ejecución (en desarrollo, desde los archivos .env).
   env: {
     schema: {
+      // Base de las URLs absolutas de la vista previa social (ver Layout.astro).
+      // Opcional: si no está definida se usa `site`. Se define para publicar una
+      // URL social válida antes de que el dominio definitivo apunte aquí.
+      PUBLIC_SITE_URL: envField.string({ context: 'client', access: 'public', optional: true }),
       RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       CONTACT_TO: envField.string({ context: 'server', access: 'secret', optional: true }),
       CONTACT_FROM: envField.string({ context: 'server', access: 'secret', optional: true }),

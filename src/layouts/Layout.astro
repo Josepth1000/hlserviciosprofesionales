@@ -23,7 +23,13 @@ const fontVars = [
   `--font-display: '${fonts.display || 'Playfair Display'}', ui-serif, Georgia, serif`,
   `--font-script: '${fonts.script || 'Great Vibes'}', 'Segoe Script', cursive`,
 ].join('; ');
-const absoluteUrl = (path?: string) => new URL(path || '/images/hero/image.jpg', Astro.site).href;
+// Base de las URLs absolutas que consume la vista previa social y el JSON-LD.
+// Mientras el dominio definitivo (astro.config.mjs → `site`) no apunte a este
+// proyecto, PUBLIC_SITE_URL permite apuntarlas al despliegue que sí está
+// sirviendo el sitio; al migrar el dominio basta con borrar la variable y todo
+// vuelve a `site`. Las canónicas y el sitemap siguen usando el dominio final.
+const basePublica = import.meta.env.PUBLIC_SITE_URL || Astro.site;
+const absoluteUrl = (path?: string) => new URL(path || '/images/hero/image.jpg', basePublica).href;
 // Imagen de vista previa social: lockup de marca 1200×630 (no una foto suelta,
 // que además cambiaba de proporción al compartirse).
 const ogImage = absoluteUrl('/og-image.jpg');

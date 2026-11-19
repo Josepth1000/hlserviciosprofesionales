@@ -4,7 +4,14 @@ import { SESSION_COOKIE, createSessionToken, getCredentials, SESSION_COOKIE_OPTI
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, cookies, redirect, url }) => {
-  const form = await request.formData();
+  // Un cuerpo que no sea de formulario (p. ej. un POST vacío de un bot) hace
+  // fallar `formData()`; se responde 400 en lugar de dejar caer un 500.
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return new Response('Solicitud inválida: se esperaba un formulario', { status: 400 });
+  }
   const username = String(form.get('username') ?? '');
   const password = String(form.get('password') ?? '');
   const creds = getCredentials();
