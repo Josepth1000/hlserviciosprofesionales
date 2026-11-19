@@ -6,6 +6,19 @@ import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
 import vercel from '@astrojs/vercel';
+import { generarVariantesHero } from './scripts/variantes-hero.mjs';
+
+// Antes de compilar se dejan al día las variantes responsive de las imágenes de
+// encabezado (las que vienen del panel). Astro copia public/ al terminar, así
+// que el srcset de las páginas encuentra los archivos recién generados.
+const variantesHero = {
+  name: 'variantes-hero',
+  hooks: {
+    'astro:build:start': async () => {
+      await generarVariantesHero();
+    },
+  },
+};
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,7 +26,7 @@ export default defineConfig({
   // Las páginas se generan como HTML estático; el adaptador sirve las rutas del
   // panel de administración (/keystatic y /api/keystatic) como funciones.
   adapter: vercel(),
-  integrations: [sitemap(), react(), keystatic()],
+  integrations: [variantesHero, sitemap(), react(), keystatic()],
   build: {
     // La hoja de estilos se incrusta en el HTML: el primer pintado ya no espera
     // una petición de CSS aparte (era el último recurso bloqueante del render).

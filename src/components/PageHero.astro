@@ -1,4 +1,6 @@
 ---
+import { srcsetDe } from '../../scripts/variantes-hero.mjs';
+
 interface Props {
   title: string;
   subtitle?: string;
@@ -6,12 +8,19 @@ interface Props {
 }
 
 const { title, subtitle, image = '/images/hero/image.jpg' } = Astro.props;
+
+// Variantes del hero (las deja al día scripts/variantes-hero.mjs en cada build).
+// En móvil sirven 640 px en vez del original de 1920 o más, que es el elemento
+// LCP de estas páginas; si la imagen no tiene variantes, se usa el original.
+const srcset = srcsetDe(image);
 ---
 
 <section class="relative overflow-hidden bg-ink-950">
   <!-- fetchpriority=high: en estas páginas el hero es el elemento LCP. -->
   <img
     src={image}
+    srcset={srcset}
+    sizes="100vw"
     alt=""
     aria-hidden="true"
     class="absolute inset-0 h-full w-full object-cover opacity-25"
