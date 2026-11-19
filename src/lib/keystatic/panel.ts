@@ -606,6 +606,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     return s;
   }
 
+  // Claves de una sola palabra o muy generales: solo se traducen dentro de un
+  // control (tooltip, etiqueta, botón, opción). En el texto visible de un
+  // registro —título, migas, enlaces— se dejan tal cual, porque es del usuario.
+  var GENERIC = { 'Insert': 1, 'Options': 1, 'File name': 1, 'Filename': 1 };
+
   // Zona donde el usuario escribe su contenido (editor de Markdoc). Aquí no se
   // traduce nada: el texto es suyo y puede contener palabras como "entries".
   function inUserContent(el){
@@ -649,15 +654,28 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     return undefined;
   }
 
+  // Algunos tooltips añaden un atajo al final ("Insert /"): se quita para
+  // comparar y se vuelve a añadir tal cual.
+  function baseKey(v){
+    var m = /^(.*?)\\s*\\/$/.exec(v);
+    return m ? m[1] : v;
+  }
+
+  // Controles del panel donde sí se traducen las claves genéricas.
+  function isControl(el){
+    var tag = el.tagName;
+    var role = el.getAttribute('role');
+    return tag === 'BUTTON' || tag === 'LABEL' || tag === 'OPTION' || tag === 'INPUT' ||
+      role === 'tooltip' || role === 'menuitem' || role === 'menuitemradio' ||
+      role === 'button' || role === 'columnheader';
+  }
+
   function trValue(value){
     var v = norm(value);
     if (!v) return undefined;
-    // Algunos tooltips añaden un atajo al final ("Insert /"): se traduce el
-    // texto y se conserva el atajo.
-    var shortcut = '';
-    var m = /^(.*?)\\s*\\/$/.exec(v);
-    if (m){ v = m[1]; shortcut = ' /'; }
-    var t = lookupTranslation(v);
+    var base = baseKey(v);
+    var shortcut = base === v ? '' : ' /';
+    var t = lookupTranslation(base);
     return t === undefined ? undefined : t + shortcut;
   }
 
@@ -686,6 +704,9 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     if (el.isContentEditable || inUserContent(el)) return;
     var t = norm(el.textContent);
     if (!t || t.length > 90) return;
+    // Las claves genéricas solo valen en controles: nunca en el título de un
+    // registro ni en otros textos que vengan del contenido.
+    if (GENERIC[baseKey(t)] && !isControl(el)) return;
     var to = trValue(t);
     if (to === undefined) return;
     var hasIcon = el.querySelector && (el.querySelector('svg') || el.querySelector('img'));
@@ -695,7 +716,11 @@ body:has([data-split-view-resize-handle]:not([data-split-view-collapsed])) #hl-l
     // componente. Los tooltips de Keystatic se montan en un portal con
     // role="tooltip" y por eso el texto (p. ej. "Paste entry") quedaba en
     // inglés al pasar el mouse.
-    if (hasIcon || role === 'tooltip' || (el.children && el.children.length > 0)) replaceInText(el, t, to);
+    // Si el atajo va en su propio nodo ("Insert" + <kbd>/</kbd>) solo se
+    // reemplaza el texto base y el atajo se queda donde está.
+    var from = baseKey(t);
+    var visible = from === t ? to : baseKey(to);
+    if (hasIcon || role === 'tooltip' || (el.children && el.children.length > 0)) replaceInText(el, from, visible);
     else el.textContent = to;
   }
 
