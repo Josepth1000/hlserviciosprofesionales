@@ -55,20 +55,19 @@ const envCredentials = Boolean(import.meta.env.ADMIN_PASSWORD);
         <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/80 to-transparent"></div>
 
         <div class="relative px-7 py-9 sm:px-10 sm:py-11">
-          <!-- Marca: logo con halo y anillo dorados -->
+          <!-- Marca: el logo ya trae su propio anillo dorado, sin bordes CSS -->
           <div class="flex flex-col items-center text-center">
-            <div class="relative flex h-24 w-24 items-center justify-center">
-              <div class="absolute inset-0 rounded-full bg-brand-500/25 blur-2xl"></div>
-              <div class="absolute inset-1 rounded-full border border-brand-500/25"></div>
+            <div class="relative flex h-32 w-32 items-center justify-center">
+              <div class="absolute inset-2 rounded-full bg-brand-500/25 blur-2xl"></div>
               <img
                 src={site.logo}
                 alt={site.name}
-                class="relative h-20 w-20 rounded-full ring-2 ring-brand-500/40"
-                width="160"
-                height="160"
+                class="relative h-32 w-32"
+                width="256"
+                height="256"
               />
             </div>
-            <p class="mt-5 font-script text-3xl leading-none text-gold-gradient">{site.brandName}</p>
+            <p class="mt-5 font-script text-3xl leading-[1.4] text-gold-gradient">{site.brandName}</p>
             <p class="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
               {site.slogan}
             </p>
