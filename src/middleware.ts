@@ -10,111 +10,96 @@ import {
   createRefreshedToken,
   sessionCookieHeader,
 } from './lib/auth';
-
-const PROTECTED_PREFIXES = ['/keystatic', '/api/keystatic'];
+import { RUTA_LOGIN, decidirAcceso, esRutaProtegida, pideHtml } from './lib/acceso-panel';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, request } = context;
   const path = url.pathname;
 
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
-  if (!isProtected) return next();
+  // Las rutas públicas y la pantalla de login no pasan por el control.
+  if (!esRutaProtegida(path) || path === RUTA_LOGIN) return next();
 
-  // La página de inicio de sesión es pública
-  if (path === '/keystatic/login') return next();
+  const html = pideHtml(request.headers.get('accept'));
+  const sesion = validateSession(cookies.get(SESSION_COOKIE)?.value);
+  const decision = decidirAcceso(path, {
+    configurado: isConfigured(),
+    sesion: { valida: sesion.valid, expirada: sesion.expired, motivo: sesion.reason },
+  });
 
   // Sin credenciales configuradas (producción) → panel deshabilitado
-  if (!isConfigured()) {
-    const body = isHtmlRequest(request)
+  if (decision.tipo === 'deshabilitado') {
+    const body = html
       ? '<!doctype html><html lang="es"><body style="font-family:sans-serif;padding:3rem;text-align:center"><h1>Panel deshabilitado</h1><p>Configura las variables <code>ADMIN_PASSWORD</code> y <code>SESSION_SECRET</code> para habilitar el panel de administración.</p></body></html>'
       : JSON.stringify({ error: 'Panel deshabilitado: configura ADMIN_PASSWORD y SESSION_SECRET' });
     return new Response(body, {
       status: 503,
       headers: {
-        'Content-Type': isHtmlRequest(request) ? 'text/html; charset=utf-8' : 'application/json',
+        'Content-Type': html ? 'text/html; charset=utf-8' : 'application/json',
         'Cache-Control': 'no-store',
       },
     });
   }
 
-  // Sesión válida → continúa (e inyecta la personalización del panel)
-  const session = validateSession(cookies.get(SESSION_COOKIE)?.value);
-  if (session.valid) {
-    // Cierre automático: el token lleva el inicio de sesión y la última
-    // actividad (formato: username.createdAt.lastActivity.hmac). Se cierra por
-    // inactividad de 30 minutos o por el tope absoluto de 7 días.
-    if (session.expired) {
-      cookies.delete(SESSION_COOKIE, { path: '/' });
-      const porAntiguedad = session.reason === 'antiguedad';
-      const motivo = porAntiguedad ? 'antiguedad' : 'expired';
-      if (isHtmlRequest(request)) {
-        return context.redirect(`/keystatic/login?error=1&reason=${motivo}`);
-      }
-      const mensaje = porAntiguedad
-        ? 'Sesión caducada: ha pasado el plazo máximo, vuelve a iniciar sesión'
-        : 'Sesión expirada por inactividad';
-      return new Response(JSON.stringify({ error: mensaje }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-      });
-    }
-
-    // Guardado del panel: Keystatic reescribe el YAML completo. Antes de
-    // dejarlo pasar se guarda el texto original, y después de escribir se le
-    // devuelve su formato para que el diff muestre solo el campo editado.
-    const isUpdate = request.method === 'POST' && path === '/api/keystatic/update';
-    let updateBody = '';
-    let pendingYaml: PendingYamlFile[] = [];
-    if (isUpdate) {
-      try {
-        updateBody = await request.clone().text();
-        pendingYaml = await readPendingYaml(updateBody);
-      } catch {
-        pendingYaml = [];
-      }
-    }
-
-    const response = await next();
-
-    if (pendingYaml.length && response.ok) {
-      await restoreOriginalFormat(updateBody, pendingYaml);
-    }
-
-    // Se inyecta en cualquier ruta del panel (no solo /keystatic): la app de
-    // Keystatic navega por rutas como /keystatic/collection/... y /keystatic/
-    // singleton/... y al recargar directamente ahí también debe llevar la
-    // personalización. /keystatic/login ya retornó antes.
-    let finalResponse = response;
-    if (path.startsWith('/keystatic') && isHtmlRequest(request)) {
-      const serviceImages = await getServiceImageMap();
-      finalResponse = await injectPanelTheme(response, serviceImages);
-    }
-
-    // Refresca el token de sesión (a lo sumo una vez por minuto) para
-    // mantener viva la sesión. El cookie se envía como header Set-Cookie
-    // directamente en la respuesta, sin depender de JavaScript del cliente, y
-    // con los mismos atributos que fija el login (ver sessionCookieHeader).
-    if (session.age > ACTIVITY_REFRESH_MS) {
-      finalResponse.headers.append('Set-Cookie', sessionCookieHeader(createRefreshedToken(session.createdAt)));
-    }
-    return finalResponse;
+  // Cierre automático por inactividad o por el tope absoluto de 7 días.
+  if (decision.tipo === 'expirada') {
+    cookies.delete(SESSION_COOKIE, { path: '/' });
+    if (html) return context.redirect(decision.redirigir);
+    return new Response(JSON.stringify({ error: decision.mensaje }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
   }
 
-  // Navegación del navegador → redirigir al inicio de sesión
-  if (isHtmlRequest(request)) {
-    return context.redirect(`/keystatic/login?next=${encodeURIComponent(path)}`);
+  // Navegación del navegador → al login; peticiones de API → 401.
+  if (decision.tipo === 'sin-sesion') {
+    if (html) return context.redirect(decision.redirigir);
+    return new Response(JSON.stringify({ error: decision.mensaje }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    });
   }
 
-  // Peticiones de API sin sesión → 401
-  return new Response(JSON.stringify({ error: 'No autorizado' }), {
-    status: 401,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-  });
+  // Sesión válida: se deja pasar y se inyecta la personalización del panel.
+  // Guardado del panel: Keystatic reescribe el YAML completo. Antes de dejarlo
+  // pasar se guarda el texto original, y después de escribir se le devuelve su
+  // formato para que el diff muestre solo el campo editado.
+  const isUpdate = request.method === 'POST' && path === '/api/keystatic/update';
+  let updateBody = '';
+  let pendingYaml: PendingYamlFile[] = [];
+  if (isUpdate) {
+    try {
+      updateBody = await request.clone().text();
+      pendingYaml = await readPendingYaml(updateBody);
+    } catch {
+      pendingYaml = [];
+    }
+  }
+
+  const response = await next();
+
+  if (pendingYaml.length && response.ok) {
+    await restoreOriginalFormat(updateBody, pendingYaml);
+  }
+
+  // Se inyecta en cualquier ruta del panel (no solo /keystatic): la app de
+  // Keystatic navega por rutas como /keystatic/collection/... y /keystatic/
+  // singleton/... y al recargar directamente ahí también debe llevar la
+  // personalización. /keystatic/login ya retornó antes.
+  let finalResponse = response;
+  if (path.startsWith('/keystatic') && html) {
+    const serviceImages = await getServiceImageMap();
+    finalResponse = await injectPanelTheme(response, serviceImages);
+  }
+
+  // Refresca el token de sesión (a lo sumo una vez por minuto) para mantener
+  // viva la sesión. El cookie se envía como header Set-Cookie directamente en
+  // la respuesta, sin depender de JavaScript del cliente, y con los mismos
+  // atributos que fija el login (ver sessionCookieHeader).
+  if (sesion.age > ACTIVITY_REFRESH_MS) {
+    finalResponse.headers.append('Set-Cookie', sessionCookieHeader(createRefreshedToken(sesion.createdAt)));
+  }
+  return finalResponse;
 });
-
-function isHtmlRequest(request: Request): boolean {
-  return request.headers.get('accept')?.includes('text/html') ?? false;
-}
 
 // Imágenes efectivas de los servicios para miniaturas del panel y respaldo del
 // editor. La fuente principal es la propia ficha de cada servicio (campo
