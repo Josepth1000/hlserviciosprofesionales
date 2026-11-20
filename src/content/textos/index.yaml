@@ -64,6 +64,8 @@ privacy:
 
         Umami no guarda direcciones IP completas ni crea perfiles individuales: usa un identificador seudónimo temporal para no contar dos veces la misma visita. La información se conserva durante seis meses y no se usa para publicidad.
 
+        Los registros técnicos y de seguridad de nuestro propio servidor (por ejemplo, los avisos automáticos de contenido bloqueado por la política de seguridad del navegador) guardan solo la red de origen, nunca la dirección IP completa, y se usan únicamente para detectar fallos del sitio.
+
         Por eso este sitio no muestra un banner de cookies: no hay cookies de analítica ni de publicidad que aceptar.
     - heading: 5. Cookies y servicios de terceros
       body: |

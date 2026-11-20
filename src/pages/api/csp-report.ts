@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
+import { redactarIp } from '../../lib/redactar-ip';
 
 // Recibe los informes de violación de la CSP que envían los navegadores de los
 // visitantes (incluido el panel). Sirve para detectar bloqueos reales que el
@@ -25,23 +26,6 @@ const sinRespuesta = () =>
 
 const recortar = (valor: unknown, maximo = 300): string =>
   typeof valor === 'string' ? valor.slice(0, maximo) : '';
-
-/**
- * IP sin la parte que identifica a una persona. Los informes de CSP solo se usan
- * para ver qué recurso se bloquea y cuántas veces; con la red (/24 en IPv4, /48
- * en IPv6) basta para agrupar los avisos de una misma conexión sin guardar la
- * dirección completa, que es lo que promete el aviso de privacidad.
- */
-function redactarIp(ip: string): string {
-  const ipv4 = ip.match(/^(\d{1,3}(?:\.\d{1,3}){2})\.\d{1,3}$/);
-  if (ipv4) return `${ipv4[1]}.0`;
-  if (ip.startsWith(':')) return '::';
-  if (ip.includes(':')) {
-    const grupos = ip.split(':').filter(Boolean).slice(0, 3);
-    return grupos.length ? `${grupos.join(':')}::` : '::';
-  }
-  return 'desconocida';
-}
 
 interface Informe {
   tipo: string;
