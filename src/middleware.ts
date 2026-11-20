@@ -26,8 +26,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Sin credenciales configuradas (producción) → panel deshabilitado
   if (!isConfigured()) {
     const body = isHtmlRequest(request)
-      ? '<!doctype html><html lang="es"><body style="font-family:sans-serif;padding:3rem;text-align:center"><h1>Panel deshabilitado</h1><p>Configura la variable <code>ADMIN_PASSWORD</code> para habilitar el panel de administración.</p></body></html>'
-      : JSON.stringify({ error: 'Panel deshabilitado: configura ADMIN_PASSWORD' });
+      ? '<!doctype html><html lang="es"><body style="font-family:sans-serif;padding:3rem;text-align:center"><h1>Panel deshabilitado</h1><p>Configura las variables <code>ADMIN_PASSWORD</code> y <code>SESSION_SECRET</code> para habilitar el panel de administración.</p></body></html>'
+      : JSON.stringify({ error: 'Panel deshabilitado: configura ADMIN_PASSWORD y SESSION_SECRET' });
     return new Response(body, {
       status: 503,
       headers: { 'Content-Type': isHtmlRequest(request) ? 'text/html; charset=utf-8' : 'application/json' },
@@ -37,15 +37,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Sesión válida → continúa (e inyecta la personalización del panel)
   const session = validateSession(cookies.get(SESSION_COOKIE)?.value);
   if (session.valid) {
-    // Cierre automático por inactividad: el timestamp viene embebido en
-    // el token de sesión (formato: username.timestamp.hmac). Si la última
-    // actividad fue hace más de 30 minutos, se cierra la sesión.
+    // Cierre automático: el token lleva el inicio de sesión y la última
+    // actividad (formato: username.createdAt.lastActivity.hmac). Se cierra por
+    // inactividad de 30 minutos o por el tope absoluto de 7 días.
     if (session.expired) {
       cookies.delete(SESSION_COOKIE, { path: '/' });
+      const porAntiguedad = session.reason === 'antiguedad';
+      const motivo = porAntiguedad ? 'antiguedad' : 'expired';
       if (isHtmlRequest(request)) {
-        return context.redirect('/keystatic/login?error=1&reason=expired');
+        return context.redirect(`/keystatic/login?error=1&reason=${motivo}`);
       }
-      return new Response(JSON.stringify({ error: 'Sesión expirada por inactividad' }), {
+      const mensaje = porAntiguedad
+        ? 'Sesión caducada: ha pasado el plazo máximo, vuelve a iniciar sesión'
+        : 'Sesión expirada por inactividad';
+      return new Response(JSON.stringify({ error: mensaje }), {
         status: 401,
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
       });
@@ -87,7 +92,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // directamente en la respuesta, sin depender de JavaScript del cliente, y
     // con los mismos atributos que fija el login (ver sessionCookieHeader).
     if (session.age > ACTIVITY_REFRESH_MS) {
-      finalResponse.headers.append('Set-Cookie', sessionCookieHeader(createRefreshedToken()));
+      finalResponse.headers.append('Set-Cookie', sessionCookieHeader(createRefreshedToken(session.createdAt)));
     }
     return finalResponse;
   }

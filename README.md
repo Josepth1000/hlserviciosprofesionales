@@ -73,10 +73,15 @@ ADMIN_PASSWORD=cambia-esta-contrasena
 ```
 
 - Copia `.env.example` a `.env` y define `ADMIN_PASSWORD` **antes de publicar**.
+- Define también `SESSION_SECRET` (aleatoria, 32 bytes): sin ella el panel no puede firmar sesiones y queda deshabilitado. Generación: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 - En desarrollo, si no se define, se usan `admin` / `admin` (solo localhost, con aviso en la pantalla de login).
 - En producción sin `ADMIN_PASSWORD`, el panel queda **deshabilitado** por seguridad.
 
-La sesión se guarda en una cookie firmada (HMAC) de 30 días; la contraseña nunca viaja en la cookie y la comparación es a prueba de tiempos (`timingSafeEqual`). Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o la ruta `/api/logout`.
+La cookie de sesión va firmada con HMAC-SHA256 usando **`SESSION_SECRET`**, una clave aleatoria **independiente de la contraseña** (si se firmara con la contraseña, quien capturara una cookie podría probarla fuera de línea, sin el límite de intentos del login). La contraseña nunca viaja en la cookie y su comparación es a prueba de tiempos (`timingSafeEqual`).
+
+La sesión tiene **dos límites**: se cierra a los **30 minutos sin actividad** y, además, a los **7 días desde el inicio de sesión** aunque se use a diario; pasado ese plazo hay que volver a entrar. Las sesiones abiertas con el formato anterior dejan de valer al desplegar este cambio.
+
+`npm test` ejecuta las pruebas de `tests/` con el runner de Node: firma, manipulación del token, caducidad por inactividad y por antigüedad, y el limitador por IP. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o la ruta `/api/logout`.
 
 ## 🗂️ Estructura del contenido
 
@@ -166,6 +171,7 @@ El asistente **Create GitHub App** que aparece en el panel **solo funciona con `
 | Variable | Valor |
 |---|---|
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | credenciales del panel (contraseña larga y única) |
+| `SESSION_SECRET` | clave aleatoria de 32+ caracteres que firma la cookie de sesión; **obligatoria en producción** y distinta de la contraseña. Al cambiarla se cierran todas las sesiones |
 | `PUBLIC_KEYSTATIC_GITHUB_REPO` | `Josepth1000/hlserviciosprofesionales` |
 | `KEYSTATIC_GITHUB_CLIENT_ID` | el **Client ID** de la GitHub App (`Iv…`) |
 | `KEYSTATIC_GITHUB_CLIENT_SECRET` | el client secret generado en el paso 3.9 |
@@ -225,6 +231,7 @@ El proyecto está configurado con el adaptador **`@astrojs/vercel`**: las 9 pág
    ```env
    ADMIN_USERNAME=admin
    ADMIN_PASSWORD=tu-contraseña-segura
+   SESSION_SECRET=una-cadena-aleatoria-de-32-o-mas-caracteres
    PUBLIC_KEYSTATIC_GITHUB_REPO=tu-usuario/hl-servicios-profesionales
    KEYSTATIC_GITHUB_CLIENT_ID=...
    KEYSTATIC_GITHUB_CLIENT_SECRET=...
@@ -337,6 +344,7 @@ Qué debe salir y qué comprobar:
 2. **Buzón del dominio** → pendiente nº 1 de [Pendientes](#-pendientes). Los registros, el orden de aplicación y la verificación están en [Correo del dominio](#-correo-del-dominio-zoho-mail--resend); mientras el buzón no exista, el formulario responde «enviado» y el mensaje no llega a nadie.
 3. **Dominio** → pendiente nº 2: adjuntar `hlserviciosprofesionales.com` y `www` a este proyecto. La rama `preparar-dominio-produccion` deja listo el apex y el TLS lo emite Vercel.
 4. **Panel** → al entrar por un dominio nuevo, *Log out* + *Log in with GitHub* (la cookie del token es por dominio).
+5. **Secreto de sesión** → `SESSION_SECRET` definida en el proyecto de Vercel que sirva el dominio, con un valor propio (no reutilizar el de `pruebas.`). Sin ella el panel responde 503 «Panel deshabilitado».
 
 ## ➕ Añadir un artículo
 

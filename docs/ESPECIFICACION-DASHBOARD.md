@@ -21,7 +21,7 @@ Documento rellenado a partir del prompt de especificación, con los datos reales
 - ✅ **Separación de zonas:**
   - `/src/pages/*` → sitio público estático
   - `/src/pages/keystatic/*` y `/src/pages/api/*` → zona autenticada (panel + API)
-- ✅ **Autenticación:** propia (usuario/contraseña por variables de entorno `ADMIN_USERNAME` / `ADMIN_PASSWORD`), cookie de sesión firmada con HMAC-SHA256 (httpOnly, SameSite=Lax, Secure en producción, 30 días). 🔜 Se puede migrar a Auth.js/Clerk si se necesita multi-usuario.
+- ✅ **Autenticación:** propia (usuario/contraseña por variables de entorno `ADMIN_USERNAME` / `ADMIN_PASSWORD`), cookie de sesión firmada con HMAC-SHA256 con `SESSION_SECRET` (clave aparte de la contraseña; httpOnly, SameSite=Lax, Secure en producción), con cierre a los 30 min de inactividad y tope absoluto de 7 días. 🔜 Se puede migrar a Auth.js/Clerk si se necesita multi-usuario.
 - ✅ **Middleware de Astro** (`src/middleware.ts`) protege `/keystatic` y `/api/keystatic` (redirige a login; 401 en API sin sesión).
 - ✅ **Fuente de datos:** archivos locales gestionados por **Keystatic CMS** (YAML/Markdown en `src/content/`), con **modo GitHub** opcional (`PUBLIC_KEYSTATIC_GITHUB_REPO`) para publicación automática desde la web. 🔜 Si se añade analítica: Supabase/PostgreSQL vía ORM.
 - ✅ **Content Collections de Astro con Zod** (`src/content.config.ts`) para contenido tipado del sitio público (site, afiliación, services, testimonials, faqs, blog).
@@ -102,7 +102,7 @@ Estado actual (panel Keystatic):
 
 ## 10. ASPECTOS TÉCNICOS ADICIONALES
 
-- ✅ Variables de entorno documentadas en `.env.example` (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PUBLIC_KEYSTATIC_GITHUB_REPO`, `KEYSTATIC_GITHUB_CLIENT_ID`, `KEYSTATIC_GITHUB_CLIENT_SECRET`, `KEYSTATIC_SECRET`, `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`).
+- ✅ Variables de entorno documentadas en `.env.example` (`ADMIN_USERNAME`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `PUBLIC_KEYSTATIC_GITHUB_REPO`, `KEYSTATIC_GITHUB_CLIENT_ID`, `KEYSTATIC_GITHUB_CLIENT_SECRET`, `KEYSTATIC_SECRET`, `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`).
 - ✅ Formulario de contacto con endpoint de terceros (Formspree) 🔜 añadir honeypot + validación anti-spam.
 - ✅ Despliegue: **Vercel** (adaptador `@astrojs/vercel`), con alternativa Render/Railway/VPS con adaptador Node documentada en el README.
 
