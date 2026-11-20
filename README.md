@@ -17,7 +17,7 @@ Sitio web moderno de **Henry López – Servicios Profesionales** (Bucaramanga, 
 
 | # | Pendiente | Estado | Por qué importa |
 |---|---|---|---|
-| 1 | **Buzón `contacto@hlserviciosprofesionales.com`** (Zoho Mail) | ⏳ **PENDIENTE — aparcado a petición del cliente** | El dominio no tiene MX ni DMARC: ese buzón no existe. Resend acepta el envío del formulario y el correo rebota después, así que **los mensajes se pierden en silencio**. Registros listos en [Correo del dominio](#-correo-del-dominio-zoho-mail--resend). |
+| 1 | **Buzón `contacto@hlserviciosprofesionales.com`** (Zoho Mail) | ⏸️ **EN PAUSA** (decisión del 20-nov-2026) | El dominio no tiene MX ni DMARC: ese buzón no existe y los mensajes del formulario se pierden en silencio. Mientras siga en pausa, la forma de no perder solicitudes es apuntar `CONTACT_TO` a un buzón que ya exista (no requiere DNS). Registros y orden de aplicación en [Correo del dominio](#-correo-del-dominio-zoho-mail--resend). |
 | 2 | **Adjuntar `hlserviciosprofesionales.com` y `www` a este proyecto de Vercel** | ⏳ Pendiente | Hoy el apex lo ocupa otro proyecto y sirve un **WordPress 4.6** antiguo (sin CSP). El sitio nuevo solo responde en `pruebas.` (con `noindex`) y en `vercel.app`. |
 | 3 | **Quitar `PUBLIC_SITE_URL` de Vercel al migrar** | ⏳ Pendiente | Está fijada a `hlserviciosprofesionales.vercel.app`, así que `og:image` y el JSON-LD apuntan a ese host aunque el canónico sea `www`. Al migrar el dominio, se borra y todo vuelve a `site`. |
 | 4 | **Callback `www` en la GitHub App** | ⏳ Pendiente | La cookie del token de Keystatic es por dominio: sin el callback `https://www.…/api/keystatic/github/oauth/callback` no se podrá iniciar sesión desde el dominio definitivo. |
@@ -249,7 +249,7 @@ En `astro.config.mjs` cambia `vercel()` por `node({ mode: 'standalone' })`. Buil
 
 ## 📧 Correo del dominio (Zoho Mail + Resend)
 
-> **Estado: ⏳ pendiente** (nº 1 en [Pendientes](#-pendientes)). Falta crear la cuenta y publicar los registros de abajo; hasta entonces los envíos del formulario no llegan a ninguna bandeja.
+> **Estado: ⏸️ en pausa** (nº 1 en [Pendientes](#-pendientes), decisión del 20-nov-2026). Esta sección queda como referencia completa para cuando se retome: no hay ningún registro publicado a medias, así que retomar es empezar por el paso 1 del orden de aplicación.
 
 Hay dos piezas distintas y conviene no confundirlas:
 
