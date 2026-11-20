@@ -8,6 +8,7 @@ import {
   isConfigured,
   validateSession,
   createRefreshedToken,
+  sessionCookieHeader,
 } from './lib/auth';
 
 const PROTECTED_PREFIXES = ['/keystatic', '/api/keystatic'];
@@ -83,12 +84,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     // Refresca el token de sesión (a lo sumo una vez por minuto) para
     // mantener viva la sesión. El cookie se envía como header Set-Cookie
-    // directamente en la respuesta, sin depender de JavaScript del cliente.
+    // directamente en la respuesta, sin depender de JavaScript del cliente, y
+    // con los mismos atributos que fija el login (ver sessionCookieHeader).
     if (session.age > ACTIVITY_REFRESH_MS) {
-      const refreshed = createRefreshedToken();
-      finalResponse.headers.append('Set-Cookie',
-        `${SESSION_COOKIE}=${refreshed}; Path=/; HttpOnly; SameSite=Lax${import.meta.env.PROD ? '; Secure' : ''}; Max-Age=${60 * 60 * 24 * 30}`
-      );
+      finalResponse.headers.append('Set-Cookie', sessionCookieHeader(createRefreshedToken()));
     }
     return finalResponse;
   }

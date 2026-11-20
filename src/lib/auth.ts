@@ -92,22 +92,17 @@ export function validateSession(token: string | undefined): SessionValidation {
   if (expected.length !== actual.length) return empty;
   if (!timingSafeEqual(expected, actual)) return empty;
 
-  // Token criptográficamente válido — verificar actividad
-  const lastActivity = Number(tsStr) || 0;
+  // Token criptográficamente válido — verificar actividad. Un timestamp que no
+  // sea un número positivo dejaría una sesión sin caducidad (la comprobación
+  // dependía de `lastActivity > 0`), así que se rechaza el token entero.
+  const lastActivity = Number(tsStr);
+  if (!Number.isFinite(lastActivity) || lastActivity <= 0) return empty;
+
   const now = Date.now();
   const age = now - lastActivity;
-  const expired = lastActivity > 0 && age > INACTIVITY_MS;
+  const expired = age > INACTIVITY_MS;
 
   return { valid: true, expired, lastActivity, age };
-}
-
-/**
- * Verifica si el token de sesión es criptográficamente válido (sin verificar expiración).
- * Se mantiene por compatibilidad con código existente que solo necesita saber
- * si la sesión es auténtica.
- */
-export function isValidSession(token: string | undefined): boolean {
-  return validateSession(token).valid;
 }
 
 /**
@@ -128,3 +123,23 @@ export const SESSION_COOKIE_OPTIONS = {
   secure: import.meta.env.PROD,
   maxAge: 60 * 60 * 24 * 30, // 30 días
 };
+
+/**
+ * Cabecera `Set-Cookie` del token de sesión, construida desde
+ * `SESSION_COOKIE_OPTIONS`. El middleware la usa al refrescar la sesión sobre una
+ * respuesta ya creada; al salir de la misma definición, un cambio de atributos
+ * (SameSite, Secure, ruta o duración) no puede aplicarse en el login y quedarse
+ * sin aplicar en el refresco.
+ */
+export function sessionCookieHeader(token: string): string {
+  const { path, httpOnly, sameSite, secure, maxAge } = SESSION_COOKIE_OPTIONS;
+  const partes = [
+    `${SESSION_COOKIE}=${token}`,
+    `Path=${path}`,
+    `Max-Age=${maxAge}`,
+    `SameSite=${sameSite.charAt(0).toUpperCase()}${sameSite.slice(1)}`,
+  ];
+  if (httpOnly) partes.push('HttpOnly');
+  if (secure) partes.push('Secure');
+  return partes.join('; ');
+}
