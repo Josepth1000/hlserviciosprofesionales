@@ -34,6 +34,14 @@ export default defineConfig({
     // artículos, no la vista duplicada.
     sitemap({
       filter: (page) => !page.includes('/keystatic') && !/\/blog\/?$/.test(page),
+      // Sin barra final, igual que las canónicas y los enlaces internos: el
+      // sitemap anuncia la misma URL que declara cada página como canónica.
+      serialize: (item) => {
+        const url = new URL(item.url);
+        if (url.pathname !== '/') url.pathname = url.pathname.replace(/\/$/, '');
+        item.url = url.href;
+        return item;
+      },
     }),
     react(),
     keystatic(),

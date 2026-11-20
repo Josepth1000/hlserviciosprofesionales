@@ -30,7 +30,11 @@ const {
   article,
   canonicalPath,
 } = Astro.props;
-const canonical = new URL(canonicalPath ?? Astro.url.pathname, Astro.site);
+// Canónica sin barra final (salvo la raíz, que la lleva por obligación): es la
+// forma de los enlaces internos y la que fija `trailingSlash: false` en
+// vercel.json. Así cada página se anuncia con una sola URL.
+const rutaCanonica = (canonicalPath ?? Astro.url.pathname).replace(/\/+$/, '');
+const canonical = new URL(rutaCanonica || '/', Astro.site);
 const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
 const fonts = site.fonts ?? {};
 const fontVars = [
