@@ -30,7 +30,7 @@ npm run dev        # sitio en http://localhost:4321 — panel en http://localhos
 npm run build      # genera el sitio en ./dist (HTML estático + servidor para el panel)
 npm run preview    # previsualiza el build
 npx astro check    # typecheck del proyecto
-npm test           # 47 pruebas con el runner de Node (las mismas que corre el CI)
+npm test           # 59 pruebas con el runner de Node (las mismas que corre el CI)
 ```
 
 ## 🎛️ Panel de administración
@@ -82,7 +82,9 @@ La cookie de sesión va firmada con HMAC-SHA256 usando **`SESSION_SECRET`**, una
 
 La sesión tiene **dos límites**: se cierra a los **30 minutos sin actividad** y, además, a los **7 días desde el inicio de sesión** aunque se use a diario; pasado ese plazo hay que volver a entrar. Las sesiones abiertas con el formato anterior dejan de valer al desplegar este cambio.
 
-`npm test` ejecuta con el runner de Node las **47 pruebas** de `tests/`: firma, manipulación y caducidad del token (inactividad y antigüedad), limitador por IP, recorte de la IP a su red, normalización de los dos formatos de informe CSP, validación del formulario de contacto y decisión de acceso al panel. El CI (`.github/workflows/ci.yml`) las corre en cada push y en cada pull request, antes del typecheck y del build. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o `POST /api/logout` (el `GET` responde 405: cerrar sesión es una acción, no un enlace).
+`npm test` ejecuta con el runner de Node las **59 pruebas** de `tests/`: firma, manipulación y caducidad del token (inactividad y antigüedad), limitador por IP, recorte de la IP a su red, normalización de los dos formatos de informe CSP, validación del formulario de contacto, decisión de acceso al panel y entrada/salida del panel (cuerpo que no es formulario, límite de intentos, `next` saneado y cierre solo por `POST`). El CI (`.github/workflows/ci.yml`) las corre en cada push y en cada pull request, antes del typecheck y del build. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o `POST /api/logout` (el `GET` responde 405: cerrar sesión es una acción, no un enlace).
+
+**Imports con `.ts` explícito.** Los módulos que cargan las pruebas —`src/lib/login-panel.ts` y las rutas `api/login.ts` y `api/logout.ts`— importan con la extensión puesta. Es deliberado: `node --test` carga esos archivos sin el resolutor de Astro y no entiende especificadores sin extensión, mientras que Astro y Vite aceptan las dos formas. El resto del proyecto mantiene el estilo sin extensión; no se unificó porque supondría tocar más de un centenar de imports sin ninguna ganancia funcional. Regla práctica: si un módulo va a cargarse desde una prueba, su cadena de imports lleva `.ts`.
 
 ## 🗂️ Estructura del contenido
 
@@ -111,6 +113,7 @@ El esquema de cada colección está en `keystatic.config.ts` (panel) y debe coin
 │   │                         # auth.ts (sesión), rate-limit.ts (límite por IP)
 │   │                         # redactar-ip.ts, informe-csp.ts (logs del sitio)
 │   │                         # validar-contacto.ts, acceso-panel.ts (reglas puras)
+│   │                         # login-panel.ts (entrada al panel)
 │   └── pages/                # Las rutas del sitio
 ├── astro.config.mjs          # Tailwind, sitemap, React, Keystatic, adaptador Vercel
 └── src/styles/global.css     # Tema (design tokens: paleta corporativa y tipografías)
