@@ -4,7 +4,7 @@ Sitio web moderno de **Henry López – Servicios Profesionales** (Bucaramanga, 
 
 ## ✨ Características
 
-- **16 rutas** (Inicio, Quiénes Somos, Servicios, Cómo me afilio, Noticias, Contacto, Aviso legal, Tratamiento de datos, Cookies y 7 artículos)
+- **16 rutas**: 9 páginas (Inicio, Quiénes Somos, Servicios, Cómo me afilio, Noticias, Contacto, Aviso legal, Tratamiento de datos y Cookies) y 7 artículos de noticias
 - **Panel de administración** en `/keystatic` para editar cada sección e ítem del sitio sin tocar código
 - Diseño **100% responsive** (mobile-first) con la **identidad corporativa** de la firma (dorado `#C9A227` + negro `#0B0B0D`, con `brand-700 #866619` para texto dorado sobre fondos claros)
 - **SEO**: meta tags, Open Graph, canonical y `sitemap.xml` automático
@@ -30,6 +30,7 @@ npm run dev        # sitio en http://localhost:4321 — panel en http://localhos
 npm run build      # genera el sitio en ./dist (HTML estático + servidor para el panel)
 npm run preview    # previsualiza el build
 npx astro check    # typecheck del proyecto
+npm test           # 47 pruebas con el runner de Node (las mismas que corre el CI)
 ```
 
 ## 🎛️ Panel de administración
@@ -81,7 +82,7 @@ La cookie de sesión va firmada con HMAC-SHA256 usando **`SESSION_SECRET`**, una
 
 La sesión tiene **dos límites**: se cierra a los **30 minutos sin actividad** y, además, a los **7 días desde el inicio de sesión** aunque se use a diario; pasado ese plazo hay que volver a entrar. Las sesiones abiertas con el formato anterior dejan de valer al desplegar este cambio.
 
-`npm test` ejecuta las pruebas de `tests/` con el runner de Node: firma, manipulación del token, caducidad por inactividad y por antigüedad, y el limitador por IP. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o `POST /api/logout` (el `GET` responde 405: cerrar sesión es una acción, no un enlace).
+`npm test` ejecuta con el runner de Node las **47 pruebas** de `tests/`: firma, manipulación y caducidad del token (inactividad y antigüedad), limitador por IP, recorte de la IP a su red, normalización de los dos formatos de informe CSP, validación del formulario de contacto y decisión de acceso al panel. El CI (`.github/workflows/ci.yml`) las corre en cada push y en cada pull request, antes del typecheck y del build. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o `POST /api/logout` (el `GET` responde 405: cerrar sesión es una acción, no un enlace).
 
 ## 🗂️ Estructura del contenido
 
@@ -106,7 +107,10 @@ El esquema de cada colección está en `keystatic.config.ts` (panel) y debe coin
 │   ├── components/           # Header, Footer, tarjetas, secciones
 │   ├── content/              # Contenido gestionado por el panel
 │   ├── layouts/Layout.astro
-│   ├── lib/                  # content.ts (lectura), format.ts (fechas/moneda es-CO)
+│   ├── lib/                  # content.ts (lectura), format.ts (fechas/moneda)
+│   │                         # auth.ts (sesión), rate-limit.ts (límite por IP)
+│   │                         # redactar-ip.ts, informe-csp.ts (logs del sitio)
+│   │                         # validar-contacto.ts, acceso-panel.ts (reglas puras)
 │   └── pages/                # Las rutas del sitio
 ├── astro.config.mjs          # Tailwind, sitemap, React, Keystatic, adaptador Vercel
 └── src/styles/global.css     # Tema (design tokens: paleta corporativa y tipografías)
@@ -217,7 +221,7 @@ Por eso este proyecto usa la **GitHub App**. Si creaste una OAuth App para proba
 
 ## 📦 Despliegue en Vercel (recomendado)
 
-El proyecto está configurado con el adaptador **`@astrojs/vercel`**: las 9 páginas se publican como HTML estático (CDN de Vercel) y el panel de administración (`/keystatic`, `/api/keystatic`, login) se sirve como función serverless con Node 24.
+El proyecto está configurado con el adaptador **`@astrojs/vercel`**: las 9 páginas y los 7 artículos se publican como HTML estático (CDN de Vercel) y el panel de administración (`/keystatic`, `/api/keystatic`, login) se sirve como función serverless con Node 24.
 
 ### Pasos
 
