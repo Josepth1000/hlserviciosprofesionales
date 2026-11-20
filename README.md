@@ -236,11 +236,93 @@ npm uninstall @astrojs/vercel
 
 En `astro.config.mjs` cambia `vercel()` por `node({ mode: 'standalone' })`. Build: `npm run build`; start: `node dist/server/entry.mjs`. El panel en modo local solo es recomendable en un servidor propio (escribe archivos en disco).
 
+## 📧 Correo del dominio (Zoho Mail + Resend)
+
+Hay dos piezas distintas y conviene no confundirlas:
+
+- **Envío del formulario** → Resend, ya operativo. `src/pages/api/contacto.ts` valida la solicitud y llama a `https://api.resend.com/emails` con `RESEND_API_KEY`; el remitente es `no-reply@hlserviciosprofesionales.com` (`CONTACT_FROM`) y el destino `CONTACT_TO`. La verificación de Resend vive en el subdominio `send.hlserviciosprofesionales.com` (MX hacia `feedback.forge.rmta.net`, SPF propio y DKIM en `resend._domainkey`), así que **no hay que tocar esos registros**.
+- **Recepción en buzones reales** → Zoho Mail. Mientras el dominio no tenga MX, cualquier mensaje a `contacto@hlserviciosprofesionales.com` rebota: el formulario puede responder `{"ok":true}` y el visitante ver «Mensaje enviado» sin que el correo llegue a ninguna bandeja.
+
+### Registros en el DNS de Vercel
+
+Todos en el dominio raíz salvo el DKIM, que va en su selector. En el panel de Vercel el nombre se escribe **sin el dominio** (`@` para el raíz) y el valor **sin punto final**.
+
+| Tipo | Nombre | Valor | Prioridad |
+|---|---|---|---|
+| MX | `@` | `mx.zoho.com` | 10 |
+| MX | `@` | `mx2.zoho.com` | 20 |
+| MX | `@` | `mx3.zoho.com` | 50 |
+| TXT | `@` | `zoho-verification=zbXXXXXXXXXXXXXX.zmverify.zoho.com` | — |
+| TXT | `@` | `v=spf1 include:zohomail.com ~all` | — |
+| TXT | `zmail._domainkey` | `v=DKIM1; k=rsa; p=<clave que genera el panel>` | — |
+| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:contacto@hlserviciosprofesionales.com; adkim=r; aspf=r; pct=100` | — |
+
+- **Los MX dependen del centro de datos** de la cuenta: `mx.zoho.com` es el de EE. UU. (el que corresponde a Colombia); en `zoho.eu` o `zoho.in` los hostnames cambian. El valor válido es siempre el de *Admin Console → Email Delivery → Tools & Configurations*.
+- **El registro de verificación** lo entrega Zoho al añadir el dominio y es obligatorio antes de activar el buzón; el `zb…` es único de tu cuenta.
+- **DKIM**: el selector es `zmail._domainkey` y la clave se genera en el panel tras verificar el dominio. Copia el valor literal (`v=DKIM1; k=rsa; p=…`).
+- **SPF**: debe quedar **un solo** registro `v=spf1` en el dominio raíz; dos registros se invalidan entre sí. No hay que añadir Resend aquí: sus envíos salen por el subdominio `send.…`, que tiene su propio SPF y return-path, y firman el `From` con el DKIM del dominio.
+- **DMARC**: empieza en `p=none` para observar sin bloquear; cuando los informes estén limpios, sube a `p=quarantine` y luego a `p=reject`. `rua` apunta al buzón que vas a crear, así que ese correo debe existir.
+
+### Orden de aplicación
+
+1. Crear la cuenta de Zoho Mail y añadir `hlserviciosprofesionales.com` como dominio.
+2. Publicar el TXT de verificación y verificar el dominio en el panel de Zoho.
+3. Añadir los tres MX y el SPF.
+4. Generar DKIM en Zoho, publicar `zmail._domainkey` y esperar a que el panel lo marque como activo.
+5. Publicar `_dmarc` en `p=none`.
+6. Crear el buzón `contacto@` (y los alias que necesites) y hacer las pruebas de la sección siguiente.
+
+### Cómo verificarlos
+
+```sh
+nslookup -type=MX hlserviciosprofesionales.com 8.8.8.8
+nslookup -type=TXT hlserviciosprofesionales.com 8.8.8.8
+nslookup -type=TXT zmail._domainkey.hlserviciosprofesionales.com 8.8.8.8
+nslookup -type=TXT _dmarc.hlserviciosprofesionales.com 8.8.8.8
+```
+
+Sin `nslookup`, sirve DNS-over-HTTPS:
+
+```sh
+curl -s -H 'accept: application/dns-json' \
+  'https://cloudflare-dns.com/dns-query?name=hlserviciosprofesionales.com&type=MX'
+```
+
+Qué debe salir y qué comprobar:
+
+- **MX**: exactamente tres registros (10, 20, 50) y ningún otro; un MX de un proveedor anterior desvía o pierde correo.
+- **SPF**: un único TXT que empieza por `v=spf1`, con `include:zohomail.com`. Si aparecen dos, está roto.
+- **DKIM**: el TXT del selector devuelve la clave pública (`p=`).
+- **DMARC**: `_dmarc` devuelve `v=DMARC1; p=none; …`.
+- **Prueba real**: envía un correo desde fuera (Gmail) a `contacto@`, responde desde Zoho y comprueba en «Mostrar original» que salen `spf=pass`, `dkim=pass` y `dmarc=pass`.
+- **Formulario**: envía una solicitud desde `/contacto` y confirma que llega al buzón de `CONTACT_TO`.
+
+### Lista de comprobación copiable
+
+```markdown
+- [ ] Cuenta de Zoho Mail creada y dominio hlserviciosprofesionales.com añadido
+- [ ] TXT zoho-verification publicado y dominio verificado en el panel de Zoho
+- [ ] MX 10  mx.zoho.com
+- [ ] MX 20  mx2.zoho.com
+- [ ] MX 50  mx3.zoho.com
+- [ ] TXT SPF  v=spf1 include:zohomail.com ~all  (único v=spf1 del raíz)
+- [ ] TXT DKIM zmail._domainkey  v=DKIM1; k=rsa; p=…  (clave del panel)
+- [ ] TXT _dmarc  v=DMARC1; p=none; rua=mailto:contacto@hlserviciosprofesionales.com; adkim=r; aspf=r; pct=100
+- [ ] Buzón contacto@ creado (y alias de gerencia@ si hace falta)
+- [ ] nslookup -type=MX devuelve los tres MX, sin sobrantes
+- [ ] nslookup -type=TXT devuelve un solo v=spf1
+- [ ] Correo desde fuera llega a contacto@ y se puede responder
+- [ ] Solicitud del formulario llega al buzón de CONTACT_TO
+- [ ] Cabeceras con spf=pass, dkim=pass, dmarc=pass
+- [ ] send.hlserviciosprofesionales.com y resend._domainkey intactos (Resend sigue enviando)
+- [ ] CONTACT_FROM / CONTACT_TO revisados en Vercel → Settings → Environment Variables
+```
+
 ## ✏️ Antes de publicar
 
-1. **Datos de contacto** → Panel → *Configuración del sitio*. WhatsApp/teléfono ya actualizados con el número real (`+57 315 340 1391`, de la bio de Instagram); falta confirmar el **correo electrónico** real.
-2. **Formulario** → en `src/pages/contacto.astro` reemplaza la acción `https://formspree.io/f/YOUR_FORM_ID` por tu endpoint real.
-3. **Dominio** → cambia `site` en `astro.config.mjs` y renueva/arregla el certificado SSL del hosting (el actual está roto).
+1. **Datos de contacto** → Panel → *Configuración del sitio*. Teléfono y WhatsApp ya unificados en `+57 315 340 1391` (el número de la bio de Instagram) y el correo es `contacto@hlserviciosprofesionales.com`; lo que falta es que ese buzón exista (ver [Correo del dominio](#-correo-del-dominio-zoho-mail--resend)).
+2. **Formulario** → ya apunta a `/api/contacto` y envía por Resend; el envío funciona, pero el mensaje solo se entrega cuando `contacto@` (o el buzón de `CONTACT_TO`) tenga MX.
+3. **Dominio** → `site` en `astro.config.mjs` ya apunta a `https://www.hlserviciosprofesionales.com` y el TLS lo emite Vercel automáticamente. Lo pendiente es adjuntar `hlserviciosprofesionales.com` y `www` a **este** proyecto: hoy el apex está reclamado por otro proyecto de Vercel con un único despliegue vacío, mientras el sitio se sirve en `hlserviciosprofesionales.vercel.app` y `pruebas.hlserviciosprofesionales.com`. Al entrar por el dominio nuevo habrá que repetir el login de GitHub del panel (la cookie del token es por dominio).
 
 ## ➕ Añadir un artículo
 
