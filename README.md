@@ -249,6 +249,8 @@ En `astro.config.mjs` cambia `vercel()` por `node({ mode: 'standalone' })`. Buil
 
 ## 📧 Correo del dominio (Zoho Mail + Resend)
 
+> **Estado: ⏳ pendiente** (nº 1 en [Pendientes](#-pendientes)). Falta crear la cuenta y publicar los registros de abajo; hasta entonces los envíos del formulario no llegan a ninguna bandeja.
+
 Hay dos piezas distintas y conviene no confundirlas:
 
 - **Envío del formulario** → Resend, ya operativo. `src/pages/api/contacto.ts` valida la solicitud y llama a `https://api.resend.com/emails` con `RESEND_API_KEY`; el remitente es `no-reply@hlserviciosprofesionales.com` (`CONTACT_FROM`) y el destino `CONTACT_TO`. La verificación de Resend vive en el subdominio `send.hlserviciosprofesionales.com` (MX hacia `feedback.forge.rmta.net`, SPF propio y DKIM en `resend._domainkey`), así que **no hay que tocar esos registros**.
@@ -331,9 +333,10 @@ Qué debe salir y qué comprobar:
 
 ## ✏️ Antes de publicar
 
-1. **Datos de contacto** → Panel → *Configuración del sitio*. Teléfono y WhatsApp ya unificados en `+57 315 340 1391` (el número de la bio de Instagram) y el correo es `contacto@hlserviciosprofesionales.com`; lo que falta es que ese buzón exista (ver [Correo del dominio](#-correo-del-dominio-zoho-mail--resend)).
-2. **Formulario** → ya apunta a `/api/contacto` y envía por Resend; el envío funciona, pero el mensaje solo se entrega cuando `contacto@` (o el buzón de `CONTACT_TO`) tenga MX.
-3. **Dominio** → `site` en `astro.config.mjs` ya apunta a `https://www.hlserviciosprofesionales.com` y el TLS lo emite Vercel automáticamente. Lo pendiente es adjuntar `hlserviciosprofesionales.com` y `www` a **este** proyecto: hoy el apex está reclamado por otro proyecto de Vercel con un único despliegue vacío, mientras el sitio se sirve en `hlserviciosprofesionales.vercel.app` y `pruebas.hlserviciosprofesionales.com`. Al entrar por el dominio nuevo habrá que repetir el login de GitHub del panel (la cookie del token es por dominio).
+1. **Contenido y datos de contacto** → Panel → *Configuración del sitio* y *✍️ Textos del sitio*. Teléfono y WhatsApp están unificados en `+57 315 340 1391` y el correo publicado es `contacto@hlserviciosprofesionales.com`.
+2. **Buzón del dominio** → pendiente nº 1 de [Pendientes](#-pendientes). Los registros, el orden de aplicación y la verificación están en [Correo del dominio](#-correo-del-dominio-zoho-mail--resend); mientras el buzón no exista, el formulario responde «enviado» y el mensaje no llega a nadie.
+3. **Dominio** → pendiente nº 2: adjuntar `hlserviciosprofesionales.com` y `www` a este proyecto. La rama `preparar-dominio-produccion` deja listo el apex y el TLS lo emite Vercel.
+4. **Panel** → al entrar por un dominio nuevo, *Log out* + *Log in with GitHub* (la cookie del token es por dominio).
 
 ## ➕ Añadir un artículo
 

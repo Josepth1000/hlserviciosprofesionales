@@ -1,32 +1,14 @@
 import type { APIRoute } from 'astro';
 import { timingSafeEqual } from 'node:crypto';
 import { SESSION_COOKIE, createSessionToken, getCredentials, SESSION_COOKIE_OPTIONS } from '../../lib/auth';
+import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
 
 export const prerender = false;
 
-// Límite por IP en memoria, igual que /api/contacto: frena la fuerza bruta
-// contra la contraseña del panel. En Vercel cada instancia lleva su propio
-// contador, así que es una barrera básica, no una cuota exacta.
-const LIMITE = 10;
-const VENTANA_MS = 15 * 60 * 1000;
-const intentos = new Map<string, number[]>();
-
-function permitido(ip: string): boolean {
-  const ahora = Date.now();
-  const previos = (intentos.get(ip) ?? []).filter((t) => ahora - t < VENTANA_MS);
-  if (previos.length >= LIMITE) {
-    intentos.set(ip, previos);
-    return false;
-  }
-  previos.push(ahora);
-  intentos.set(ip, previos);
-  return true;
-}
-
-// Un acierto limpia el contador: quien entra bien no arrastra sus fallos previos.
-function olvidar(ip: string) {
-  intentos.delete(ip);
-}
+// Límite por IP compartido con el resto de rutas (ver src/lib/rate-limit.ts):
+// frena la fuerza bruta contra la contraseña del panel. En Vercel cada
+// instancia lleva su propio contador, así que es una barrera, no una cuota.
+const limite = createRateLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
 
 // Comparación en tiempo constante: ni el usuario ni la contraseña deben
 // delatarse por lo que tarda la respuesta. Longitudes distintas no llegan a
@@ -38,14 +20,9 @@ function iguales(dato: string, esperado: string): boolean {
 }
 
 export const POST: APIRoute = async ({ request, cookies, redirect, url, clientAddress }) => {
-  let ip = 'desconocida';
-  try {
-    ip = clientAddress || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip;
-  } catch {
-    /* algunos entornos no exponen clientAddress */
-  }
+  const ip = getClientIp(request, clientAddress);
   // Antes de leer el cuerpo: un bot no llega a hacer trabajar al servidor.
-  if (!permitido(ip)) return redirect('/keystatic/login?reason=limite');
+  if (!limite.check(ip)) return redirect('/keystatic/login?reason=limite');
 
   // Un cuerpo que no sea de formulario (p. ej. un POST vacío de un bot) hace
   // fallar `formData()`; se responde 400 en lugar de dejar caer un 500.
@@ -64,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect, url, clientAd
   }
 
   if (iguales(username, creds.username) && iguales(password, creds.password)) {
-    olvidar(ip);
+    limite.forget(ip);
     cookies.set(SESSION_COOKIE, createSessionToken(), SESSION_COOKIE_OPTIONS);
 
     const nextParam = url.searchParams.get('next');

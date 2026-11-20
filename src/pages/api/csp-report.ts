@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
 
 // Recibe los informes de violación de la CSP que envían los navegadores de los
 // visitantes (incluido el panel). Sirve para detectar bloqueos reales que el
@@ -16,22 +17,8 @@ export const prerender = false;
 
 // Los informes pueden llegar en ráfagas (una página con muchos recursos
 // bloqueados envía uno por recurso). El límite es por IP y por instancia.
-const LIMITE = 40;
-const VENTANA_MS = 10 * 60 * 1000;
+const limite = createRateLimiter({ limit: 40, windowMs: 10 * 60 * 1000 });
 const MAX_CUERPO = 24 * 1024;
-const intentos = new Map<string, number[]>();
-
-function permitido(ip: string): boolean {
-  const ahora = Date.now();
-  const previos = (intentos.get(ip) ?? []).filter((t) => ahora - t < VENTANA_MS);
-  if (previos.length >= LIMITE) {
-    intentos.set(ip, previos);
-    return false;
-  }
-  previos.push(ahora);
-  intentos.set(ip, previos);
-  return true;
-}
 
 const sinRespuesta = () =>
   new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
@@ -82,13 +69,8 @@ function normalizar(entrada: unknown): Informe | null {
 }
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  let ip = 'desconocida';
-  try {
-    ip = clientAddress || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip;
-  } catch {
-    /* algunos entornos no exponen clientAddress */
-  }
-  if (!permitido(ip)) return sinRespuesta();
+  const ip = getClientIp(request, clientAddress);
+  if (!limite.check(ip)) return sinRespuesta();
 
   const largoDeclarado = Number(request.headers.get('content-length') ?? 0);
   if (largoDeclarado > MAX_CUERPO) return sinRespuesta();

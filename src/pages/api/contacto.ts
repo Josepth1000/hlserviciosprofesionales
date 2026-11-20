@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { CONTACT_FROM, CONTACT_TO, RESEND_API_KEY } from 'astro:env/server';
 import { getTextosData } from '../../lib/content';
+import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
 
 // Función de servidor: recibe el formulario de contacto y lo entrega por correo
 // con Resend. La clave vive en la variable de entorno RESEND_API_KEY (Vercel →
@@ -13,11 +14,10 @@ const DESTINO_POR_DEFECTO = 'contacto@hlserviciosprofesionales.com';
 const REMITENTE_POR_DEFECTO =
   'HL Servicios Profesionales <no-reply@hlserviciosprofesionales.com>';
 
-// Límite por IP en memoria: en Vercel cada instancia tiene la suya, así que es
-// una barrera básica contra ráfagas, no un cuota exacta.
-const LIMITE = 5;
-const VENTANA_MS = 10 * 60 * 1000;
-const intentos = new Map<string, number[]>();
+// Límite por IP compartido con el resto de rutas (ver src/lib/rate-limit.ts).
+// En Vercel cada instancia lleva su contador: es una barrera contra ráfagas,
+// no una cuota exacta.
+const limite = createRateLimiter({ limit: 5, windowMs: 10 * 60 * 1000 });
 
 // Las variables llegan por `astro:env/server` (esquema en astro.config.mjs):
 // son `secret`, así que Astro no las expone al cliente ni las incrusta en el
@@ -28,18 +28,6 @@ function json(cuerpo: unknown, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
   });
-}
-
-function permitido(ip: string): boolean {
-  const ahora = Date.now();
-  const previos = (intentos.get(ip) ?? []).filter((t) => ahora - t < VENTANA_MS);
-  if (previos.length >= LIMITE) {
-    intentos.set(ip, previos);
-    return false;
-  }
-  previos.push(ahora);
-  intentos.set(ip, previos);
-  return true;
 }
 
 const escapar = (texto: string) =>
@@ -71,13 +59,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     }
   }
 
-  let ip = 'desconocida';
-  try {
-    ip = clientAddress || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip;
-  } catch {
-    /* en algunos entornos no hay clientAddress */
-  }
-  if (!permitido(ip)) return json({ ok: false, error: 'limite' }, 429);
+  const ip = getClientIp(request, clientAddress);
+  if (!limite.check(ip)) return json({ ok: false, error: 'limite' }, 429);
 
   let datos: Cuerpo;
   try {
