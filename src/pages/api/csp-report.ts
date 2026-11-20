@@ -26,6 +26,23 @@ const sinRespuesta = () =>
 const recortar = (valor: unknown, maximo = 300): string =>
   typeof valor === 'string' ? valor.slice(0, maximo) : '';
 
+/**
+ * IP sin la parte que identifica a una persona. Los informes de CSP solo se usan
+ * para ver qué recurso se bloquea y cuántas veces; con la red (/24 en IPv4, /48
+ * en IPv6) basta para agrupar los avisos de una misma conexión sin guardar la
+ * dirección completa, que es lo que promete el aviso de privacidad.
+ */
+function redactarIp(ip: string): string {
+  const ipv4 = ip.match(/^(\d{1,3}(?:\.\d{1,3}){2})\.\d{1,3}$/);
+  if (ipv4) return `${ipv4[1]}.0`;
+  if (ip.startsWith(':')) return '::';
+  if (ip.includes(':')) {
+    const grupos = ip.split(':').filter(Boolean).slice(0, 3);
+    return grupos.length ? `${grupos.join(':')}::` : '::';
+  }
+  return 'desconocida';
+}
+
 interface Informe {
   tipo: string;
   directiva: string;
@@ -98,7 +115,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     .filter((informe): informe is Informe => informe !== null);
 
   for (const informe of informes) {
-    console.warn('[csp]', JSON.stringify({ ...informe, ip }));
+    // La IP va recortada: el aviso de privacidad del sitio dice que no se guardan
+    // direcciones IP completas, y para depurar un bloqueo basta la red.
+    console.warn('[csp]', JSON.stringify({ ...informe, ipRed: redactarIp(ip) }));
   }
 
   return sinRespuesta();
