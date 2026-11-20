@@ -4,12 +4,23 @@ Sitio web moderno de **Henry López – Servicios Profesionales** (Bucaramanga, 
 
 ## ✨ Características
 
-- **9 páginas** (Inicio, Quiénes Somos, Servicios, Cómo me afilio, Noticias, Contacto y 3 artículos)
+- **16 rutas** (Inicio, Quiénes Somos, Servicios, Cómo me afilio, Noticias, Contacto, Aviso legal, Tratamiento de datos, Cookies y 7 artículos)
 - **Panel de administración** en `/keystatic` para editar cada sección e ítem del sitio sin tocar código
-- Diseño **100% responsive** (mobile-first) con la **paleta corporativa** extraída del logo de la firma (rojo carmesí `#C02C2C` + neutros cálidos)
+- Diseño **100% responsive** (mobile-first) con la **identidad corporativa** de la firma (dorado `#C9A227` + negro `#0B0B0D`, con `brand-700 #866619` para texto dorado sobre fondos claros)
 - **SEO**: meta tags, Open Graph, canonical y `sitemap.xml` automático
 - Botones de **WhatsApp** integrados, mapa de Google Maps embebido
 - Imágenes originales del sitio migradas desde el archivo de Wayback Machine
+
+## ⏳ Pendientes
+
+> Estado al 20 de noviembre de 2026. Solo lo que sigue abierto y bloquea la puesta en marcha.
+
+| # | Pendiente | Estado | Por qué importa |
+|---|---|---|---|
+| 1 | **Buzón `contacto@hlserviciosprofesionales.com`** (Zoho Mail) | ⏳ **PENDIENTE — aparcado a petición del cliente** | El dominio no tiene MX ni DMARC: ese buzón no existe. Resend acepta el envío del formulario y el correo rebota después, así que **los mensajes se pierden en silencio**. Registros listos en [Correo del dominio](#-correo-del-dominio-zoho-mail--resend). |
+| 2 | **Adjuntar `hlserviciosprofesionales.com` y `www` a este proyecto de Vercel** | ⏳ Pendiente | Hoy el apex lo ocupa otro proyecto y sirve un **WordPress 4.6** antiguo (sin CSP). El sitio nuevo solo responde en `pruebas.` (con `noindex`) y en `vercel.app`. |
+| 3 | **Quitar `PUBLIC_SITE_URL` de Vercel al migrar** | ⏳ Pendiente | Está fijada a `hlserviciosprofesionales.vercel.app`, así que `og:image` y el JSON-LD apuntan a ese host aunque el canónico sea `www`. Al migrar el dominio, se borra y todo vuelve a `site`. |
+| 4 | **Callback `www` en la GitHub App** | ⏳ Pendiente | La cookie del token de Keystatic es por dominio: sin el callback `https://www.…/api/keystatic/github/oauth/callback` no se podrá iniciar sesión desde el dominio definitivo. |
 
 ## 🚀 Puesta en marcha
 
