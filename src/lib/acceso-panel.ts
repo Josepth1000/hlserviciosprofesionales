@@ -8,18 +8,22 @@
  * el veredicto a un `Response`.
  */
 
-export const PREFIJOS_PROTEGIDOS = ['/keystatic', '/api/keystatic'] as const;
-export const RUTA_LOGIN = '/keystatic/login';
+const PREFIJOS_PROTEGIDOS = ['/keystatic', '/api/keystatic'];
+const RUTA_LOGIN = '/keystatic/login';
 
 export type EstadoSesion = {
   /** El token es criptográficamente válido. */
   valida: boolean;
-  /** Válido, pero debe cerrarse por inactividad o por antigüedad. */
-  expirada?: boolean;
+  /**
+   * Motivo por el que una sesión válida debe cerrarse. El validador de sesión
+   * solo lo informa cuando el token está caducado, así que basta con esto: no
+   * hace falta un `expirada` aparte que pudiera contradecirlo.
+   */
   motivo?: 'inactividad' | 'antiguedad' | null;
 };
 
 export type DecisionPanel =
+  | { tipo: 'publico' }
   | { tipo: 'continuar' }
   | { tipo: 'deshabilitado' }
   | { tipo: 'expirada'; reason: 'antiguedad' | 'expired'; redirigir: string; mensaje: string }
@@ -31,14 +35,14 @@ export function pideHtml(accept: string | null | undefined): boolean {
 }
 
 /** `/keystatic` y `/api/keystatic` con sus subrutas, sin prefijos engañosos. */
-export function esRutaProtegida(path: string): boolean {
+function esRutaProtegida(path: string): boolean {
   return PREFIJOS_PROTEGIDOS.some(
     (prefijo) => path === prefijo || path.startsWith(`${prefijo}/`),
   );
 }
 
 /** A dónde volver tras el login, sin abrir redirecciones externas. */
-export function destinoLogin(path: string): string {
+function destinoLogin(path: string): string {
   return `${RUTA_LOGIN}?next=${encodeURIComponent(path)}`;
 }
 
@@ -46,9 +50,8 @@ export function decidirAcceso(
   path: string,
   opciones: { configurado: boolean; sesion: EstadoSesion },
 ): DecisionPanel {
-  if (!esRutaProtegida(path)) return { tipo: 'continuar' };
-  // La pantalla de login es la única parte pública del panel.
-  if (path === RUTA_LOGIN) return { tipo: 'continuar' };
+  // Las rutas del sitio y la pantalla de login no pasan por el control.
+  if (!esRutaProtegida(path) || path === RUTA_LOGIN) return { tipo: 'publico' };
 
   // Sin ADMIN_PASSWORD y SESSION_SECRET el panel no puede ni firmar sesiones:
   // se avisa con 503 en lugar de fingir un login que no va a funcionar.
@@ -56,7 +59,7 @@ export function decidirAcceso(
 
   const { sesion } = opciones;
 
-  if (sesion.valida && sesion.expirada) {
+  if (sesion.valida && sesion.motivo) {
     const porAntiguedad = sesion.motivo === 'antiguedad';
     const reason = porAntiguedad ? 'antiguedad' : 'expired';
     return {

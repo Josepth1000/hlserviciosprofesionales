@@ -10,21 +10,21 @@ import {
   createRefreshedToken,
   sessionCookieHeader,
 } from './lib/auth';
-import { RUTA_LOGIN, decidirAcceso, esRutaProtegida, pideHtml } from './lib/acceso-panel';
+import { decidirAcceso, pideHtml } from './lib/acceso-panel';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, request } = context;
   const path = url.pathname;
 
-  // Las rutas públicas y la pantalla de login no pasan por el control.
-  if (!esRutaProtegida(path) || path === RUTA_LOGIN) return next();
-
   const html = pideHtml(request.headers.get('accept'));
   const sesion = validateSession(cookies.get(SESSION_COOKIE)?.value);
   const decision = decidirAcceso(path, {
     configurado: isConfigured(),
-    sesion: { valida: sesion.valid, expirada: sesion.expired, motivo: sesion.reason },
+    sesion: { valida: sesion.valid, motivo: sesion.reason },
   });
+
+  // Las rutas del sitio y la pantalla de login no pasan por el control.
+  if (decision.tipo === 'publico') return next();
 
   // Sin credenciales configuradas (producción) → panel deshabilitado
   if (decision.tipo === 'deshabilitado') {

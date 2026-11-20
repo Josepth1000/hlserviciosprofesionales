@@ -1,30 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import {
-  decidirAcceso,
-  destinoLogin,
-  esRutaProtegida,
-  pideHtml,
-} from '../src/lib/acceso-panel.ts';
+import { decidirAcceso, pideHtml } from '../src/lib/acceso-panel.ts';
 
-const valida = { valida: true, expirada: false, motivo: null };
-const expiradaPorInactividad = { valida: true, expirada: true, motivo: 'inactividad' };
-const expiradaPorAntiguedad = { valida: true, expirada: true, motivo: 'antiguedad' };
-const sinSesion = { valida: false, expirada: false, motivo: null };
+const valida = { valida: true, motivo: null };
+const expiradaPorInactividad = { valida: true, motivo: 'inactividad' };
+const expiradaPorAntiguedad = { valida: true, motivo: 'antiguedad' };
+const sinSesion = { valida: false, motivo: null };
 const configurado = { configurado: true };
 
 test('las rutas públicas no pasan por el control de acceso', () => {
   for (const path of ['/', '/contacto', '/noticias', '/api/contacto']) {
     assert.deepEqual(decidirAcceso(path, { configurado: false, sesion: sinSesion }), {
-      tipo: 'continuar',
+      tipo: 'publico',
     });
   }
 });
 
 test('la pantalla de login es pública aunque falte configuración', () => {
   assert.deepEqual(decidirAcceso('/keystatic/login', { configurado: false, sesion: sinSesion }), {
-    tipo: 'continuar',
+    tipo: 'publico',
   });
 });
 
@@ -50,6 +45,18 @@ test('sin sesión se vuelve al login recordando la ruta pedida', () => {
   assert.equal(decision.tipo, 'sin-sesion');
   assert.equal(decision.redirigir, '/keystatic/login?next=%2Fkeystatic%2Fcollection%2Fposts');
   assert.equal(decision.mensaje, 'No autorizado');
+});
+
+test('la ruta de vuelta se codifica y nunca sale del sitio', () => {
+  const anidada = decidirAcceso('/keystatic/singleton/configuracion', {
+    ...configurado,
+    sesion: sinSesion,
+  });
+  const api = decidirAcceso('/api/keystatic/update', { ...configurado, sesion: sinSesion });
+
+  assert.equal(anidada.redirigir, '/keystatic/login?next=%2Fkeystatic%2Fsingleton%2Fconfiguracion');
+  assert.equal(api.redirigir, '/keystatic/login?next=%2Fapi%2Fkeystatic%2Fupdate');
+  assert.ok(anidada.redirigir.startsWith('/keystatic/login?next=%2F'));
 });
 
 test('una sesión expirada por inactividad pide volver a entrar', () => {
@@ -85,19 +92,19 @@ test('una sesión válida sigue adelante', () => {
   }), { tipo: 'continuar' });
 });
 
-test('los prefijos parecidos no abren el panel ni lo bloquean', () => {
-  assert.equal(esRutaProtegida('/keystatic'), true);
-  assert.equal(esRutaProtegida('/keystatic/'), true);
-  assert.equal(esRutaProtegida('/api/keystatic'), true);
-  assert.equal(esRutaProtegida('/api/keystatic/update'), true);
-  assert.equal(esRutaProtegida('/keystaticooo'), false);
-  assert.equal(esRutaProtegida('/api/keystatico'), false);
-  assert.equal(esRutaProtegida('/api/contacto'), false);
-});
-
-test('el destino de vuelta se codifica y nunca apunta fuera del sitio', () => {
-  assert.equal(destinoLogin('/keystatic/singleton/configuracion'), '/keystatic/login?next=%2Fkeystatic%2Fsingleton%2Fconfiguracion');
-  assert.equal(destinoLogin('/keystatic?x=1'), '/keystatic/login?next=%2Fkeystatic%3Fx%3D1');
+test('los prefijos parecidos ni abren el panel ni lo bloquean', () => {
+  for (const path of ['/keystaticooo', '/api/keystatico']) {
+    assert.deepEqual(decidirAcceso(path, { ...configurado, sesion: sinSesion }), {
+      tipo: 'publico',
+    });
+  }
+  for (const path of ['/keystatic', '/keystatic/', '/api/keystatic', '/api/keystatic/update']) {
+    assert.deepEqual(decidirAcceso(path, { ...configurado, sesion: sinSesion }), {
+      tipo: 'sin-sesion',
+      redirigir: `/keystatic/login?next=${encodeURIComponent(path)}`,
+      mensaje: 'No autorizado',
+    });
+  }
 });
 
 test('solo una navegación del navegador cuenta como HTML', () => {
