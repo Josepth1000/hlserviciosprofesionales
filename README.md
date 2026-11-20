@@ -81,7 +81,7 @@ La cookie de sesión va firmada con HMAC-SHA256 usando **`SESSION_SECRET`**, una
 
 La sesión tiene **dos límites**: se cierra a los **30 minutos sin actividad** y, además, a los **7 días desde el inicio de sesión** aunque se use a diario; pasado ese plazo hay que volver a entrar. Las sesiones abiertas con el formato anterior dejan de valer al desplegar este cambio.
 
-`npm test` ejecuta las pruebas de `tests/` con el runner de Node: firma, manipulación del token, caducidad por inactividad y por antigüedad, y el limitador por IP. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o la ruta `/api/logout`.
+`npm test` ejecuta las pruebas de `tests/` con el runner de Node: firma, manipulación del token, caducidad por inactividad y por antigüedad, y el limitador por IP. Cierre de sesión: botón **Salir** (flotante, con icono) dentro del panel, botón **Cerrar sesión** en la pantalla de login, o `POST /api/logout` (el `GET` responde 405: cerrar sesión es una acción, no un enlace).
 
 ## 🗂️ Estructura del contenido
 

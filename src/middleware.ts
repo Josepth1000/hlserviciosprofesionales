@@ -30,7 +30,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
       : JSON.stringify({ error: 'Panel deshabilitado: configura ADMIN_PASSWORD y SESSION_SECRET' });
     return new Response(body, {
       status: 503,
-      headers: { 'Content-Type': isHtmlRequest(request) ? 'text/html; charset=utf-8' : 'application/json' },
+      headers: {
+        'Content-Type': isHtmlRequest(request) ? 'text/html; charset=utf-8' : 'application/json',
+        'Cache-Control': 'no-store',
+      },
     });
   }
 
@@ -52,7 +55,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         : 'Sesión expirada por inactividad';
       return new Response(JSON.stringify({ error: mensaje }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -105,7 +108,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Peticiones de API sin sesión → 401
   return new Response(JSON.stringify({ error: 'No autorizado' }), {
     status: 401,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
 });
 
