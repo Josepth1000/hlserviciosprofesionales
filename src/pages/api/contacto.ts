@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { CONTACT_FROM, CONTACT_TO, RESEND_API_KEY } from 'astro:env/server';
 import { getTextosData } from '../../lib/content';
 import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
+import { validarContacto } from '../../lib/validar-contacto';
 
 // Función de servidor: recibe el formulario de contacto y lo entrega por correo
 // con Resend. La clave vive en la variable de entorno RESEND_API_KEY (Vercel →
@@ -33,15 +34,6 @@ function json(cuerpo: unknown, status = 200) {
 const escapar = (texto: string) =>
   texto.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-type Cuerpo = {
-  nombre?: string;
-  telefono?: string;
-  email?: string;
-  servicio?: string;
-  mensaje?: string;
-  _empresa?: string;
-};
-
 // Solo acepta envíos: un GET a esta ruta no es una página ni un recurso.
 export const GET: APIRoute = () =>
   new Response(null, { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
@@ -62,9 +54,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const ip = getClientIp(request, clientAddress);
   if (!limite.check(ip)) return json({ ok: false, error: 'limite' }, 429);
 
-  let datos: Cuerpo;
+  let datos: unknown;
   try {
-    datos = (await request.json()) as Cuerpo;
+    datos = await request.json();
   } catch (error) {
     console.error(
       '[contacto] cuerpo ilegible',
@@ -79,23 +71,17 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ ok: false, error: 'formato' }, 400);
   }
 
+  // Las reglas del formulario viven en src/lib/validar-contacto.ts, donde se
+  // prueban sin arrancar Astro.
+  const revision = validarContacto(datos);
+
   // Honeypot: si el campo invisible viene relleno, se responde como si todo
   // fuera bien para no dar pistas al bot, pero no se envía nada.
-  if ((datos._empresa ?? '').trim()) return json({ ok: true });
-
-  const nombre = (datos.nombre ?? '').trim();
-  const telefono = (datos.telefono ?? '').trim();
-  const email = (datos.email ?? '').trim();
-  const servicio = (datos.servicio ?? '').trim();
-  const mensaje = (datos.mensaje ?? '').trim();
-
-  if (nombre.length < 2 || nombre.length > 80) return json({ ok: false, error: 'nombre' }, 422);
-  if (!/^[\d\s+().-]{6,30}$/.test(telefono)) return json({ ok: false, error: 'telefono' }, 422);
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    return json({ ok: false, error: 'email' }, 422);
+  if (revision.estado === 'spam') return json({ ok: true });
+  if (revision.estado === 'invalido') {
+    return json({ ok: false, error: revision.campo }, 422);
   }
-  if (!servicio || servicio.length > 60) return json({ ok: false, error: 'servicio' }, 422);
-  if (mensaje.length < 5 || mensaje.length > 2000) return json({ ok: false, error: 'mensaje' }, 422);
+  const { nombre, telefono, email, servicio, mensaje } = revision.datos;
 
   const apiKey = RESEND_API_KEY;
   if (!apiKey) return json({ ok: false, error: 'configuracion' }, 500);
