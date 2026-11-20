@@ -247,6 +247,30 @@ El proyecto está configurado con el adaptador **`@astrojs/vercel`**: las 9 pág
 
 > ⚠️ **Importante:** en Vercel el panel **debe** funcionar en **modo GitHub** (con `PUBLIC_KEYSTATIC_GITHUB_REPO` definido). El modo local no puede guardar archivos en la nube. Cada vez que guardes un cambio en el panel, Keystatic hace push a GitHub y Vercel **redespliega automáticamente**.
 
+### Prueba de humo tras desplegar
+
+`scripts/smoke.mjs` comprueba en la URL publicada lo que las pruebas unitarias no pueden ver: que Astro y Vercel sirven el middleware, la protección del panel y las funciones de `/api` como espera el código.
+
+```sh
+npm run smoke                                            # contra pruebas.hlserviciosprofesionales.com
+node scripts/smoke.mjs https://hlserviciosprofesionales.com
+SMOKE_URL=https://… npm run smoke
+```
+
+No tiene dependencias ni configuración: usa el `fetch` de Node 22 y termina en unos segundos.
+
+| Comprobación | Qué espera |
+|---|---|
+| `GET /` | 200, `content-type: text/html` y HTML real |
+| `GET /keystatic` (Accept: text/html) | 302 a `/keystatic/login?next=%2Fkeystatic` |
+| `GET /api/keystatic/update` | 401 con `Cache-Control: no-store` y `{"error":"No autorizado"}` |
+| `GET /api/contacto` | 405 con `Allow: POST` |
+| `POST /api/csp-report` | 204 |
+
+Si algo falla, imprime el motivo de cada comprobación y sale con código 1, así que sirve igual a mano que dentro de un paso de despliegue. El `POST` deja una línea `[csp]` con `https://smoke.invalid/smoke.js` en los logs de Vercel: esa marca confirma que el informe se normalizó y se escribió.
+
+Conviene correrlo **después de cada despliegue**: sobre `pruebas.` mientras el dominio definitivo no apunte aquí, y sobre el dominio real después del corte.
+
 ### Alternativa: host con Node (Render / Railway / VPS)
 
 Si prefieres otro hosting, instala el adaptador de Node y revierte el de Vercel:
