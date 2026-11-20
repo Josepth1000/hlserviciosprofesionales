@@ -19,6 +19,11 @@ interface Props {
   };
   /** Canónica alternativa para vistas que repiten el contenido de otra página. */
   canonicalPath?: string;
+  /**
+   * La 404 no es una página real: sin canónica ni og:url hacia una ruta que no
+   * existe. Cualquier otra página debe declararlas.
+   */
+  noCanonical?: boolean;
 }
 
 const site = await getSiteData();
@@ -29,6 +34,7 @@ const {
   ogType = 'website',
   article,
   canonicalPath,
+  noCanonical = false,
 } = Astro.props;
 // Canónica sin barra final (salvo la raíz, que la lleva por obligación): es la
 // forma de los enlaces internos y la que fija `trailingSlash: false` en
@@ -120,14 +126,14 @@ const articleSchema = article
     <link rel="icon" type="image/png" href="/favicon-48.png" sizes="48x48" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <link rel="canonical" href={canonical} />
+    {!noCanonical && <link rel="canonical" href={canonical} />}
 
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={`${title} | ${site.name}`} />
     <meta property="og:description" content={description} />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:locale" content="es_CO" />
-    <meta property="og:url" content={canonical} />
+    {!noCanonical && <meta property="og:url" content={canonical} />}
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:alt" content={site.name} />
     <meta property="og:image:width" content="1200" />
