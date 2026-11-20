@@ -20,7 +20,12 @@ const { title, description, pubDate, category, tags } = post.data;
 const textos = await getTextosData();
 ---
 
-<Layout title={title} description={description}>
+<Layout
+  title={title}
+  description={description}
+  ogType="article"
+  article={{ publishedTime: pubDate, section: category, tags }}
+>
   <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
     <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
       <span class="rounded-full bg-brand-100 px-2.5 py-1 text-brand-700">{category}</span>

@@ -54,6 +54,10 @@ type Cuerpo = {
   _empresa?: string;
 };
 
+// Solo acepta envíos: un GET a esta ruta no es una página ni un recurso.
+export const GET: APIRoute = () =>
+  new Response(null, { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store' } });
+
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Mismo origen: evita que otros sitios usen el endpoint como relay de spam.
   const origen = request.headers.get('origin');

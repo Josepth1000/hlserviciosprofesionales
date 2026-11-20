@@ -29,8 +29,12 @@ export default defineConfig({
   integrations: [
     variantesHero,
     // El panel no se anuncia a los buscadores: ya lleva noindex y además
-    // ensuciaba el sitemap con /keystatic/login.
-    sitemap({ filter: (page) => !page.includes('/keystatic') }),
+    // ensuciaba el sitemap con /keystatic/login. /blog es el archivo de
+    // publicaciones, pero su canónica apunta a /noticias: se listan los
+    // artículos, no la vista duplicada.
+    sitemap({
+      filter: (page) => !page.includes('/keystatic') && !/\/blog\/?$/.test(page),
+    }),
     react(),
     keystatic(),
   ],
