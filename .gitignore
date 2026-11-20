@@ -13,6 +13,20 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+dev.log
+
+# volcados y borradores locales (no forman parte del sitio)
+prod_full.html
+
+# herramientas de agente (configuración local, no del proyecto)
+.agents/
+.codex/
+.impeccable/
+
+# documentación: la fuente versionada son los .md; los originales de Word y
+# las notas internas de planificación no se suben
+*.docx
+docs/PLAN-MEJORA.md
 
 # environment variables (el archivo de ejemplo sí se versiona)
 .env
