@@ -2,6 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "astro",
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/blog",
+      "destination": "/noticias",
+      "permanent": true
+    }
+  ],
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "headers": [

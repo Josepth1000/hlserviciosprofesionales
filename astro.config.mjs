@@ -29,11 +29,9 @@ export default defineConfig({
   integrations: [
     variantesHero,
     // El panel no se anuncia a los buscadores: ya lleva noindex y además
-    // ensuciaba el sitemap con /keystatic/login. /blog es el archivo de
-    // publicaciones, pero su canónica apunta a /noticias: se listan los
-    // artículos, no la vista duplicada.
+    // ensuciaba el sitemap con /keystatic/login.
     sitemap({
-      filter: (page) => !page.includes('/keystatic') && !/\/blog\/?$/.test(page),
+      filter: (page) => !page.includes('/keystatic'),
       // Sin barra final, igual que las canónicas y los enlaces internos: el
       // sitemap anuncia la misma URL que declara cada página como canónica.
       serialize: (item) => {

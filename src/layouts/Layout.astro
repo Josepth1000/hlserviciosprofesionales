@@ -17,8 +17,6 @@ interface Props {
     section?: string;
     tags?: string[];
   };
-  /** Canónica alternativa para vistas que repiten el contenido de otra página. */
-  canonicalPath?: string;
   /**
    * La 404 no es una página real: sin canónica ni og:url hacia una ruta que no
    * existe. Cualquier otra página debe declararlas.
@@ -33,13 +31,12 @@ const {
   description = site.description,
   ogType = 'website',
   article,
-  canonicalPath,
   noCanonical = false,
 } = Astro.props;
 // Canónica sin barra final (salvo la raíz, que la lleva por obligación): es la
 // forma de los enlaces internos y la que fija `trailingSlash: false` en
 // vercel.json. Así cada página se anuncia con una sola URL.
-const rutaCanonica = (canonicalPath ?? Astro.url.pathname).replace(/\/+$/, '');
+const rutaCanonica = Astro.url.pathname.replace(/\/+$/, '');
 const canonical = new URL(rutaCanonica || '/', Astro.site);
 const waLink = getWhatsAppLink(site.whatsapp, textos.global.whatsappMessage);
 const fonts = site.fonts ?? {};
