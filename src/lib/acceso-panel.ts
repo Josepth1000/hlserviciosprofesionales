@@ -8,8 +8,10 @@
  * el veredicto a un `Response`.
  */
 
-const PREFIJOS_PROTEGIDOS = ['/keystatic', '/api/keystatic'];
-const RUTA_LOGIN = '/keystatic/login';
+export const RUTA_PANEL = '/keystatic';
+export const RUTA_LOGIN = `${RUTA_PANEL}/login`;
+
+const PREFIJOS_PROTEGIDOS = [RUTA_PANEL, '/api/keystatic'];
 
 export type EstadoSesion = {
   /** El token es criptográficamente válido. */

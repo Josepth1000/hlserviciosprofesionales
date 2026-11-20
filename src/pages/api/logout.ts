@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { SESSION_COOKIE } from '../../lib/auth';
+import { SESSION_COOKIE } from '../../lib/auth.ts';
+import { RUTA_LOGIN } from '../../lib/acceso-panel.ts';
 
 export const prerender = false;
 
@@ -8,7 +9,7 @@ export const prerender = false;
 // El 303 hace que el navegador siga con un GET a la pantalla de login.
 export const POST: APIRoute = async ({ cookies, redirect }) => {
   cookies.delete(SESSION_COOKIE, { path: '/' });
-  return redirect('/keystatic/login', 303);
+  return redirect(RUTA_LOGIN, 303);
 };
 
 export const GET: APIRoute = () =>
