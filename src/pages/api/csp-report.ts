@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
-import { redactarIp } from '../../lib/redactar-ip';
-import { normalizarInforme, type InformeCsp } from '../../lib/informe-csp';
+// Extensiones `.ts` para que las pruebas puedan cargar la ruta con Node a secas.
+import { createRateLimiter, getClientIp } from '../../lib/rate-limit.ts';
+import { redactarIp } from '../../lib/redactar-ip.ts';
+import { normalizarInforme, type InformeCsp } from '../../lib/informe-csp.ts';
 
 // Recibe los informes de violación de la CSP que envían los navegadores de los
 // visitantes (incluido el panel). Sirve para detectar bloqueos reales que el

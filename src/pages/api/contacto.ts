@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
 import { CONTACT_FROM, CONTACT_TO, RESEND_API_KEY } from 'astro:env/server';
-import { getTextosData } from '../../lib/content';
-import { createRateLimiter, getClientIp } from '../../lib/rate-limit';
-import { validarContacto } from '../../lib/validar-contacto';
+// Extensiones `.ts` para que las pruebas puedan cargar la ruta con Node a secas.
+import { getTextosData } from '../../lib/content.ts';
+import { createRateLimiter, getClientIp } from '../../lib/rate-limit.ts';
+import { validarContacto } from '../../lib/validar-contacto.ts';
 
 // Función de servidor: recibe el formulario de contacto y lo entrega por correo
 // con Resend. La clave vive en la variable de entorno RESEND_API_KEY (Vercel →
