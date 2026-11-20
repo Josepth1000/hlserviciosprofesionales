@@ -27,8 +27,10 @@ const MAX_IPS = 1000;
 
 export function createRateLimiter({ limit, windowMs }: RateLimitOptions): RateLimiter {
   const intentos = new Map<string, number[]>();
+  let ultimoBarrido = 0;
 
   function limpiar(ahora: number) {
+    ultimoBarrido = ahora;
     for (const [ip, marcas] of intentos) {
       if (!marcas.some((t) => ahora - t < windowMs)) intentos.delete(ip);
     }
@@ -37,7 +39,11 @@ export function createRateLimiter({ limit, windowMs }: RateLimitOptions): RateLi
   return {
     check(ip) {
       const ahora = Date.now();
-      if (intentos.size > MAX_IPS) limpiar(ahora);
+      // El barrido recorre el mapa completo, así que se hace como mucho una vez
+      // por ventana: si se lanzara en cada petición, una ráfaga de IPs distintas
+      // (justo el caso contra el que protege) convertiría el limitador en trabajo
+      // extra por petición en lugar de una barrera barata.
+      if (intentos.size > MAX_IPS && ahora - ultimoBarrido >= windowMs) limpiar(ahora);
 
       const previos = (intentos.get(ip) ?? []).filter((t) => ahora - t < windowMs);
       if (previos.length >= limit) {
@@ -55,8 +61,10 @@ export function createRateLimiter({ limit, windowMs }: RateLimitOptions): RateLi
 }
 
 /**
- * IP del visitante. `clientAddress` es la fuente fiable en Vercel;
- * `x-forwarded-for` solo cubre entornos que no la exponen.
+ * IP del visitante. `clientAddress` es la fuente fiable en Vercel (y en
+ * `astro dev`); `x-forwarded-for` es una cabecera que el cliente puede escribir,
+ * así que solo sirve detrás de un proxy que la sobrescriba. Si no hay ninguna de
+ * las dos, todos los visitantes sin identificar comparten un mismo contador.
  */
 export function getClientIp(request: Request, clientAddress?: string): string {
   try {
