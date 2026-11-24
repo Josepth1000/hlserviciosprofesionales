@@ -105,6 +105,29 @@ const comprobaciones = [
     },
   },
   {
+    // Honeypot: el campo invisible `_empresa` relleno delata a un bot. La ruta
+    // responde como si todo fuera bien para no darle pistas, pero se sale antes
+    // de construir el correo y de llamar a Resend.
+    nombre: 'POST /api/contacto con honeypot relleno → 200 sin enviar',
+    async correr() {
+      const respuesta = await pedir('/api/contacto', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', origin: base },
+        body: JSON.stringify({
+          nombre: 'Prueba de humo',
+          telefono: '+57 300 000 0000',
+          email: 'humo@smoke.invalid',
+          servicio: 'juridicos',
+          mensaje: 'Comprobación del honeypot: no debe enviarse ningún correo.',
+          _empresa: 'bot',
+        }),
+      });
+      exigir(respuesta.status === 200, `se esperaba 200 y llegó ${respuesta.status}`);
+      const cuerpo = await respuesta.json();
+      exigir(cuerpo?.ok === true, `cuerpo inesperado: ${JSON.stringify(cuerpo)}`);
+    },
+  },
+  {
     nombre: 'POST /api/csp-report → 204',
     async correr() {
       const respuesta = await pedir('/api/csp-report', {

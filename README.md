@@ -269,9 +269,10 @@ No tiene dependencias ni configuración: usa el `fetch` de Node 22 y termina en 
 | `GET /api/keystatic/update` | 401 con `Cache-Control: no-store` y `{"error":"No autorizado"}` |
 | `GET /api/contacto` | 405 con `Allow: POST` |
 | `POST /api/contacto` con `Origin` ajeno | 403 `origen` (no envía correo) |
+| `POST /api/contacto` con el honeypot relleno | 200 `{ ok: true }` (no envía correo) |
 | `POST /api/csp-report` | 204 |
 
-Si algo falla, imprime el motivo de cada comprobación y sale con código 1, así que sirve igual a mano que dentro de un paso de despliegue. El `POST` deja una línea `[csp]` con `https://smoke.invalid/smoke.js` en los logs de Vercel: esa marca confirma que el informe se normalizó y se escribió. El `POST` de contacto lleva el cuerpo de un formulario válido, pero con `Origin: https://smoke.invalid`: la ruta rechaza el origen antes de validar, de contar el intento y de llamar a Resend, así que la comprobación no envía correos ni gasta cupo del limitador.
+Si algo falla, imprime el motivo de cada comprobación y sale con código 1, así que sirve igual a mano que dentro de un paso de despliegue. El `POST` deja una línea `[csp]` con `https://smoke.invalid/smoke.js` en los logs de Vercel: esa marca confirma que el informe se normalizó y se escribió. El `POST` de contacto lleva el cuerpo de un formulario válido, pero con `Origin: https://smoke.invalid`: la ruta rechaza el origen antes de validar, de contar el intento y de llamar a Resend, así que la comprobación no envía correos ni gasta cupo del limitador. La del honeypot sí pasa por el limitador antes de descartar el envío (1 de los 5 intentos por IP y 10 minutos), de modo que correr el humo más de cinco veces seguidas desde la misma IP puede devolver 429 en esa comprobación; es el mismo tope que protege el formulario real, no un fallo del sitio.
 
 Conviene correrlo **después de cada despliegue**: sobre `pruebas.` mientras el dominio definitivo no apunte aquí, y sobre el dominio real después del corte.
 
