@@ -84,6 +84,27 @@ const comprobaciones = [
     },
   },
   {
+    // El filtro de origen va antes del cuerpo, del limitador y de Resend: la
+    // petición muere en el 403, así que el humo no gasta intentos ni envía nada.
+    nombre: 'POST /api/contacto con origen ajeno → 403 sin enviar',
+    async correr() {
+      const respuesta = await pedir('/api/contacto', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', origin: 'https://smoke.invalid' },
+        body: JSON.stringify({
+          nombre: 'Prueba de humo',
+          telefono: '+57 300 000 0000',
+          email: 'humo@smoke.invalid',
+          servicio: 'juridicos',
+          mensaje: 'Comprobación de origen: no debe enviarse ningún correo.',
+        }),
+      });
+      exigir(respuesta.status === 403, `se esperaba 403 y llegó ${respuesta.status}`);
+      const cuerpo = await respuesta.json();
+      exigir(cuerpo?.error === 'origen', `cuerpo inesperado: ${JSON.stringify(cuerpo)}`);
+    },
+  },
+  {
     nombre: 'POST /api/csp-report → 204',
     async correr() {
       const respuesta = await pedir('/api/csp-report', {
