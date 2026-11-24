@@ -86,3 +86,91 @@ test('un JSON ilegible responde 400 con el camino del formato', async (t) => {
   assert.equal(respuesta.status, 400);
   assert.deepEqual(await respuesta.json(), { ok: false, error: 'formato' });
 });
+
+// ── Camino de envío ───────────────────────────────────────────────────────────
+// Un formulario válido llega a Resend. Ni la red ni las variables de Astro son
+// reales: `fetch` se sustituye por un doble y `astro:env/server` por el doble
+// con `fijarVariables`, así que se comprueba el correo que se manda sin enviar
+// ninguno.
+
+const { fijarVariables } = await import('./apoyo/astro-env-falso.mjs');
+
+const DATOS_VALIDOS = {
+  nombre: 'Ana Pérez',
+  telefono: '+57 315 340 1391',
+  email: 'ana@ejemplo.test',
+  servicio: 'juridicos',
+  mensaje: 'Necesito asesoría <b>urgente</b>.',
+};
+
+const VARIABLES = {
+  apiKey: 're_clave_de_prueba',
+  destino: 'bandeja@ejemplo.test',
+  remitente: 'HL Pruebas <no-reply@ejemplo.test>',
+};
+
+function conVariables(t) {
+  fijarVariables(VARIABLES);
+  t.after(() => fijarVariables());
+}
+
+test('un formulario válido envía a Resend el cuerpo esperado', async (t) => {
+  conVariables(t);
+
+  let peticion;
+  t.mock.method(globalThis, 'fetch', async (url, opciones) => {
+    peticion = { url, opciones };
+    return new Response('{"id":"re_prueba"}', { status: 200 });
+  });
+
+  const respuesta = await enviar(DATOS_VALIDOS, { ip: '10.4.0.1' });
+
+  assert.equal(respuesta.status, 200);
+  assert.deepEqual(await respuesta.json(), { ok: true });
+
+  assert.equal(peticion.url, 'https://api.resend.com/emails');
+  assert.equal(peticion.opciones.method, 'POST');
+  assert.equal(peticion.opciones.headers.Authorization, `Bearer ${VARIABLES.apiKey}`);
+
+  const cuerpo = JSON.parse(peticion.opciones.body);
+  assert.equal(cuerpo.from, VARIABLES.remitente);
+  assert.deepEqual(cuerpo.to, [VARIABLES.destino]);
+  assert.equal(cuerpo.reply_to, DATOS_VALIDOS.email);
+  // El asunto lleva la etiqueta del panel, no el valor técnico del formulario.
+  assert.equal(cuerpo.subject, 'Nuevo mensaje de Solicitud de Asesoría · Tema: Servicios Jurídicos');
+  assert.match(cuerpo.text, /Nombre: Ana Pérez/);
+  assert.match(cuerpo.text, /Correo: ana@ejemplo\.test/);
+  assert.match(cuerpo.text, /Servicio de interés: Servicios Jurídicos/);
+  assert.match(cuerpo.text, /Mensaje:\nNecesito asesoría <b>urgente<\/b>\./);
+  // El HTML escapa lo que llega del formulario.
+  assert.match(cuerpo.html, /&lt;b&gt;urgente&lt;\/b&gt;/);
+  assert.doesNotMatch(cuerpo.html, /<b>urgente<\/b>/);
+});
+
+test('si Resend responde con error, la ruta devuelve 502 sin confirmar el envío', async (t) => {
+  conVariables(t);
+  t.mock.method(console, 'error', () => {});
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async () => new Response('{"message":"El dominio no está verificado"}', { status: 422 }),
+  );
+
+  const respuesta = await enviar(DATOS_VALIDOS, { ip: '10.4.0.2' });
+
+  assert.equal(respuesta.status, 502);
+  assert.deepEqual(await respuesta.json(), { ok: false, error: 'envio' });
+});
+
+test('si la llamada a Resend ni siquiera responde, también es 502', async (t) => {
+  conVariables(t);
+  t.mock.method(console, 'error', () => {});
+  t.mock.method(globalThis, 'fetch', async () => {
+    throw new Error('tiempo de espera agotado');
+  });
+
+  const respuesta = await enviar(DATOS_VALIDOS, { ip: '10.4.0.3' });
+
+  assert.equal(respuesta.status, 502);
+  assert.deepEqual(await respuesta.json(), { ok: false, error: 'envio' });
+});
